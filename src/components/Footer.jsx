@@ -73,7 +73,7 @@ const Footer = () => {
                         </li>
                         <li className="flex items-center gap-2 mt-4">
                             <img
-                                src="/harmony-one-logo.png"
+                                src="harmony-one-logo.png"
                                 alt="Harmony ONE"
                                 className="w-20 h-auto"
                             />
