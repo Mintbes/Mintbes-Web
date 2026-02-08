@@ -8,7 +8,7 @@ const Hero = () => {
             {/* Image Background */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/hero-bq.jpg"
+                    src="hero-bq.jpg"
                     alt="Mintbes Harmony Validator"
                     className="w-full h-full object-cover"
                 />

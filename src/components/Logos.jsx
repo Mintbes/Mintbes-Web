@@ -3,7 +3,7 @@ import React from 'react';
 export const MintbesLogo = ({ className = "w-10 h-10" }) => (
     <div className={`${className} flex items-center justify-center`}>
         <img
-            src="/mintbes_leaf_transparent.png"
+            src="mintbes_leaf_transparent.png"
             alt="Mintbes Logo"
             className="w-full h-full object-contain"
             onError={(e) => {

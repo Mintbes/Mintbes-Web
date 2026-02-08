@@ -4,18 +4,18 @@ import { X, Play, Maximize2 } from 'lucide-react';
 
 const media = [
     {
-        url: '/Harmony1st.mp4',
+        url: 'Harmony1st.mp4',
         title: 'First AI surprise',
         type: 'video'
     },
-    { url: '/flower.jpg', title: 'Just in Harmony', type: 'image' },
-    { url: '/Pixel.jpg', title: 'Pixel to life', type: 'image' },
-    { url: '/pepabeer.jpg', title: 'PeppaBeer a tope', type: 'image' },
-    { url: '/wage.jpg', title: 'Always in company', type: 'image' },
-    { url: '/moon.jpg', title: 'To the moon', type: 'image' },
-    { url: '/wale.jpg', title: 'Waiting for you', type: 'image' },
-    { url: '/cpu.jpg', title: 'Tech firts', type: 'image' },
-    { url: '/server.jpg', title: 'Harmony Power', type: 'image' }
+    { url: 'flower.jpg', title: 'Just in Harmony', type: 'image' },
+    { url: 'Pixel.jpg', title: 'Pixel to life', type: 'image' },
+    { url: 'pepabeer.jpg', title: 'PeppaBeer a tope', type: 'image' },
+    { url: 'wage.jpg', title: 'Always in company', type: 'image' },
+    { url: 'moon.jpg', title: 'To the moon', type: 'image' },
+    { url: 'wale.jpg', title: 'Waiting for you', type: 'image' },
+    { url: 'cpu.jpg', title: 'Tech firts', type: 'image' },
+    { url: 'server.jpg', title: 'Harmony Power', type: 'image' }
 ];
 
 const Gallery = () => {

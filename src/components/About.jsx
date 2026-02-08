@@ -92,7 +92,7 @@ const Active = () => {
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-mintbes-50 rounded-full flex items-center justify-center overflow-hidden border border-gray-100">
-                                    <img src="/mintbes_leaf_transparent.png" alt="Mintbes" className="w-8 h-8 object-contain" />
+                                    <img src="mintbes_leaf_transparent.png" alt="Mintbes" className="w-8 h-8 object-contain" />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-900">Mintbes Validator</h4>
