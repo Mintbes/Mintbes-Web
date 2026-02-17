@@ -2,6 +2,67 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
+const renderMarkdown = (text) => {
+    if (!text) return null;
+
+    // Handle links: [text](url)
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+        // Add text before the link
+        if (match.index > lastIndex) {
+            parts.push(text.substring(lastIndex, match.index));
+        }
+
+        // Add the link element
+        parts.push(
+            <a
+                key={match.index}
+                href={match[2]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-mintbes-600 hover:text-mintbes-700 underline font-bold"
+            >
+                {match[1]}
+            </a>
+        );
+
+        lastIndex = linkRegex.lastIndex;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+        parts.push(text.substring(lastIndex));
+    }
+
+    // Now handle bold within the parts
+    return parts.map((part, i) => {
+        if (typeof part !== 'string') return part;
+
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        const boldParts = [];
+        let bLastIndex = 0;
+        let bMatch;
+
+        while ((bMatch = boldRegex.exec(part)) !== null) {
+            if (bMatch.index > bLastIndex) {
+                boldParts.push(part.substring(bLastIndex, bMatch.index));
+            }
+            boldParts.push(<strong key={bMatch.index}>{bMatch[1]}</strong>);
+            bLastIndex = boldRegex.lastIndex;
+        }
+
+        if (bLastIndex < part.length) {
+            boldParts.push(part.substring(bLastIndex));
+        }
+
+        return <React.Fragment key={i}>{boldParts}</React.Fragment>;
+    });
+};
+
 const AIConcierge = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -117,13 +178,24 @@ const AIConcierge = () => {
                                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[80%] px-4 py-2 rounded-2xl ${
-                                            msg.role === 'user'
-                                                ? 'bg-mintbes-600 text-white rounded-br-sm'
-                                                : 'bg-white text-gray-800 rounded-bl-sm shadow-sm border border-gray-100'
-                                        }`}
+                                        className={`max-w-[80%] px-4 py-3 rounded-2xl ${msg.role === 'user'
+                                            ? 'bg-mintbes-600 text-white rounded-br-sm'
+                                            : 'bg-white text-gray-800 rounded-bl-sm shadow-md border border-gray-100'
+                                            }`}
                                     >
-                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                        <div className="text-sm">
+                                            {msg.role === 'assistant' ? (
+                                                <div className="space-y-2">
+                                                    {msg.content.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                                                        <p key={i} className="leading-relaxed text-gray-800">
+                                                            {renderMarkdown(line)}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
