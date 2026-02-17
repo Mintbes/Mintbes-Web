@@ -1,24 +1,24 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  try {
-    const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Initialize Gemini with API key from environment variable
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    try {
+        const { message } = req.body;
 
-    // System prompt with Mintbes knowledge
-    const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. You help users understand:
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        // Initialize Gemini with API key from environment variable
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+        // System prompt with Mintbes knowledge
+        const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. You help users understand:
 
 **About Mintbes Validator:**
 - Validator Name: Mintbes
@@ -48,22 +48,22 @@ export default async function handler(req, res) {
 - Rewards are automatically distributed
 - No lock-up period, you can undelegate anytime (7-epoch waiting period)
 
-Be concise, friendly, and helpful. Use emojis occasionally 🌿. If asked about topics unrelated to Mintbes, Harmony, or staking, politely redirect to these topics.`;
+**Important: Always respond in English.** Be concise, friendly, and helpful. Use emojis occasionally 🌿. If asked about topics unrelated to Mintbes, Harmony, or staking, politely redirect to these topics.`;
 
-    // Combine system prompt with user message
-    const fullPrompt = `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`;
+        // Combine system prompt with user message
+        const fullPrompt = `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`;
 
-    // Generate response
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const text = response.text();
+        // Generate response
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        const text = response.text();
 
-    return res.status(200).json({ response: text });
-  } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    return res.status(500).json({ 
-      error: 'Failed to get response from AI',
-      details: error.message 
-    });
-  }
+        return res.status(200).json({ response: text });
+    } catch (error) {
+        console.error('Error calling Gemini API:', error);
+        return res.status(500).json({
+            error: 'Failed to get response from AI',
+            details: error.message
+        });
+    }
 }
