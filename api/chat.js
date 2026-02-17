@@ -57,9 +57,10 @@ export default async function handler(req, res) {
 5. Sign the transaction.
 
 **Formatting Guidelines (Form):**
+- **LENGTH: Keep responses very SHORT and concise.** Avoid long paragraphs.
 - Use **bold** for emphasis on key terms.
-- Use lists for instructions.
-- ALWAYS use [Text](URL) format for links to make them easy to parse.
+- Use lists for technical steps.
+- ALWAYS use [Text](URL) format for links.
 - Keep responses professional yet friendly 🌿.
 - Use emojis like 🌿, 💎, 🚀 occasionally.
 
