@@ -9,15 +9,11 @@ export default async function handler(req, res) {
     try {
         const { message } = req.body;
 
-        if (!message) {
-            return res.status(400).json({ error: 'Message is required' });
-        }
-
-        // Initialize Gemini with API key from environment variable
+        // Initialize Gemini
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-        // System prompt with Mintbes knowledge
+        // System prompt with strict instructions
         const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. 
 
 **STRICT RULE: You ONLY answer questions about:**
@@ -79,9 +75,9 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ response: text });
     } catch (error) {
-        console.error('Error calling Gemini API:', error);
-        return res.status(500).json({
-            error: 'Failed to get response from AI',
+        console.error('Error:', error);
+        return res.status(500).json({ 
+            error: 'Failed to process message',
             details: error.message
         });
     }
