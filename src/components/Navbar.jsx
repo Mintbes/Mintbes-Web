@@ -28,9 +28,12 @@ const Navbar = () => {
         >
             <div className="container mx-auto px-6 flex justify-between items-center">
                 {/* Logo */}
-                {/* Logo Removed as requested */}
-                <a href="#" className="flex items-center gap-2 group">
-                    {/* Branding Removed */}
+                <a href="#" className="flex items-center gap-3 group">
+                    <MintbesLogo className="w-10 h-10 transition-transform group-hover:scale-110" />
+                    <span className={`text-xl font-bold tracking-tight transition-colors ${scrolled ? 'text-green-800' : 'text-white'
+                        }`}>
+                        Mintbes <span className="font-light">Validator</span>
+                    </span>
                 </a>
 
                 {/* Desktop Menu */}
