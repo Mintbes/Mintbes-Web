@@ -1,18 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
 const Hero = () => {
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    useEffect(() => {
+        // Preload the hero image
+        const img = new Image();
+        img.src = 'hero-bq.jpg';
+        img.onload = () => setImageLoaded(true);
+    }, []);
+
     return (
         <section id="hero" className="relative w-full h-screen overflow-hidden flex items-center justify-center text-white">
-            {/* Image Background */}
+            {/* Image Background with loading transition */}
             <div className="absolute inset-0 z-0">
+                {/* Blurred placeholder that shows while loading */}
+                <div 
+                    className={`absolute inset-0 bg-gradient-to-br from-green-900 to-green-950 transition-opacity duration-500 ${
+                        imageLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                />
+                
+                {/* Actual image */}
                 <img
                     src="hero-bq.jpg"
                     alt="Mintbes Harmony Validator"
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover transition-opacity duration-700 ${
+                        imageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    loading="eager"
                 />
-                {/* Overlay for better text readability - slightly stronger for static image */}
+                
+                {/* Overlay for better text readability */}
                 <div className="absolute inset-0 bg-green-950/60 backdrop-blur-[1px]"></div>
             </div>
 
