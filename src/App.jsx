@@ -6,6 +6,7 @@ import WhyDelegate from './components/WhyDelegate';
 import StakingInfo from './components/StakingInfo';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
+import AIConcierge from './components/AIConcierge';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Gallery />
       </main>
       <Footer />
+      <AIConcierge />
     </div>
   );
 }
