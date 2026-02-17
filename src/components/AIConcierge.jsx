@@ -68,7 +68,7 @@ const AIConcierge = () => {
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
-            content: '¿En qué puedo ayudarte hoy? 🌿 / How can I help you today? 🌿'
+            content: 'Hello! 🌿 I\'m the Mintbes Validator assistant. How can I help you today? Ask me about delegation, rewards, or Harmony ONE.'
         }
     ]);
     const [inputMessage, setInputMessage] = useState('');
