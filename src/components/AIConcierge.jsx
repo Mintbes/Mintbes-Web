@@ -106,7 +106,6 @@ const AIConcierge = () => {
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-lg">Mintbes AI Assistant</h3>
-                                <p className="text-xs text-mintbes-100">Powered by Google Gemini</p>
                             </div>
                         </div>
 
