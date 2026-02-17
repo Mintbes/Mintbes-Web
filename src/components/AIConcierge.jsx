@@ -94,6 +94,9 @@ const AIConcierge = () => {
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
         try {
             // Call the Vercel serverless function
             const response = await fetch('/api/chat', {
@@ -102,10 +105,14 @@ const AIConcierge = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ message: userMessage }),
+                signal: controller.signal
             });
 
+            clearTimeout(timeoutId);
+
             if (!response.ok) {
-                throw new Error('Failed to get response');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to get response');
             }
 
             const data = await response.json();
@@ -117,11 +124,16 @@ const AIConcierge = () => {
             }]);
         } catch (error) {
             console.error('Error:', error);
+            const errorMessage = error.name === 'AbortError' 
+                ? '⏳ The request timed out. Harmony network or AI might be busy. Please try again.'
+                : '❌ Sorry, there was an error processing your message. Please try again.';
+            
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: '❌ Sorry, there was an error processing your message. Please try again.'
+                content: errorMessage
             }]);
         } finally {
+            clearTimeout(timeoutId);
             setIsLoading(false);
         }
     };

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
         // Initialize Gemini with API key from environment variable
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         // System prompt with Mintbes knowledge
         const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. 
