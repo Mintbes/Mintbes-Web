@@ -58,6 +58,7 @@ export default async function handler(req, res) {
 
 **Formatting Guidelines (Form):**
 - **LENGTH: Keep responses very SHORT and concise.** Avoid long paragraphs.
+- **NO INTROS: Do NOT introduce yourself or say "Hello! I'm..." in every message.** Respond directly to the user's question.
 - Use **bold** for emphasis on key terms.
 - Use lists for technical steps.
 - ALWAYS use [Text](URL) format for links.
