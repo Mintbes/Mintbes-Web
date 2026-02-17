@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     try {
         // Check if API key exists
         if (!process.env.GEMINI_API_KEY) {
-            return res.status(500).json({ 
+            return res.status(500).json({
                 error: 'GEMINI_API_KEY not configured',
                 details: 'Environment variable is missing'
             });
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         const response = await result.response;
         const text = response.text();
 
-        return res.status(200).json({ 
+        return res.status(200).json({
             status: 'OK',
             apiKeyConfigured: true,
             testResponse: text,

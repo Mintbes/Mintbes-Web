@@ -124,10 +124,10 @@ const AIConcierge = () => {
             }]);
         } catch (error) {
             console.error('Error:', error);
-            const errorMessage = error.name === 'AbortError' 
+            const errorMessage = error.name === 'AbortError'
                 ? '⏳ The request timed out. Harmony network or AI might be busy. Please try again.'
                 : '❌ Sorry, there was an error processing your message. Please try again.';
-            
+
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: errorMessage

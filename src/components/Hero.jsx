@@ -17,22 +17,20 @@ const Hero = () => {
             {/* Image Background with loading transition */}
             <div className="absolute inset-0 z-0">
                 {/* Blurred placeholder that shows while loading */}
-                <div 
-                    className={`absolute inset-0 bg-gradient-to-br from-green-900 to-green-950 transition-opacity duration-500 ${
-                        imageLoaded ? 'opacity-0' : 'opacity-100'
-                    }`}
+                <div
+                    className={`absolute inset-0 bg-gradient-to-br from-green-900 to-green-950 transition-opacity duration-500 ${imageLoaded ? 'opacity-0' : 'opacity-100'
+                        }`}
                 />
-                
+
                 {/* Actual image */}
                 <img
                     src="hero-bq.jpg"
                     alt="Mintbes Harmony Validator"
-                    className={`w-full h-full object-cover transition-opacity duration-700 ${
-                        imageLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`w-full h-full object-cover transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                        }`}
                     loading="eager"
                 />
-                
+
                 {/* Overlay for better text readability */}
                 <div className="absolute inset-0 bg-green-950/60 backdrop-blur-[1px]"></div>
             </div>
