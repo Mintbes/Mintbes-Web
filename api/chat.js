@@ -1,5 +1,4 @@
 
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -13,23 +12,9 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
         }
 
-        // System prompt with full Mintbes knowledge
-        const systemPrompt = `You are the Mintbes Validator assistant for Harmony ONE.
-**Rules:** Respond in the user's language. Keep answers SHORT.
-**Facts:** 
-- Name: Mintbes
-- Address: one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
-- APR: ~12%
-- Uptime: ~100%
-- Twitter: @MintbuilderES
-**Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
-
-        // Gemini 1.5 Flash - Advanced Configuration [v2.2]
-        // Using v1beta + gemini-1.5-flash-latest to ensure model discovery and system_instruction support
-        const systemInstruction = {
-            role: "system",
-            parts: [{
-                text: `You are the Mintbes Validator AI assistant for Harmony ONE.
+        // Gemini 1.5 Flash - Stability Revert [v2.3]
+        // Using v1 endpoint for reliable routing and manual instruction prepending.
+        const systemPrompt = `You are the Mintbes Validator AI assistant for Harmony ONE.
 **STRICT RULES:**
 - Respond in the SAME LANGUAGE as the user (Spanish/English).
 - Keep answers concise and professional.
@@ -45,11 +30,9 @@ export default async function handler(req, res) {
 
 **LINKS:**
 - Staking: https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
-- Explorer: https://explorer.harmony.one/address/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k`
-            }]
-        };
+- Explorer: https://explorer.harmony.one/address/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k`;
 
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
@@ -58,9 +41,11 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [
-                        { role: "user", parts: [{ text: message }] }
+                        {
+                            role: "user",
+                            parts: [{ text: `${systemPrompt}\n\nUser Question: ${message}` }]
+                        }
                     ],
-                    system_instruction: systemInstruction,
                     generationConfig: {
                         temperature: 0.7,
                         topK: 40,
@@ -83,9 +68,9 @@ export default async function handler(req, res) {
         return res.status(200).json({ response: text });
 
     } catch (error) {
-        console.error('Gemini v2.2 Error:', error);
+        console.error('Gemini v2.3 Error:', error);
         return res.status(500).json({
-            error: `AI Concierge temporarily unavailable [v2.2]`,
+            error: `AI Concierge temporarily unavailable [v2.3]`,
             details: error.message
         });
     }
