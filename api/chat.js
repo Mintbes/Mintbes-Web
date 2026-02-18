@@ -24,9 +24,10 @@ export default async function handler(req, res) {
 - Twitter: @MintbuilderES
 **Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Direct fetch to stable v1 endpoint
+        // Direct fetch to v1beta endpoint (sometimes required for specific keys/regions)
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `${baseUrl}?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -41,7 +42,8 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error?.message || `API Error ${response.status}`);
+            const diagUrl = `${baseUrl}?key=***`;
+            throw new Error(`${data.error?.message || response.statusText} (Target: ${diagUrl})`);
         }
 
         const text = data.candidates[0].content.parts[0].text;
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Gemini Fetch Error:', error);
         return res.status(500).json({
-            error: `Failed to get response [v1.7]`,
+            error: `Failed to get response [v1.8]`,
             details: error.message
         });
     }
