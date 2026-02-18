@@ -24,8 +24,13 @@ export default async function handler(req, res) {
 - Twitter: @MintbuilderES
 **Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Trying gemini-1.5-flash-8b which is more lightweight and sometimes has different regional settings
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent';
+        // Validate API Key format (Gemini keys usually start with AIza)
+        if (!apiKey.startsWith('AIza')) {
+            throw new Error(`API Key format invalid. It should start with 'AIza'. (Starts with: ${apiKey.substring(0, 4)}...)`);
+        }
+
+        // Trying gemini-pro (the most stable legacy name)
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
             {
@@ -56,7 +61,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Gemini Fetch Error:', error);
         return res.status(500).json({
-            error: `Failed to get response [v1.10]`,
+            error: `Failed to get response [v1.11]`,
             details: error.message
         });
     }
