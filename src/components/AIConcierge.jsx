@@ -112,7 +112,9 @@ const AIConcierge = () => {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Failed to get response');
+                const errorMessage = errorData.error || 'Failed to get response';
+                const errorDetails = errorData.details ? ` (${errorData.details})` : '';
+                throw new Error(`${errorMessage}${errorDetails}`);
             }
 
             const data = await response.json();
@@ -124,13 +126,18 @@ const AIConcierge = () => {
             }]);
         } catch (error) {
             console.error('Error:', error);
-            const errorMessage = error.name === 'AbortError'
-                ? '⏳ The request timed out. Harmony network or AI might be busy. Please try again.'
-                : '❌ Sorry, there was an error processing your message. Please try again.';
+            let displayError = '❌ Sorry, there was an error processing your message. Please try again.';
+
+            if (error.name === 'AbortError') {
+                displayError = '⏳ The request timed out. Harmony network or AI might be busy. Please try again.';
+            } else if (error.message) {
+                // If we have a specific error message from the backend, use it
+                displayError = `❌ ${error.message}`;
+            }
 
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: errorMessage
+                content: displayError
             }]);
         } finally {
             clearTimeout(timeoutId);

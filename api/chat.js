@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 export default async function handler(req, res) {
     // Only allow POST requests
@@ -14,8 +14,37 @@ export default async function handler(req, res) {
         }
 
         // Initialize Gemini with API key from environment variable
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            console.error('GEMINI_API_KEY is not defined in environment variables');
+            return res.status(500).json({
+                error: 'AI Configuration error',
+                details: 'The server is missing the required API key. Please set GEMINI_API_KEY in environment variables.'
+            });
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            safetySettings: [
+                {
+                    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                    threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                    threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                    threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
+                {
+                    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                    threshold: HarmBlockThreshold.BLOCK_NONE,
+                },
+            ],
+        });
 
         // System prompt with Mintbes knowledge
         const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. 
@@ -73,19 +102,38 @@ export default async function handler(req, res) {
 
 If the question is unrelated, respond with: "I'm specifically designed to help with Harmony ONE and Mintbes Validator questions. Please ask me about delegation, staking rewards, or the Harmony blockchain! 🌿" (or the Spanish equivalent).`;
 
-        // Combine system prompt with user message
-        const fullPrompt = `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`;
+        // Generate response using chat context for better handling
+        const chat = model.startChat({
+            history: [
+                {
+                    role: "user",
+                    parts: [{ text: systemPrompt }],
+                },
+                {
+                    role: "model",
+                    parts: [{ text: "Understood. I am the Mintbes AI assistant. I will follow all instructions and only answer questions about Harmony ONE and Mintbes Validator in the requested format and language." }],
+                },
+            ],
+        });
 
-        // Generate response
-        const result = await model.generateContent(fullPrompt);
+        const result = await chat.sendMessage(message);
         const response = await result.response;
         const text = response.text();
 
         return res.status(200).json({ response: text });
     } catch (error) {
         console.error('Error calling Gemini API:', error);
+
+        // Handle specific error cases
+        let errorMessage = 'Failed to get response from AI';
+        if (error.message?.includes('API_KEY_INVALID')) {
+            errorMessage = 'Invalid API Key. Please check your Gemini API key configuration.';
+        } else if (error.message?.includes('safety')) {
+            errorMessage = 'The response was blocked by safety filters. Please try rephrasing.';
+        }
+
         return res.status(500).json({
-            error: 'Failed to get response from AI',
+            error: errorMessage,
             details: error.message
         });
     }
