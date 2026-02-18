@@ -12,8 +12,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
         }
 
-        // Gemini 1.5 Flash - Stability Revert [v2.3]
-        // Using v1 endpoint for reliable routing and manual instruction prepending.
+        // System prompt with full Mintbes knowledge
         const systemPrompt = `You are the Mintbes Validator AI assistant for Harmony ONE.
 **STRICT RULES:**
 - Respond in the SAME LANGUAGE as the user (Spanish/English).
@@ -34,29 +33,37 @@ export default async function handler(req, res) {
 
         const baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
-        const response = await fetch(
-            `${baseUrl}?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [{ text: `${systemPrompt}\n\nUser Question: ${message}` }]
-                        }
-                    ],
-                    generationConfig: {
-                        temperature: 0.7,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 800,
+        let response = await fetch(`${baseUrl}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [
+                    {
+                        role: "user",
+                        parts: [{ text: `${systemPrompt}\n\nUser Question: ${message}` }]
                     }
-                })
-            }
-        );
+                ],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 800,
+                }
+            })
+        });
 
-        const data = await response.json();
+        let data = await response.json();
+
+        // DIAGNOSTIC LOGIC [v2.4]
+        if (!response.ok && response.status === 404) {
+            console.warn('Model not found. Attempting to list available models...');
+            const listUrl = 'https://generativelanguage.googleapis.com/v1/models';
+            const listResponse = await fetch(`${listUrl}?key=${apiKey}`);
+            const listData = await listResponse.json();
+
+            const modelNames = listData.models?.map(m => m.name.replace('models/', '')) || [];
+            throw new Error(`Model not found (404). Available models for your key: ${modelNames.join(', ') || 'None found'}`);
+        }
 
         if (!response.ok) {
             throw new Error(data.error?.message || response.statusText);
@@ -68,9 +75,9 @@ export default async function handler(req, res) {
         return res.status(200).json({ response: text });
 
     } catch (error) {
-        console.error('Gemini v2.3 Error:', error);
+        console.error('Gemini Diagnostic v2.4 Error:', error);
         return res.status(500).json({
-            error: `AI Concierge temporarily unavailable [v2.3]`,
+            error: `AI Concierge Diagnostic [v2.4]`,
             details: error.message
         });
     }
