@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google-generative-ai';
+
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Gemini Fetch Error:', error);
         return res.status(500).json({
-            error: `Failed to get response [v1.6]`,
+            error: `Failed to get response [v1.7]`,
             details: error.message
         });
     }
