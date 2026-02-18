@@ -13,7 +13,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // Initialize Gemini with API key and force stable v1 API version
+        // Initialize Gemini with API key
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             console.error('GEMINI_API_KEY is not defined in environment variables');
@@ -23,14 +23,9 @@ export default async function handler(req, res) {
             });
         }
 
-        // We use the most direct way to call the model
+        // Use the most compatible version and model name
         const genAI = new GoogleGenerativeAI(apiKey);
-
-        // requestOptions as second parameter to getGenerativeModel
-        const model = genAI.getGenerativeModel(
-            { model: 'gemini-1.5-flash' },
-            { apiVersion: 'v1' }
-        );
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
         // System prompt with Mintbes knowledge
         const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. 
