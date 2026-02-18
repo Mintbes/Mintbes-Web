@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { MintbesLogo } from './Logos';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,18 +25,9 @@ const Navbar = () => {
             className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'
                 }`}
         >
-            <div className="container mx-auto px-6 flex justify-between items-center">
-                {/* Logo */}
-                <a href="#" className="flex items-center gap-3 group">
-                    <MintbesLogo className="w-10 h-10 transition-transform group-hover:scale-110" />
-                    <span className={`text-xl font-bold tracking-tight transition-colors ${scrolled ? 'text-green-800' : 'text-white'
-                        }`}>
-                        Mintbes <span className="font-light">Validator</span>
-                    </span>
-                </a>
-
-                {/* Desktop Menu */}
-                <div className="hidden md:flex items-center gap-8">
+            <div className="w-full max-w-7xl mx-auto px-6 flex justify-center items-center relative">
+                {/* Desktop Menu - Centered */}
+                <div className="hidden md:flex items-center gap-8 justify-center w-full">
                     {navLinks.map((link) => (
                         <a
                             key={link.title}
@@ -61,9 +51,9 @@ const Navbar = () => {
                     </a>
                 </div>
 
-                {/* Mobile Menu Button */}
+                {/* Mobile Menu Button - Centered */}
                 <button
-                    className="md:hidden p-2"
+                    className="md:hidden p-2 absolute left-1/2 transform -translate-x-1/2"
                     onClick={() => setIsOpen(!isOpen)}
                 >
                     {isOpen ? (
@@ -75,29 +65,31 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Dropdown */}
-            {isOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-100 py-4 px-6 flex flex-col gap-4">
-                    {navLinks.map((link) => (
+            {
+                isOpen && (
+                    <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-100 py-4 px-6 flex flex-col gap-4">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.title}
+                                href={link.href}
+                                onClick={() => setIsOpen(false)}
+                                className="text-gray-700 hover:text-mintbes-600 font-medium py-2 border-b border-gray-50 last:border-0"
+                            >
+                                {link.title}
+                            </a>
+                        ))}
                         <a
-                            key={link.title}
-                            href={link.href}
-                            onClick={() => setIsOpen(false)}
-                            className="text-gray-700 hover:text-mintbes-600 font-medium py-2 border-b border-gray-50 last:border-0"
+                            href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full text-center bg-mintbes-600 text-white py-3 rounded-lg font-semibold hover:bg-mintbes-700 transition"
                         >
-                            {link.title}
+                            Delegate Now
                         </a>
-                    ))}
-                    <a
-                        href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full text-center bg-mintbes-600 text-white py-3 rounded-lg font-semibold hover:bg-mintbes-700 transition"
-                    >
-                        Delegate Now
-                    </a>
-                </div>
-            )}
-        </nav>
+                    </div>
+                )
+            }
+        </nav >
     );
 };
 
