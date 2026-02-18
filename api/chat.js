@@ -13,7 +13,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        // Initialize Gemini with API key from environment variable
+        // Initialize Gemini with API key and force stable v1 API version
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             console.error('GEMINI_API_KEY is not defined in environment variables');
@@ -23,7 +23,8 @@ export default async function handler(req, res) {
             });
         }
 
-        const genAI = new GoogleGenerativeAI(apiKey);
+        // We explicitly set the API version to 'v1' to avoid 404/v1beta issues
+        const genAI = new GoogleGenerativeAI(apiKey, { apiVersion: 'v1' });
         const model = genAI.getGenerativeModel({
             model: 'gemini-1.5-flash',
             safetySettings: [
