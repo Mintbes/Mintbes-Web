@@ -12,7 +12,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
         }
 
-        // Gemini 2.0 Flash - Optimal Configuration [v2.5]
+        // Gemini 2.0 Flash Lite - Optimized for Rate Limits [v2.6]
         const systemInstruction = {
             role: "system",
             parts: [{
@@ -36,8 +36,8 @@ export default async function handler(req, res) {
             }]
         };
 
-        // Confirmed available via diagnostic list [v2.4]
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+        // Switching to valid "Lite" model to avoid "Resource exhausted" errors
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent';
 
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
@@ -64,6 +64,11 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
+        // Specific handling for Rate Limits (429)
+        if (response.status === 429) {
+            throw new Error('Server is busy (Rate Limit). Please try again in a few seconds.');
+        }
+
         if (!response.ok) {
             throw new Error(data.error?.message || response.statusText);
         }
@@ -74,9 +79,16 @@ export default async function handler(req, res) {
         return res.status(200).json({ response: text });
 
     } catch (error) {
-        console.error('Gemini v2.5 Error:', error);
+        console.error('Gemini v2.6 Error:', error);
+
+        // Return a cleaner error message to the UI
+        let userMessage = `AI Concierge temporarily unavailable [v2.6]`;
+        if (error.message.includes('Rate Limit')) {
+            userMessage = 'I am receiving too many requests. Please wait a moment.';
+        }
+
         return res.status(500).json({
-            error: `AI Concierge temporarily unavailable [v2.5]`,
+            error: userMessage,
             details: error.message
         });
     }
