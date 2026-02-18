@@ -24,7 +24,8 @@ export default async function handler(req, res) {
 - Twitter: @MintbuilderES
 **Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Gemini 1.5 Flash - Advanced Configuration [v2.0]
+        // Gemini 1.5 Flash - Advanced Configuration [v2.1]
+        // Using v1beta as it supports the 'system_instruction' field
         const systemInstruction = {
             role: "system",
             parts: [{
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
             }]
         };
 
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
@@ -82,9 +83,9 @@ export default async function handler(req, res) {
         return res.status(200).json({ response: text });
 
     } catch (error) {
-        console.error('Gemini v2.0 Error:', error);
+        console.error('Gemini v2.1 Error:', error);
         return res.status(500).json({
-            error: `AI Concierge temporarily unavailable [v2.0]`,
+            error: `AI Concierge temporarily unavailable [v2.1]`,
             details: error.message
         });
     }
