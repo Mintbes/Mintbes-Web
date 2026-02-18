@@ -23,34 +23,19 @@ export default async function handler(req, res) {
             });
         }
 
-        // Use the most compatible version and model name
+        // We use the full model path 'models/gemini-1.5-flash' and force the 'v1' stable API
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        const model = genAI.getGenerativeModel(
+            { model: "models/gemini-1.5-flash" },
+            { apiVersion: 'v1' }
+        );
 
-        // System prompt with Mintbes knowledge
-        const systemPrompt = `You are the Mintbes Validator AI assistant for the Harmony ONE blockchain. 
-
-**STRICT RULE: You ONLY answer questions about:**
-- Mintbes Validator
-- Harmony ONE blockchain
-- Staking and delegation
-- Cryptocurrency topics directly related to Harmony ONE
-
-**If asked about ANYTHING else, politely decline and redirect to Harmony ONE topics.**
-
-**Language Protocol:**
-- Respond in the SAME language the user uses (English or Spanish).
-
-**Substance (Facts about Mintbes):**
-- Validator Name: Mintbes
-- Validator Address: one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
-- Current APR: ~12%.
-- Identity: Committed to sustainability 🌿.
-
-**Formatting:**
-- Keep responses very SHORT and concise.
-- Use **bold** for key terms.
-- Use [Text](URL) format for links.`;
+        // Simple system prompt
+        const systemPrompt = `You are the Mintbes Validator AI assistant for Harmony ONE.
+- You ONLY answer about Mintbes and Harmony ONE staking.
+- Keep it very SHORT.
+- Use **bold** for keys.
+- Response in user's language.`;
 
         // Direct generation to avoid chat session overhead/errors
         const prompt = `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`;
@@ -65,12 +50,12 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Error calling Gemini API:', error);
 
-        // Handle specific error cases with a version marker [v1.2]
-        let errorMessage = 'Failed to get response from AI [v1.2]';
+        // Handle specific error cases with a version marker [v1.4]
+        let errorMessage = 'Failed to get response from AI [v1.4]';
         if (error.message?.includes('API_KEY_INVALID')) {
-            errorMessage = 'Invalid API Key. [v1.2]';
+            errorMessage = 'Invalid API Key. [v1.4]';
         } else if (error.message?.includes('404')) {
-            errorMessage = 'Model not found or API version error. [v1.2]';
+            errorMessage = 'Model or Path not found (404). [v1.4]';
         }
 
         return res.status(500).json({
