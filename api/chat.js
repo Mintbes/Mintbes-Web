@@ -1,60 +1,56 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google-generative-ai';
 
 export default async function handler(req, res) {
-    // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
         const { message } = req.body;
-
-        if (!message) {
-            return res.status(400).json({ error: 'Message is required' });
-        }
-
-        // Initialize Gemini with API key
         const apiKey = process.env.GEMINI_API_KEY;
+
         if (!apiKey) {
-            return res.status(500).json({
-                error: 'AI Configuration error',
-                details: 'The server is missing the required API key.'
-            });
+            return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
         }
 
-        // Using gemini-1.0-pro as it is the most stable and legacy-compatible model
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+        // System prompt with full Mintbes knowledge
+        const systemPrompt = `You are the Mintbes Validator assistant for Harmony ONE.
+**Rules:** Respond in the user's language. Keep answers SHORT.
+**Facts:** 
+- Name: Mintbes
+- Address: one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
+- APR: ~12%
+- Uptime: ~100%
+- Twitter: @MintbuilderES
+**Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Simple system prompt
-        const systemPrompt = `You are the Mintbes Validator AI assistant.
-- You ONLY answer about Mintbes and Harmony ONE staking.
-- Keep it very SHORT.
-- Response in user's language.`;
+        // Direct fetch to stable v1 endpoint
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: `${systemPrompt}\n\nUser: ${message}\n\nAssistant:` }]
+                    }]
+                })
+            }
+        );
 
-        // Generate response
-        const prompt = `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`;
+        const data = await response.json();
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        if (!response.ok) {
+            throw new Error(data.error?.message || `API Error ${response.status}`);
+        }
 
-        if (!text) throw new Error('Empty response from Gemini');
-
+        const text = data.candidates[0].content.parts[0].text;
         return res.status(200).json({ response: text });
+
     } catch (error) {
-        console.error('Error calling Gemini API:', error);
-
-        // Handle specific error cases with a version marker [v1.5]
-        let errorMessage = 'Failed to get response from AI [v1.5]';
-        if (error.message?.includes('API_KEY_INVALID')) {
-            errorMessage = 'Invalid API Key. [v1.5]';
-        } else if (error.message?.includes('404')) {
-            errorMessage = 'Model not found (404). [v1.5]';
-        }
-
+        console.error('Gemini Fetch Error:', error);
         return res.status(500).json({
-            error: errorMessage,
+            error: `Failed to get response [v1.6]`,
             details: error.message
         });
     }
