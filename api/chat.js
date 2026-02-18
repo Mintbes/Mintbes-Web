@@ -24,22 +24,48 @@ export default async function handler(req, res) {
 - Twitter: @MintbuilderES
 **Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Validate API Key format (Gemini keys usually start with AIza)
-        if (!apiKey.startsWith('AIza')) {
-            throw new Error(`API Key format invalid. It should start with 'AIza'. (Starts with: ${apiKey.substring(0, 4)}...)`);
-        }
+        // Gemini 1.5 Flash - Advanced Configuration [v2.0]
+        const systemInstruction = {
+            role: "system",
+            parts: [{
+                text: `You are the Mintbes Validator AI assistant for Harmony ONE.
+**STRICT RULES:**
+- Respond in the SAME LANGUAGE as the user (Spanish/English).
+- Keep answers concise and professional.
+- Use **bold** for key terms and [Text](URL) for links.
 
-        // Trying gemini-pro (the most stable legacy name)
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+**MINTBES FACTS:**
+- Name: Mintbes
+- Address: one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
+- APR: ~12% (compounded)
+- Fee: 0% (Limited time offer!)
+- Identity: Sustainable and eco-friendly validator.
+- Twitter: @MintbuilderES
+
+**LINKS:**
+- Staking: https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k
+- Explorer: https://explorer.harmony.one/address/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k`
+            }]
+        };
+
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: `${systemPrompt}\n\nUser: ${message}\n\nAssistant:` }]
-                    }]
+                    contents: [
+                        { role: "user", parts: [{ text: message }] }
+                    ],
+                    system_instruction: systemInstruction,
+                    generationConfig: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 800,
+                    }
                 })
             }
         );
@@ -47,21 +73,18 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (!response.ok) {
-            const diagUrl = `${baseUrl.split('/').slice(-2).join('/')}?key=***`;
-            throw new Error(`${data.error?.message || response.statusText} [${diagUrl}]`);
+            throw new Error(data.error?.message || response.statusText);
         }
 
-        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-            throw new Error('API returned successfully but without candidate text.');
-        }
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error('No response generated');
 
-        const text = data.candidates[0].content.parts[0].text;
         return res.status(200).json({ response: text });
 
     } catch (error) {
-        console.error('Gemini Fetch Error:', error);
+        console.error('Gemini v2.0 Error:', error);
         return res.status(500).json({
-            error: `Failed to get response [v1.11]`,
+            error: `AI Concierge temporarily unavailable [v2.0]`,
             details: error.message
         });
     }
