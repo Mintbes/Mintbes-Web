@@ -24,8 +24,8 @@ export default async function handler(req, res) {
 - Twitter: @MintbuilderES
 **Links:** [Staking Portal](https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k)`;
 
-        // Direct fetch to v1beta endpoint (sometimes required for specific keys/regions)
-        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+        // Trying gemini-1.5-flash-8b which is more lightweight and sometimes has different regional settings
+        const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent';
         const response = await fetch(
             `${baseUrl}?key=${apiKey}`,
             {
@@ -42,8 +42,12 @@ export default async function handler(req, res) {
         const data = await response.json();
 
         if (!response.ok) {
-            const diagUrl = `${baseUrl}?key=***`;
-            throw new Error(`${data.error?.message || response.statusText} (Target: ${diagUrl})`);
+            const diagUrl = `${baseUrl.split('/').slice(-2).join('/')}?key=***`;
+            throw new Error(`${data.error?.message || response.statusText} [${diagUrl}]`);
+        }
+
+        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            throw new Error('API returned successfully but without candidate text.');
         }
 
         const text = data.candidates[0].content.parts[0].text;
@@ -52,7 +56,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Gemini Fetch Error:', error);
         return res.status(500).json({
-            error: `Failed to get response [v1.8]`,
+            error: `Failed to get response [v1.10]`,
             details: error.message
         });
     }
