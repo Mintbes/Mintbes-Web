@@ -14,7 +14,7 @@ const media = [
     { url: 'wage.jpg', title: 'Always in company', type: 'image' },
     { url: 'moon.jpg', title: 'To the moon', type: 'image' },
     { url: 'wale.jpg', title: 'Waiting for you', type: 'image' },
-    { url: 'cpu.jpg', title: 'Tech firts', type: 'image' },
+    { url: 'cpu.jpg', title: 'Tech first', type: 'image' },
     { url: 'server.jpg', title: 'Harmony Power', type: 'image' }
 ];
 
