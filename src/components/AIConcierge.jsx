@@ -154,20 +154,46 @@ const AIConcierge = () => {
 
     return (
         <>
-            {/* Floating Button */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 bg-mintbes-600 text-white p-4 rounded-full shadow-2xl z-50 hover:bg-mintbes-700 transition-colors"
-                aria-label="Open AI Chat Assistant"
-            >
-                {isOpen ? (
-                    <X className="w-6 h-6" />
-                ) : (
-                    <MessageCircle className="w-6 h-6" />
-                )}
-            </motion.button>
+            {/* Floating Button and Tooltip */}
+            <div className="fixed bottom-6 right-6 z-50 flex items-center gap-4">
+                {/* Floating Tooltip / Message */}
+                <AnimatePresence>
+                    {!isOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ delay: 1.5, duration: 0.5 }}
+                            className="hidden md:flex bg-white text-gray-800 px-4 py-2.5 rounded-2xl shadow-xl border border-gray-100 font-medium text-sm whitespace-nowrap items-center gap-2 cursor-pointer relative"
+                            onClick={() => setIsOpen(true)}
+                        >
+                            <span className="text-xl">✨</span> Ask Mintbes AI
+                            {/* Triangle pointer */}
+                            <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-l-8 border-l-white drop-shadow-md"></div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Floating Button with Pulse Effect */}
+                <div className="relative">
+                    {!isOpen && (
+                        <div className="absolute inset-0 bg-mintbes-500 rounded-full animate-ping opacity-60"></div>
+                    )}
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="relative bg-mintbes-600 text-white p-4 rounded-full shadow-2xl hover:bg-mintbes-700 transition-colors flex items-center justify-center w-14 h-14"
+                        aria-label="Open AI Chat Assistant"
+                    >
+                        {isOpen ? (
+                            <X className="w-6 h-6" />
+                        ) : (
+                            <MessageCircle className="w-6 h-6" />
+                        )}
+                    </motion.button>
+                </div>
+            </div>
 
             {/* Chat Window */}
             <AnimatePresence>

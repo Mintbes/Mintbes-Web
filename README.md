@@ -36,3 +36,7 @@ Modern, high-performance website for the Mintbes Harmony ONE Validator.
 ## Deployment
 
 Deploy the `dist` folder to any static hosting service (Vercel, Netlify, GitHub Pages).
+
+### Production URL
+The site is currently deployed on **Vercel** and accessible via a custom domain:
+[https://www.mintbes.country/](https://www.mintbes.country/)
