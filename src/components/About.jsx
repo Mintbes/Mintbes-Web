@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Twitter, MessageCircle, Heart, Share2 } from 'lucide-react';
-import { MintbesLogo } from './Logos';
+import { useTranslation } from 'react-i18next';
 
 // X (Twitter) Icon Component
 const XIcon = ({ className = "w-5 h-5" }) => (
@@ -11,6 +11,8 @@ const XIcon = ({ className = "w-5 h-5" }) => (
 );
 
 const Active = () => {
+    const { t } = useTranslation();
+
     return (
         <section id="active" className="py-24 bg-white overflow-hidden">
             <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
@@ -24,15 +26,15 @@ const Active = () => {
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase flex items-center gap-1">
-                            <Twitter className="w-3 h-3" /> Since Day One
+                            <Twitter className="w-3 h-3" /> {t('about.sinceDayOne')}
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                        Championing Harmony <br />
-                        <span className="text-mintbes-600">Across the Globe.</span>
+                        {t('about.title')} <br />
+                        <span className="text-mintbes-600">{t('about.titleHighlight')}</span>
                     </h2>
                     <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                        Mintbes is more than a validator; we are a dedicated voice for the{' '}
+                        {t('about.desc1').split('Harmony ecosystem')[0]}
                         <a
                             href="https://www.harmony.one/"
                             target="_blank"
@@ -40,11 +42,11 @@ const Active = () => {
                             className="text-mintbes-600 hover:text-mintbes-700 font-semibold underline"
                         >
                             Harmony ecosystem
-                        </a>.
-                        From the project's inception, we have been actively promoting, educating, and engaging with the community on X.
+                        </a>
+                        {t('about.desc1').split('Harmony ecosystem')[1]}
                     </p>
                     <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                        We believe that a strong blockchain needs a loud voice. Our continuous social presence helps drive adoption and keeps the community informed.
+                        {t('about.desc2')}
                     </p>
 
                     <div className="flex flex-wrap gap-4">
@@ -52,9 +54,9 @@ const Active = () => {
                             href="https://x.com/MintbuilderES"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center bg-mintbes-600 text-white px-6 py-3 rounded-full hover:bg-mintbes-700 transition-colors group"
+                            className="inline-flex items-center bg-mintbes-600 text-white px-6 py-3 rounded-full hover:bg-mintbes-700 transition-colors group font-medium"
                         >
-                            Follow Mintbes
+                            {t('about.followMintbes')}
                             <XIcon className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
                         </a>
 
@@ -62,9 +64,9 @@ const Active = () => {
                             href="https://x.com/harmonyprotocol"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center border-2 border-mintbes-600 text-mintbes-600 px-6 py-3 rounded-full hover:bg-mintbes-600 hover:text-white transition-colors group"
+                            className="inline-flex items-center border-2 border-mintbes-600 text-mintbes-600 px-6 py-3 rounded-full hover:bg-mintbes-600 hover:text-white transition-colors group font-medium"
                         >
-                            Follow Harmony
+                            {t('about.followHarmony')}
                             <XIcon className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
                         </a>
                     </div>
@@ -103,10 +105,8 @@ const Active = () => {
                         </div>
 
                         {/* Content */}
-                        <p className="text-gray-800 text-lg mb-4">
-                            Proud to support the <span className="text-blue-500">#HarmonyONE</span> ecosystem! 💙🌿
-                            <br /><br />
-                            Consistently validating blocks and spreading the word since the beginning. Together we build a sustainable future. 🚀
+                        <p className="text-gray-800 text-lg mb-4 leading-relaxed">
+                            {t('about.tweetContent')}
                         </p>
 
                         {/* Engagement Stats Mockup */}
@@ -130,11 +130,11 @@ const Active = () => {
                         className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg border border-gray-100 flex items-center gap-3"
                     >
                         <div className="bg-green-100 p-2 rounded-lg text-green-600">
-                            <span className="font-bold text-xl">24/7</span>
+                            <span className="font-bold text-xl">{t('about.badgeTitle')}</span>
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 uppercase font-semibold">Activity</p>
-                            <p className="font-bold text-gray-900">Community Focused</p>
+                            <p className="text-xs text-gray-400 uppercase font-semibold">{t('about.badgeSubtitle')}</p>
+                            <p className="font-bold text-gray-900">{t('about.badgeValue')}</p>
                         </div>
                     </motion.div>
 

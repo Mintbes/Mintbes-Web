@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "active": "Active",
+    "arcade": "Mintbes Arcade",
+    "staking": "Staking",
+    "gallery": "Gallery",
+    "delegateNow": "Delegate Now"
+  },
+  "hero": {
+    "titlePrefix": "Mintbes 🌿: Secure and trusted",
+    "titleHighlight": "Harmony Validator",
+    "subtitlePrefix": "Earn",
+    "subtitleHighlight": "12%+ APR",
+    "subtitleSuffix": "by delegating your ONE tokens to a trusted eco-friendly node.",
+    "delegateBtn": "Delegate your ONE tokens"
+  },
+  "staking": {
+    "title": "Simple Staking.",
+    "titleHighlight": "Transparent Rewards.",
+    "description": "Delegating is the smartest way to hold ONE. You help secure the network and earn compound interest on your crypto assets without technical headaches.",
+    "bullet1": "12%+ Annual Percentage Rate (APR)",
+    "bullet2": "Rewards paid mainly in ONE tokens",
+    "bullet3": "Unstake anytime (7-epoch unlocking period)",
+    "bullet4": "Full transparency on fees and performance",
+    "startStaking": "Start Staking Now",
+    "howToDelegate": "How to Delegate",
+    "stepsSubtitle": "3 simple steps to start earning",
+    "step1Title": "Create a Wallet",
+    "step1Desc": "Use MetaMask. Connect to Harmony Mainnet Shard 0 via chainlist.org.",
+    "step2Title": "Get ONE Tokens",
+    "step2Desc": "You can buy ONE tokens on practically any CEX or DEX.",
+    "step3Title": "Delegate to Mintbes",
+    "step3Desc": "Visit the staking dashboard and confirm your delegation."
+  },
+  "arcade": {
+    "playEarn": "Play & Earn",
+    "title": "Mintbes",
+    "titleHighlight": "Arcade",
+    "subtitle": "Experience the thrill of Harmony Web3 Gaming. Play, compete, and earn $ONE directly in your browser. Turn your skills into crypto rewards!",
+    "live": "Live",
+    "playNow": "Play Now",
+    "game1Title": "Whack-a-FUD",
+    "game1Desc": "Smash the FUD bears! A fast-paced arcade clicker where you protect the ecosystem. Earn $ONE based on your score.",
+    "game2Title": "Rock Paper Scissors",
+    "game2Desc": "The classic Rock Paper Scissors game, reimagined for the blockchain. Challenge the protocol and prove your luck on-chain.",
+    "game3Title": "Green Candle",
+    "game3Desc": "Navigate the volatile markets! A Snake-style game where you grow your portfolio by eating green candles. Don't crash!"
+  },
+  "about": {
+    "sinceDayOne": "Since Day One",
+    "title": "Championing Harmony",
+    "titleHighlight": "Across the Globe.",
+    "desc1": "Mintbes is more than a validator; we are a dedicated voice for the Harmony ecosystem. From the project's inception, we have been actively promoting, educating, and engaging with the community on X.",
+    "desc2": "We believe that a strong blockchain needs a loud voice. Our continuous social presence helps drive adoption and keeps the community informed.",
+    "followMintbes": "Follow Mintbes",
+    "followHarmony": "Follow Harmony",
+    "tweetContent": "Proud to support the #HarmonyONE ecosystem! 💙🌿 Consistently validating blocks and spreading the word since the beginning. Together we build a sustainable future. 🚀",
+    "badgeTitle": "24/7",
+    "badgeSubtitle": "Activity",
+    "badgeValue": "Community Focused"
+  },
+  "gallery": {
+    "title": "Harmony Gallery",
+    "titleHighlight": "AI Images",
+    "description": "Explore the visual journey of Mintbes Validator. From community educational content to ecosystem celebrations, here we share the media we create to support and grow the Harmony network.",
+    "clickToExpand": "Click to Expand",
+    "footerText": "Media created for the Harmony Ecosystem"
+  },
+  "footer": {
+    "description": "Secure, trusted and reliable validation for the Harmony ONE network. Delegate with confidence and earn rewards while supporting a sustainable future.",
+    "quickLinks": "Quick Links",
+    "harmonyEcosystem": "Harmony Ecosystem",
+    "displayDashboard": "Display on Staking Dashboard",
+    "copyright": "2026 Mintbes Validator. All rights reserved.",
+    "designedFor": "Designed for the Harmony Community."
+  },
+  "ai": {
+    "initialMessage": "Hello! 🌿 I'm the Mintbes Validator assistant. How can I help you today? Ask me about delegation, rewards, or Harmony ONE.",
+    "tooltip": "Ask Mintbes AI",
+    "headerTitle": "Mintbes AI Assistant",
+    "placeholder": "Ask me about delegation...",
+    "thinking": "Thinking...",
+    "disclaimer": "AI-generated responses. Verify important information."
+  }
+}

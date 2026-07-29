@@ -1,8 +1,49 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Calculator, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StakingInfo = () => {
+    const { t } = useTranslation();
+
+    const bullets = [
+        t('staking.bullet1'),
+        t('staking.bullet2'),
+        t('staking.bullet3'),
+        t('staking.bullet4')
+    ];
+
+    const steps = [
+        {
+            step: '1',
+            title: t('staking.step1Title'),
+            desc: (
+                <>
+                    {t('staking.step1Desc').split('chainlist.org')[0]}
+                    <a
+                        href="https://chainlist.org/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-mintbes-600 hover:text-mintbes-700 font-semibold underline"
+                    >
+                        chainlist.org
+                    </a>
+                    {t('staking.step1Desc').split('chainlist.org')[1] || '.'}
+                </>
+            )
+        },
+        {
+            step: '2',
+            title: t('staking.step2Title'),
+            desc: t('staking.step2Desc')
+        },
+        {
+            step: '3',
+            title: t('staking.step3Title'),
+            desc: t('staking.step3Desc')
+        }
+    ];
+
     return (
         <section id="staking" className="py-24 bg-white relative overflow-hidden">
             {/* Background decoration */}
@@ -19,20 +60,15 @@ const StakingInfo = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                            Simple Staking. <br />
-                            <span className="text-mintbes-600">Transparent Rewards.</span>
+                            {t('staking.title')} <br />
+                            <span className="text-mintbes-600">{t('staking.titleHighlight')}</span>
                         </h2>
                         <p className="text-lg text-gray-600 mb-8">
-                            Delegating is the smartest way to hold ONE. You help secure the network and earn compound interest on your crypto assets without technical headaches.
+                            {t('staking.description')}
                         </p>
 
                         <div className="space-y-4 mb-8">
-                            {[
-                                "12%+ Annual Percentage Rate (APR)",
-                                "Rewards paid mainly in ONE tokens",
-                                "Unstake anytime (7-epoch unlocking period)",
-                                "Full transparency on fees and performance"
-                            ].map((text, idx) => (
+                            {bullets.map((text, idx) => (
                                 <div key={idx} className="flex items-center gap-3">
                                     <CheckCircle2 className="w-5 h-5 text-mintbes-500 shrink-0" />
                                     <span className="text-gray-700 font-medium">{text}</span>
@@ -46,7 +82,7 @@ const StakingInfo = () => {
                             rel="noopener noreferrer"
                             className="inline-flex items-center px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-gray-800 transition shadow-lg"
                         >
-                            Start Staking Now
+                            {t('staking.startStaking')}
                             <ArrowRight className="ml-2 w-5 h-5" />
                         </a>
                     </motion.div>
@@ -64,8 +100,8 @@ const StakingInfo = () => {
                                 <Calculator className="w-8 h-8" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">How to Delegate</h3>
-                                <p className="text-sm text-gray-500">3 simple steps to start earning</p>
+                                <h3 className="text-xl font-bold text-gray-900">{t('staking.howToDelegate')}</h3>
+                                <p className="text-sm text-gray-500">{t('staking.stepsSubtitle')}</p>
                             </div>
                         </div>
 
@@ -73,35 +109,7 @@ const StakingInfo = () => {
                             {/* Vertical Line */}
                             <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-100"></div>
 
-                            {[
-                                {
-                                    step: '1',
-                                    title: 'Create a Wallet',
-                                    desc: (
-                                        <>
-                                            Use MetaMask. Connect to Harmony Mainnet Shard 0 via{' '}
-                                            <a
-                                                href="https://chainlist.org/"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-mintbes-600 hover:text-mintbes-700 font-semibold underline"
-                                            >
-                                                chainlist.org
-                                            </a>.
-                                        </>
-                                    )
-                                },
-                                {
-                                    step: '2',
-                                    title: 'Get ONE Tokens',
-                                    desc: 'You can buy ONE tokens on practically any CEX or DEX.'
-                                },
-                                {
-                                    step: '3',
-                                    title: 'Delegate to Mintbes',
-                                    desc: 'Visit the staking dashboard and confirm your delegation.'
-                                }
-                            ].map((item, idx) => (
+                            {steps.map((item, idx) => (
                                 <div key={idx} className="relative flex gap-6">
                                     <div className="w-8 h-8 bg-white border-2 border-mintbes-500 text-mintbes-600 rounded-full flex items-center justify-center font-bold z-10 shrink-0">
                                         {item.step}

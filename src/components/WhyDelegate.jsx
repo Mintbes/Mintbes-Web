@@ -1,36 +1,39 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Ghost, TrendingUp, Scissors, ArrowRight, ExternalLink } from 'lucide-react';
+import { Trophy, ArrowRight, ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Arcade = () => {
+    const { t } = useTranslation();
+
     const games = [
         {
             id: 1,
-            title: "Whack-a-FUD",
-            description: "Smash the FUD bears! A fast-paced arcade clicker where you protect the ecosystem. Earn $ONE based on your score.",
+            title: t('arcade.game1Title'),
+            description: t('arcade.game1Desc'),
             image: "Whack-a-FUD_16x9.png",
             color: "bg-purple-50",
-            status: "Live",
+            status: t('arcade.live'),
             link: "https://mintbes.github.io/WAF/",
             xLink: "https://x.com/MintbuilderES/status/2002518227612819841"
         },
         {
             id: 2,
-            title: "Rock Paper Scissors",
-            description: "The classic Rock Paper Scissors game, reimagined for the blockchain. Challenge the protocol and prove your luck on-chain.",
+            title: t('arcade.game2Title'),
+            description: t('arcade.game2Desc'),
             image: "RPC.jpg",
             color: "bg-blue-50",
-            status: "Live",
+            status: t('arcade.live'),
             link: "https://mintbes.github.io/HarmonyRPS/",
             xLink: "https://x.com/MintbuilderES/status/2001304606429569067"
         },
         {
             id: 3,
-            title: "Green Candle",
-            description: "Navigate the volatile markets! A Snake-style game where you grow your portfolio by eating green candles. Don't crash!",
+            title: t('arcade.game3Title'),
+            description: t('arcade.game3Desc'),
             image: "Green candle.png",
             color: "bg-green-50",
-            status: "Live",
+            status: t('arcade.live'),
             link: "https://mintbes.github.io/GreenCandle/",
             xLink: "https://x.com/MintbuilderES/status/2002042007338860894"
         }
@@ -47,13 +50,13 @@ const Arcade = () => {
                 >
                     <div className="inline-flex items-center gap-2 bg-mintbes-100 text-mintbes-700 px-4 py-2 rounded-full mb-4">
                         <Trophy className="w-4 h-4" />
-                        <span className="text-sm font-bold uppercase tracking-wider">Play & Earn</span>
+                        <span className="text-sm font-bold uppercase tracking-wider">{t('arcade.playEarn')}</span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-display">
-                        Mintbes <span className="text-mintbes-600">Arcade</span>
+                        {t('arcade.title')} <span className="text-mintbes-600">{t('arcade.titleHighlight')}</span>
                     </h2>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Experience the thrill of Harmony Web3 Gaming. Play, compete, and <span className="font-bold text-mintbes-600">earn $ONE</span> directly in your browser. Turn your skills into crypto rewards!
+                        {t('arcade.subtitle')}
                     </p>
                 </motion.div>
 
@@ -67,17 +70,13 @@ const Arcade = () => {
                             transition={{ delay: index * 0.1 }}
                             className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-100 group flex flex-col"
                         >
-                            {game.image ? (
+                            {game.image && (
                                 <div className="mb-6 overflow-hidden rounded-xl">
                                     <img
                                         src={game.image}
                                         alt={game.title}
                                         className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
                                     />
-                                </div>
-                            ) : (
-                                <div className={`w-16 h-16 ${game.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                                    {game.icon}
                                 </div>
                             )}
 
@@ -99,7 +98,7 @@ const Arcade = () => {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center font-semibold text-mintbes-600 hover:text-mintbes-700 transition-colors group/link"
                                 >
-                                    Play Now
+                                    {t('arcade.playNow')}
                                     <ArrowRight className="ml-2 w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                                 </a>
 

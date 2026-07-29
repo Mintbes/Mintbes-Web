@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const renderMarkdown = (text) => {
     if (!text) return null;
@@ -12,12 +13,10 @@ const renderMarkdown = (text) => {
     let match;
 
     while ((match = linkRegex.exec(text)) !== null) {
-        // Add text before the link
         if (match.index > lastIndex) {
             parts.push(text.substring(lastIndex, match.index));
         }
 
-        // Add the link element
         parts.push(
             <a
                 key={match.index}
@@ -33,12 +32,10 @@ const renderMarkdown = (text) => {
         lastIndex = linkRegex.lastIndex;
     }
 
-    // Add remaining text
     if (lastIndex < text.length) {
         parts.push(text.substring(lastIndex));
     }
 
-    // Now handle bold within the parts
     return parts.map((part, i) => {
         if (typeof part !== 'string') return part;
 
@@ -64,18 +61,30 @@ const renderMarkdown = (text) => {
 };
 
 const AIConcierge = () => {
+    const { t, i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
-            content: 'Hello! 🌿 I\'m the Mintbes Validator assistant. How can I help you today? Ask me about delegation, rewards, or Harmony ONE.'
+            content: t('ai.initialMessage')
         }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    // Auto-scroll to bottom when new messages arrive
+    // Sync initial assistant message when language changes if only 1 message exists
+    useEffect(() => {
+        if (messages.length === 1 && messages[0].role === 'assistant') {
+            setMessages([
+                {
+                    role: 'assistant',
+                    content: t('ai.initialMessage')
+                }
+            ]);
+        }
+    }, [i18n.language, t]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -90,21 +99,22 @@ const AIConcierge = () => {
         const userMessage = inputMessage.trim();
         setInputMessage('');
 
-        // Add user message to chat
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
-            // Call the Vercel serverless function
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({
+                    message: userMessage,
+                    lang: i18n.language || 'en'
+                }),
                 signal: controller.signal
             });
 
@@ -119,7 +129,6 @@ const AIConcierge = () => {
 
             const data = await response.json();
 
-            // Add AI response to chat
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: data.response
@@ -131,7 +140,6 @@ const AIConcierge = () => {
             if (error.name === 'AbortError') {
                 displayError = '⏳ The request timed out. Harmony network or AI might be busy. Please try again.';
             } else if (error.message) {
-                // If we have a specific error message from the backend, use it
                 displayError = `❌ ${error.message}`;
             }
 
@@ -167,8 +175,7 @@ const AIConcierge = () => {
                             className="hidden md:flex bg-white text-gray-800 px-4 py-2.5 rounded-2xl shadow-xl border border-gray-100 font-medium text-sm whitespace-nowrap items-center gap-2 cursor-pointer relative"
                             onClick={() => setIsOpen(true)}
                         >
-                            <span className="text-xl">✨</span> Ask Mintbes AI
-                            {/* Triangle pointer */}
+                            <span className="text-xl">✨</span> {t('ai.tooltip')}
                             <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-l-8 border-l-white drop-shadow-md"></div>
                         </motion.div>
                     )}
@@ -211,7 +218,7 @@ const AIConcierge = () => {
                                 <span className="text-2xl">🌿</span>
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg">Mintbes AI Assistant</h3>
+                                <h3 className="font-bold text-lg">{t('ai.headerTitle')}</h3>
                             </div>
                         </div>
 
@@ -249,7 +256,7 @@ const AIConcierge = () => {
                                 <div className="flex justify-start">
                                     <div className="bg-white text-gray-800 px-4 py-2 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 flex items-center gap-2">
                                         <Loader2 className="w-4 h-4 animate-spin text-mintbes-600" />
-                                        <p className="text-sm text-gray-500">Thinking...</p>
+                                        <p className="text-sm text-gray-500">{t('ai.thinking')}</p>
                                     </div>
                                 </div>
                             )}
@@ -265,7 +272,7 @@ const AIConcierge = () => {
                                     value={inputMessage}
                                     onChange={(e) => setInputMessage(e.target.value)}
                                     onKeyPress={handleKeyPress}
-                                    placeholder="Ask me about delegation..."
+                                    placeholder={t('ai.placeholder')}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-mintbes-500 focus:border-transparent"
                                     disabled={isLoading}
                                 />
@@ -279,7 +286,7 @@ const AIConcierge = () => {
                                 </button>
                             </div>
                             <p className="text-xs text-gray-400 mt-2 text-center">
-                                AI-generated responses. Verify important information.
+                                {t('ai.disclaimer')}
                             </p>
                         </div>
                     </motion.div>

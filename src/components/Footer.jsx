@@ -1,6 +1,6 @@
 import React from 'react';
-import { Twitter, ExternalLink, Copyright } from 'lucide-react';
-import { MintbesLogo, HarmonyLogo } from './Logos';
+import { ExternalLink, Copyright } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // X (Twitter) Icon Component
 const XIcon = ({ className = "w-5 h-5" }) => (
@@ -10,6 +10,15 @@ const XIcon = ({ className = "w-5 h-5" }) => (
 );
 
 const Footer = () => {
+    const { t } = useTranslation();
+
+    const quickLinks = [
+        { title: t('nav.active'), href: '#active' },
+        { title: t('nav.arcade'), href: '#mintbes-arcade' },
+        { title: t('nav.staking'), href: '#staking' },
+        { title: t('nav.gallery'), href: '#gallery' }
+    ];
+
     return (
         <footer className="bg-gray-900 text-gray-300 py-16">
             <div className="container mx-auto px-6 grid md:grid-cols-4 gap-12">
@@ -19,7 +28,7 @@ const Footer = () => {
                         <span className="text-2xl font-bold tracking-wide">Mintbes 🌿</span>
                     </div>
                     <p className="text-gray-400 mb-6 max-w-sm leading-relaxed">
-                        Secure, trusted and reliable validation for the Harmony ONE network. Delegate with confidence and earn rewards while supporting a sustainable future.
+                        {t('footer.description')}
                     </p>
                     <div className="flex gap-4">
                         <a
@@ -31,21 +40,15 @@ const Footer = () => {
                         >
                             <XIcon className="w-5 h-5" />
                         </a>
-                        {/* Additional social placeholders if needed */}
                     </div>
                 </div>
 
                 {/* Links */}
                 <div>
-                    <h4 className="text-white font-bold mb-6">Quick Links</h4>
+                    <h4 className="text-white font-bold mb-6">{t('footer.quickLinks')}</h4>
                     <ul className="space-y-3">
-                        {[
-                            { title: 'Active', href: '#active' },
-                            { title: 'Mintbes Arcade', href: '#mintbes-arcade' },
-                            { title: 'Staking', href: '#staking' },
-                            { title: 'Gallery', href: '#gallery' }
-                        ].map((item) => (
-                            <li key={item.title}>
+                        {quickLinks.map((item, idx) => (
+                            <li key={idx}>
                                 <a
                                     href={item.href}
                                     className="hover:text-mintbes-400 transition-colors"
@@ -59,7 +62,7 @@ const Footer = () => {
 
                 {/* External */}
                 <div>
-                    <h4 className="text-white font-bold mb-6">Harmony Ecosystem</h4>
+                    <h4 className="text-white font-bold mb-6">{t('footer.harmonyEcosystem')}</h4>
                     <ul className="space-y-3">
                         <li>
                             <a
@@ -68,7 +71,7 @@ const Footer = () => {
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 hover:text-mintbes-400 transition-colors"
                             >
-                                Display on Staking Dashboard <ExternalLink className="w-4 h-4" />
+                                {t('footer.displayDashboard')} <ExternalLink className="w-4 h-4" />
                             </a>
                         </li>
                         <li className="flex items-center gap-2 mt-4">
@@ -84,10 +87,10 @@ const Footer = () => {
 
             <div className="container mx-auto px-6 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
                 <p className="flex items-center gap-1">
-                    <Copyright className="w-4 h-4" /> 2026 Mintbes Validator. All rights reserved.
+                    <Copyright className="w-4 h-4" /> {t('footer.copyright')}
                 </p>
                 <p className="mt-2 md:mt-0">
-                    Designed for the Harmony Community.
+                    {t('footer.designedFor')}
                 </p>
             </div>
         </footer>

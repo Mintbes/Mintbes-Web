@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Maximize2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const media = [
     {
@@ -19,6 +20,7 @@ const media = [
 ];
 
 const Gallery = () => {
+    const { t } = useTranslation();
     const [selectedMedia, setSelectedMedia] = useState(null);
 
     return (
@@ -26,10 +28,10 @@ const Gallery = () => {
             <div className="container mx-auto px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-                        Harmony Gallery <span className="text-mintbes-600">AI Images</span>
+                        {t('gallery.title')} <span className="text-mintbes-600">{t('gallery.titleHighlight')}</span>
                     </h2>
                     <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                        Explore the visual journey of Mintbes Validator. From community educational content to ecosystem celebrations, here we share the media we create to support and grow the Harmony network.
+                        {t('gallery.description')}
                     </p>
                 </div>
 
@@ -75,7 +77,7 @@ const Gallery = () => {
                                 <p className="text-white font-semibold text-lg drop-shadow-md">{item.title}</p>
                                 <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Maximize2 className="w-4 h-4 text-mintbes-400" />
-                                    <span className="text-xs text-mintbes-400 font-medium uppercase tracking-wider">Click to Expand</span>
+                                    <span className="text-xs text-mintbes-400 font-medium uppercase tracking-wider">{t('gallery.clickToExpand')}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -130,7 +132,7 @@ const Gallery = () => {
 
                             <div className="p-6 bg-gray-900 border-t border-white/10">
                                 <h3 className="text-xl font-bold text-white mb-1">{selectedMedia.title}</h3>
-                                <p className="text-gray-400 text-sm">Media created for the Harmony Ecosystem</p>
+                                <p className="text-gray-400 text-sm">{t('gallery.footerText')}</p>
                             </div>
                         </motion.div>
                     </motion.div>

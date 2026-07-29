@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Hero = () => {
+    const { t } = useTranslation();
     const [imageLoaded, setImageLoaded] = useState(false);
 
     useEffect(() => {
@@ -43,10 +45,13 @@ const Hero = () => {
                     className="max-w-4xl mx-auto"
                 >
                     <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
-                        Mintbes 🌿: Secure and trusted <span className="text-mintbes-300">Harmony Validator</span>
+                        {t('hero.titlePrefix')}{' '}
+                        <span className="text-mintbes-300">{t('hero.titleHighlight')}</span>
                     </h1>
                     <p className="text-xl md:text-2xl mb-8 font-light text-gray-100">
-                        Earn <span className="font-semibold text-white">12%+ APR</span> by delegating your ONE tokens to a trusted eco-friendly node.
+                        {t('hero.subtitlePrefix')}{' '}
+                        <span className="font-semibold text-white">{t('hero.subtitleHighlight')}</span>{' '}
+                        {t('hero.subtitleSuffix')}
                     </p>
 
                     <motion.a
@@ -57,7 +62,7 @@ const Hero = () => {
                         whileTap={{ scale: 0.95 }}
                         className="inline-flex items-center px-8 py-4 bg-mintbes-500 hover:bg-mintbes-400 text-white font-semibold rounded-full text-lg transition-all shadow-lg hover:shadow-mintbes-500/50"
                     >
-                        Delegate your ONE tokens
+                        {t('hero.delegateBtn')}
                         <ChevronRight className="ml-2 w-5 h-5" />
                     </motion.a>
                 </motion.div>

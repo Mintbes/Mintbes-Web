@@ -1,0 +1,85 @@
+{
+  "nav": {
+    "active": "Activo",
+    "arcade": "Mintbes Arcade",
+    "staking": "Staking",
+    "gallery": "Galería",
+    "delegateNow": "Delegar Ahora"
+  },
+  "hero": {
+    "titlePrefix": "Mintbes 🌿: Seguro y confiable",
+    "titleHighlight": "Validador de Harmony",
+    "subtitlePrefix": "Gana",
+    "subtitleHighlight": "12%+ APR",
+    "subtitleSuffix": "delegando tus tokens ONE en un nodo ecológico y de confianza.",
+    "delegateBtn": "Delega tus tokens ONE"
+  },
+  "staking": {
+    "title": "Staking Simple.",
+    "titleHighlight": "Recompensas Transparentes.",
+    "description": "Delegar es la forma más inteligente de mantener ONE. Ayudas a asegurar la red y ganas interés compuesto en tus criptoactivos sin complicaciones técnicas.",
+    "bullet1": "12%+ Tasa Anual Nominal (APR)",
+    "bullet2": "Recompensas pagadas principalmente en tokens ONE",
+    "bullet3": "Retira tu staking en cualquier momento (periodo de desbloqueo de 7 épocas)",
+    "bullet4": "Transparencia total en comisiones y rendimiento",
+    "startStaking": "Empieza a Delegar Ahora",
+    "howToDelegate": "Cómo Delegar",
+    "stepsSubtitle": "3 pasos sencillos para empezar a ganar",
+    "step1Title": "Crea una Billetera",
+    "step1Desc": "Usa MetaMask. Conéctate a Harmony Mainnet Shard 0 a través de chainlist.org.",
+    "step2Title": "Consigue Tokens ONE",
+    "step2Desc": "Puedes comprar tokens ONE prácticamente en cualquier CEX o DEX.",
+    "step3Title": "Delega en Mintbes",
+    "step3Desc": "Visita el panel de staking y confirma tu delegación."
+  },
+  "arcade": {
+    "playEarn": "Juega y Gana",
+    "title": "Mintbes",
+    "titleHighlight": "Arcade",
+    "subtitle": "Experimenta la emoción de los juegos Web3 en Harmony. Juega, compite y gana $ONE directamente en tu navegador. ¡Convierte tus habilidades en recompensas cripto!",
+    "live": "En Vivo",
+    "playNow": "Jugar Ahora",
+    "game1Title": "Whack-a-FUD",
+    "game1Desc": "¡Destruye a los osos del FUD! Un juego arcade rápido donde proteges el ecosistema. Gana $ONE según tu puntuación.",
+    "game2Title": "Piedra Papel Tijera",
+    "game2Desc": "El clásico juego de Piedra, Papel o Tijera, reinventado para la blockchain. Desafía al protocolo y demuestra tu suerte en la red.",
+    "game3Title": "Vela Verde",
+    "game3Desc": "¡Navega por los mercados volátiles! Un juego al estilo Snake donde haces crecer tu portafolio comiendo velas verdes. ¡No te estrelles!"
+  },
+  "about": {
+    "sinceDayOne": "Desde el Primer Día",
+    "title": "Impulsando Harmony",
+    "titleHighlight": "En Todo el Mundo.",
+    "desc1": "Mintbes es más que un validador; somos una voz dedicada para el ecosistema Harmony. Desde el inicio del proyecto, hemos estado promoviendo, educando y participando activamente con la comunidad en X.",
+    "desc2": "Creemos que una blockchain fuerte necesita una voz potente. Nuestra presencia social continua ayuda a impulsar la adopción y mantiene informada a la comunidad.",
+    "followMintbes": "Seguir a Mintbes",
+    "followHarmony": "Seguir a Harmony",
+    "tweetContent": "¡Orgullosos de apoyar el ecosistema #HarmonyONE! 💙🌿 Validando bloques de forma constante y difundiendo la palabra desde el principio. Juntos construimos un futuro sostenible. 🚀",
+    "badgeTitle": "24/7",
+    "badgeSubtitle": "Actividad",
+    "badgeValue": "Enfocado en la Comunidad"
+  },
+  "gallery": {
+    "title": "Galería Harmony",
+    "titleHighlight": "Imágenes IA",
+    "description": "Explora el viaje visual del validador Mintbes. Desde contenido educativo comunitario hasta celebraciones del ecosistema, aquí compartimos los medios que creamos para apoyar y hacer crecer la red Harmony.",
+    "clickToExpand": "Clic para Expandir",
+    "footerText": "Contenido creado para el Ecosistema Harmony"
+  },
+  "footer": {
+    "description": "Validación segura, confiable y de alta disponibilidad para la red Harmony ONE. Delega con confianza y gana recompensas mientras apoyas un futuro sostenible.",
+    "quickLinks": "Enlaces Rápidos",
+    "harmonyEcosystem": "Ecosistema Harmony",
+    "displayDashboard": "Ver en el Dashboard de Staking",
+    "copyright": "2026 Mintbes Validator. Todos los derechos reservados.",
+    "designedFor": "Diseñado para la Comunidad de Harmony."
+  },
+  "ai": {
+    "initialMessage": "¡Hola! 🌿 Soy el asistente del validador Mintbes. ¿En qué puedo ayudarte hoy? Pregúntame sobre delegación, recompensas o Harmony ONE.",
+    "tooltip": "Pregunta a Mintbes IA",
+    "headerTitle": "Asistente IA Mintbes",
+    "placeholder": "Pregúntame sobre delegación...",
+    "thinking": "Pensando...",
+    "disclaimer": "Respuestas generadas por IA. Verifica la información importante."
+  }
+}
