@@ -9,7 +9,7 @@ const XIcon = ({ className = "w-5 h-5" }) => (
     </svg>
 );
 
-const Footer = () => {
+const Footer = ({ onOpenDashboard }) => {
     const { t } = useTranslation();
 
     const quickLinks = [
@@ -73,6 +73,14 @@ const Footer = () => {
                             >
                                 {t('footer.displayDashboard')} <ExternalLink className="w-4 h-4" />
                             </a>
+                        </li>
+                        <li>
+                            <button
+                                onClick={onOpenDashboard}
+                                className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors text-sm cursor-pointer"
+                            >
+                                <span>🌿 Panel Privado del Nodo (EPoS)</span>
+                            </button>
                         </li>
                         <li className="flex items-center gap-2 mt-4">
                             <img

@@ -3,7 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
-const Navbar = () => {
+const Navbar = ({ onOpenDashboard }) => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -41,6 +41,18 @@ const Navbar = () => {
                             {link.title}
                         </a>
                     ))}
+                    <button
+                        onClick={onOpenDashboard}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
+                            scrolled
+                                ? 'border-emerald-600/30 text-emerald-700 hover:bg-emerald-50'
+                                : 'border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/20 backdrop-blur-sm'
+                        }`}
+                        title="Abrir Dashboard Privado del Nodo"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Node Ops
+                    </button>
                     <a
                         href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
                         target="_blank"
@@ -55,7 +67,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Language Selector - Positioned Top Right */}
-                <div className="hidden md:block absolute right-6">
+                <div className="hidden md:flex items-center gap-3 absolute right-6">
                     <LanguageSelector scrolled={scrolled} />
                 </div>
 
@@ -90,6 +102,16 @@ const Navbar = () => {
                                 {link.title}
                             </a>
                         ))}
+                        <button
+                            onClick={() => {
+                                setIsOpen(false);
+                                onOpenDashboard?.();
+                            }}
+                            className="w-full text-left py-2 text-emerald-700 font-semibold flex items-center gap-2 border-b border-gray-50"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Node Ops (Dashboard Privado)
+                        </button>
                         <a
                             href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
                             target="_blank"
