@@ -20,8 +20,8 @@ import {
   ChevronDown,
   Terminal,
   Cpu,
+  Heart,
   Layers3,
-  TrendingUp,
   Percent
 } from 'lucide-react';
 import { fetchHarmonyData, calculateKeySimulation, MY_ADDR, RPC_URL } from '../../services/harmonyRpc';
@@ -38,9 +38,18 @@ export default function MintbesDashboard({ onLock }) {
   const [showClaimModal, setShowClaimModal] = useState(false);
   
   // Navigation
-  const [activeViewTab, setActiveViewTab] = useState('overview'); // 'overview' | 'slots' | 'validators' | 'simulator' | 'rpc'
-  const [slotsFilter, setSlotsFilter] = useState('mintbes_and_cutoff'); // 'all' | 'mintbes_and_cutoff' | 'mintbes_only'
+  const [activeViewTab, setActiveViewTab] = useState('overview'); // 'overview' | 'bids' | 'simulator' | 'rpc'
+  const [tableFilter, setTableFilter] = useState('all'); // 'all' | 'focused' | 'mintbes'
   const [searchTerm, setSearchTerm] = useState('');
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mintbes_fav_validators') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  // Simulator
   const [simExtraStake, setSimExtraStake] = useState(0);
 
   const timerRef = useRef(null);
@@ -117,6 +126,14 @@ export default function MintbesDashboard({ onLock }) {
     });
   };
 
+  const toggleFavorite = (address) => {
+    const updated = favorites.includes(address)
+      ? favorites.filter((a) => a !== address)
+      : [...favorites, address];
+    setFavorites(updated);
+    localStorage.setItem('mintbes_fav_validators', JSON.stringify(updated));
+  };
+
   const cliCommand = `/home/harmony/hmy --node=${RPC_URL} staking collect-rewards --delegator-addr ${MY_ADDR} --gas-price 100 --chain-id mainnet --passphrase`;
 
   const copyToClipboard = (text) => {
@@ -128,36 +145,33 @@ export default function MintbesDashboard({ onLock }) {
   // Derived values
   const myData = data?.myData;
   const validators = data?.validators || [];
-  const slots = data?.slots || [];
   const header = data?.header;
   const stats = data?.stats;
   const walletBalance = data?.walletBalance || 0;
 
-  const effectiveStake = (myData?.total_delg || 0) + simExtraStake;
+  const effectiveStake = (myData?.actualStake || 0) + simExtraStake;
   const simResults = calculateKeySimulation(
     effectiveStake,
-    slots,
+    validators,
     stats?.cutoffStake || 0,
     myData?.keys || 5
   );
 
-  // Filtered Slots for SmartStake View
-  const filteredSlots = slots.filter((s) => {
+  // Filtered validators for SmartStake Table
+  const filteredValidators = validators.filter((v) => {
     const matchesSearch =
-      s.validatorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.keyHex.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.slotRank.toString().includes(searchTerm);
+      v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.addr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.slotRange.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
 
-    if (slotsFilter === 'mintbes_only') {
-      return s.isMe;
+    if (tableFilter === 'mintbes') {
+      return v.is_me;
     }
-    if (slotsFilter === 'mintbes_and_cutoff') {
-      const firstMintbesRank = myData?.firstSlotRank || 350;
-      // Show 10 slots before Mintbes, all Mintbes slots, and all down to cutoff + 5
-      return s.slotRank >= Math.max(1, firstMintbesRank - 10);
+    if (tableFilter === 'focused') {
+      const myRank = myData?.validatorRank || 30;
+      return v.validatorRank >= Math.max(1, myRank - 3);
     }
     return true;
   });
@@ -173,10 +187,10 @@ export default function MintbesDashboard({ onLock }) {
         }}
       />
 
-      <main className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8 py-7 space-y-6">
+      <main className="relative z-10 max-w-[1520px] mx-auto px-4 sm:px-8 py-7 space-y-6">
         
         {/* ========================================================================= */}
-        {/* 1. HEADER (rollback.country style) */}
+        {/* 1. HEADER */}
         {/* ========================================================================= */}
         <header className="border-b border-[#202a35] pb-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
           
@@ -193,7 +207,7 @@ export default function MintbesDashboard({ onLock }) {
             </div>
             <div>
               <span className="text-[#697a7c] text-[11px] font-bold uppercase tracking-[0.14em] block">
-                HARMONY EPOS VALIDATOR TELEMETRY & SMARTSTAKE ENGINE
+                HARMONY EPOS VALIDATOR TELEMETRY • SMARTSTAKE AUCTION ENGINE
               </span>
               <h1 className="text-[22px] font-bold text-[#edf5f4] tracking-[-0.02em]">
                 Mintbes Validator Command Center
@@ -262,23 +276,23 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 2. INTRO & SMARTSTAKE EPOS AUCTION METRICS */}
+        {/* 2. INTRO & SYSTEM STATUS */}
         {/* ========================================================================= */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 py-2">
           <div>
             <div className="inline-flex items-center gap-2 text-[#1fdfb6] text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5">
               <span className="w-2 h-2 rounded-full bg-[#1fdfb6] shadow-[0_0_10px_#1fdfb6b3]" />
-              MODELO DE SUBASTA EPOS (SMARTSTAKE AUCTION SYSTEM)
+              SMARTSTAKE BID SLOTS AUCTION SYSTEM
             </div>
             <p className="text-[#a8b6b6] text-[13px] leading-relaxed max-w-2xl font-normal">
-              Desglose individual de los <strong>{stats?.totalSlots || 400} slots</strong> en la subasta de consenso de Harmony. Cada llave BLS compite por su posición de slot con su <strong>Raw Bid</strong> y su poder de voto ponderado (<strong>Effective Stake</strong>).
+              Subasta de slots en tiempo real de Harmony EPoS. Cada validador compite asignando su stake entre llaves BLS. <strong>Mintbes</strong> ocupa los slots <strong>#{myData?.slotRange || '352-356'}</strong> con un <strong>{myData?.votingPower?.toFixed(3) || '1.068'}% de poder de voto</strong>.
             </p>
           </div>
 
           {/* Quick Metrics Rule Widget */}
           <div className="border border-[#202a35] bg-[#ffffff05] rounded-xl p-3.5 min-w-[320px] flex items-center justify-between font-mono text-xs">
             <div>
-              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Época Activa</span>
+              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Época</span>
               <strong className="text-[#edf5f4] text-sm">{header?.epoch || 0}</strong>
             </div>
             <div className="h-7 w-px bg-[#202a35]" />
@@ -307,24 +321,14 @@ export default function MintbesDashboard({ onLock }) {
             🌿 Telemetría Mintbes
           </button>
           <button
-            onClick={() => setActiveViewTab('slots')}
+            onClick={() => setActiveViewTab('bids')}
             className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer ${
-              activeViewTab === 'slots'
+              activeViewTab === 'bids'
                 ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            📑 Subasta de Slots SmartStake (1 - {stats?.totalSlots || 400})
-          </button>
-          <button
-            onClick={() => setActiveViewTab('validators')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer ${
-              activeViewTab === 'validators'
-                ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
-                : 'text-[#697a7c] hover:text-[#edf5f4]'
-            }`}
-          >
-            🏛️ Resumen por Validador ({validators.length})
+            📑 Tabla SmartStake "Bid Slots" ({validators.length} Nodos)
           </button>
           <button
             onClick={() => setActiveViewTab('simulator')}
@@ -334,7 +338,7 @@ export default function MintbesDashboard({ onLock }) {
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            🎛️ Simulador EPoS
+            🎛️ Simulador BLS (+2, +1, -1, -2)
           </button>
           <button
             onClick={() => setActiveViewTab('rpc')}
@@ -351,27 +355,26 @@ export default function MintbesDashboard({ onLock }) {
         {/* ========================================================================= */}
         {/* 3. HERO PANEL: MINTBES SMARTSTAKE ONCHAIN TELEMETRY */}
         {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'slots') && (
+        {(activeViewTab === 'overview' || activeViewTab === 'bids') && (
           <div 
             className="border border-[#1fdfb67a] rounded-xl overflow-hidden shadow-2xl"
             style={{
               background: 'radial-gradient(circle at 50% -20%, rgba(31, 223, 182, 0.08), transparent 45%), #0f151d'
             }}
           >
-            {/* Panel Heading */}
             <div className="border-b border-[#202a35] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#1fdfb6] shadow-[0_0_10px_#1fdfb6]" />
                 <h2 className="text-[17px] font-bold text-[#edf5f4]">
-                  Posición de Mintbes en la Subasta EPoS
+                  Estado SmartStake de Mintbes en la Subasta EPoS
                 </h2>
               </div>
               <span className="text-[10px] text-[#697a7c] font-mono">
-                Operator: <strong className="text-[#a8b6b6]">{MY_ADDR}</strong>
+                Operator Address: <strong className="text-[#a8b6b6]">{MY_ADDR}</strong>
               </span>
             </div>
 
-            {/* Grid 2-columns (rollback.country onchain-grid format) */}
+            {/* Grid 2-columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#202a35]">
               
               {/* Left Column: Ranking, Slot Range, Voting Power */}
@@ -379,13 +382,13 @@ export default function MintbesDashboard({ onLock }) {
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#697a7c] block">
-                      RANGO DE SLOTS SMARTSTAKE ({myData?.keys || 0} LLAVES BLS)
+                      RANGO DE SLOTS SMARTSTAKE ({myData?.slotsAllotted || 0} LLAVES BLS)
                     </span>
                     <strong className="text-[32px] font-mono font-bold tracking-tight text-[#1fdfb6] block mt-0.5">
-                      Slots #{myData?.firstSlotRank || '--'} - #{myData?.lastSlotRank || '--'} <span className="text-lg font-normal text-[#697a7c]">/ {stats?.totalSlots || 400}</span>
+                      Slots #{myData?.slotRange || '352-356'} <span className="text-lg font-normal text-[#697a7c]">/ {stats?.totalSlots || 400}</span>
                     </strong>
                     <span className="text-xs text-[#a8b6b6] font-mono block mt-1">
-                      Puesto consolidado de nodo: <strong className="text-[#edf5f4]">#{myData?.rank || '--'} de {stats?.totalNodes || 0} validadores</strong>
+                      Puesto consolidado de nodo: <strong className="text-[#edf5f4]">#{myData?.validatorRank || '--'} de {stats?.totalNodes || 0} validadores</strong>
                     </span>
                   </div>
                   <div className="text-right">
@@ -406,18 +409,18 @@ export default function MintbesDashboard({ onLock }) {
                     </div>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-[#697a7c] tracking-wider block">Poder de Voto Total (Voting Power)</span>
-                      <strong className="text-xl font-mono text-[#1fdfb6] font-bold">{myData?.totalVotingPower?.toFixed(3) || '0.000'}% de la Red</strong>
+                      <strong className="text-xl font-mono text-[#1fdfb6] font-bold">{myData?.votingPower?.toFixed(3) || '1.068'}% de la Red</strong>
                     </div>
                   </div>
                   <div className="text-right text-[11px] font-mono text-[#a8b6b6]">
-                    <span>{(myData?.totalVotingPower / (myData?.keys || 1))?.toFixed(3)}% / llave</span>
+                    <span>{myData?.votingPowerPerSlot?.toFixed(3) || '0.214'}% por llave</span>
                   </div>
                 </div>
 
                 {/* EPoS Auction Visualizer Bar */}
                 <div>
                   <div className="flex items-center justify-between text-[11px] mb-1.5 font-mono">
-                    <span className="text-[#a8b6b6]">Posición en la Banda EPoS (85% - 115% de Mediana)</span>
+                    <span className="text-[#a8b6b6]">Banda EPoS (85% - 115% de Mediana)</span>
                     <strong className="text-[#1fdfb6] font-bold">{myData?.backup_pct?.toFixed(0)}% de Mediana</strong>
                   </div>
                   
@@ -425,7 +428,7 @@ export default function MintbesDashboard({ onLock }) {
                     <div 
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${Math.min(100, (myData?.stake_per_key / (stats?.upperBound || 1)) * 100)}%`,
+                        width: `${Math.min(100, (myData?.bid / (stats?.upperBound || 1)) * 100)}%`,
                         background: 'linear-gradient(90deg, #12b99b, #1fdfb6)',
                         boxShadow: '0 0 12px rgba(31, 223, 182, 0.38)'
                       }}
@@ -443,26 +446,28 @@ export default function MintbesDashboard({ onLock }) {
                   </div>
                 </div>
 
-                {/* Individual BLS Keys Slots Table */}
+                {/* Key Simulation chips from SmartStake table */}
                 <div className="pt-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#697a7c] block mb-2">
-                    DESGLOSE DE SLOTS DE MINTBES ({myData?.keys || 0} SLOTS)
+                    PROYECCIÓN DE SLOTS DE MINTBES SI CAMBIAS LLAVES (SMARTSTAKE SHIFT)
                   </span>
-                  <div className="border border-[#202a35] rounded-lg overflow-hidden font-mono text-[11px]">
-                    <div className="bg-[#202a35] grid grid-cols-4 gap-[1px] text-[9px] text-[#697a7c] uppercase font-bold p-1">
-                      <div className="bg-[#131b25] px-2 py-1">Slot #</div>
-                      <div className="bg-[#131b25] px-2 py-1">Raw Bid</div>
-                      <div className="bg-[#131b25] px-2 py-1">Effective Stake</div>
-                      <div className="bg-[#131b25] px-2 py-1 text-right">Voting Power</div>
+                  <div className="grid grid-cols-4 gap-2 font-mono text-xs">
+                    <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
+                      <span className="text-[9px] text-[#697a7c] block uppercase">BLS +2 (7 Keys)</span>
+                      <strong className="text-[#a8b6b6]">{myData?.bls_2 || '396-402'}</strong>
                     </div>
-                    {myData?.mintbesSlots?.map((ms) => (
-                      <div key={ms.slotRank} className="bg-[#202a35] grid grid-cols-4 gap-[1px] p-0.5 text-[#edf5f4]">
-                        <div className="bg-[#0f151d] px-2 py-1 font-bold text-[#1fdfb6]">Slot #{ms.slotRank}</div>
-                        <div className="bg-[#0f151d] px-2 py-1 text-[#a8b6b6]">{fmt(ms.rawBid, 0)}</div>
-                        <div className="bg-[#0f151d] px-2 py-1 text-[#f5b342] font-semibold">{fmt(ms.effectiveStake, 0)}</div>
-                        <div className="bg-[#0f151d] px-2 py-1 text-right text-[#1fdfb6]">{ms.votingPower.toFixed(3)}%</div>
-                      </div>
-                    ))}
+                    <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
+                      <span className="text-[9px] text-[#697a7c] block uppercase">BLS +1 (6 Keys)</span>
+                      <strong className="text-[#a8b6b6]">{myData?.bls_1 || '396-401'}</strong>
+                    </div>
+                    <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
+                      <span className="text-[9px] text-[#697a7c] block uppercase">BLS -1 (4 Keys)</span>
+                      <strong className="text-[#1fdfb6]">{myData?.['bls_-1'] || '295-298'}</strong>
+                    </div>
+                    <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
+                      <span className="text-[9px] text-[#697a7c] block uppercase">BLS -2 (3 Keys)</span>
+                      <strong className="text-[#1fdfb6]">{myData?.['bls_-2'] || '218-220'}</strong>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -470,22 +475,21 @@ export default function MintbesDashboard({ onLock }) {
               {/* Right Column: 4-Cell Telemetry Matrix */}
               <div className="p-6 space-y-4">
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#697a7c] block">
-                  MÉTRICAS CONSOLIDADAS DEL VALIDADOR
+                  MÉTRICAS PRINCIPALES DE STAKING
                 </span>
 
-                {/* 4-cell Stats Matrix */}
                 <div className="border border-[#202a35] bg-[#202a35] rounded-lg grid grid-cols-2 gap-[1px] overflow-hidden">
                   <div className="bg-[#131b25] p-3">
-                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Delegación Total</dt>
+                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Actual Stake (Total Delegado)</dt>
                     <dd className="text-[#edf5f4] font-mono text-[16px] font-bold mt-1">
-                      {fmt(myData?.total_delg, 2)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
+                      {fmt(myData?.actualStake, 2)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
                     </dd>
                   </div>
 
                   <div className="bg-[#131b25] p-3">
-                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Raw Bid / Llave BLS</dt>
+                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Raw Bid / Llave</dt>
                     <dd className="text-[#1fdfb6] font-mono text-[16px] font-bold mt-1">
-                      {fmt(myData?.stake_per_key, 0)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
+                      {fmt(myData?.bid, 0)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
                     </dd>
                   </div>
 
@@ -504,7 +508,6 @@ export default function MintbesDashboard({ onLock }) {
                   </div>
                 </div>
 
-                {/* Secondary 4-cell Matrix */}
                 <div className="border border-[#202a35] bg-[#202a35] rounded-lg grid grid-cols-2 gap-[1px] overflow-hidden">
                   <div className="bg-[#131b25] p-3">
                     <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Recompensas Pendientes</dt>
@@ -521,9 +524,9 @@ export default function MintbesDashboard({ onLock }) {
                   </div>
 
                   <div className="bg-[#131b25] p-3">
-                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Histórico Acumulado</dt>
+                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Used Stake (En Consenso)</dt>
                     <dd className="text-[#a8b6b6] font-mono text-[15px] font-semibold mt-1">
-                      {fmt(myData?.rewards, 0)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
+                      {fmt(myData?.usedStake, 0)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
                     </dd>
                   </div>
 
@@ -539,27 +542,26 @@ export default function MintbesDashboard({ onLock }) {
 
             </div>
 
-            {/* Note bar */}
             <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <span>* SmartStake Engine: Los slots con bid menor al 85% de la mediana son bonificados (*Boosted*) en su Effective Stake.</span>
+              <span>* Los slots con bid &lt;85% reciben bonificación de Effective Stake hasta {fmt(stats?.lowerBound, 0)} ONE.</span>
               <span className="text-[#1fdfb6]">Mediana Red: {fmt(stats?.medianStake, 0)} ONE</span>
             </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* 4. TAB: SMARTSTAKE SLOTS AUCTION TABLE (1 TO 400 SLOTS) */}
+        {/* 4. TAB: EXACT SMARTSTAKE "BID SLOTS" TABLE */}
         {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'slots') && (
+        {(activeViewTab === 'overview' || activeViewTab === 'bids') && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
             <div className="border-b border-[#202a35] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-[17px] font-bold text-[#edf5f4] flex items-center gap-2">
                   <Layers3 className="w-5 h-5 text-[#1fdfb6]" />
-                  Subasta de Slots SmartStake (Tabla Global de {stats?.totalSlots || 400} Llaves)
+                  Bid Slots (SmartStake Model)
                 </h2>
                 <span className="text-[11px] text-[#697a7c]">
-                  Cada fila representa 1 slot / llave BLS individual en consenso. El slot #{stats?.totalSlots || 400} marca la línea de corte mínima.
+                  Subasta de slots consolidada con simulación de impacto al añadir o retirar llaves BLS (+2, +1, -1, -2).
                 </span>
               </div>
 
@@ -567,41 +569,41 @@ export default function MintbesDashboard({ onLock }) {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="border border-[#202a35] bg-[#090d13] rounded-lg p-1 flex">
                   <button
-                    onClick={() => setSlotsFilter('mintbes_and_cutoff')}
+                    onClick={() => setTableFilter('all')}
                     className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                      slotsFilter === 'mintbes_and_cutoff'
+                      tableFilter === 'all'
                         ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
                         : 'text-[#697a7c] hover:text-[#edf5f4]'
                     }`}
                   >
-                    Focalizada (Mintbes + Corte)
+                    Todos ({validators.length})
                   </button>
                   <button
-                    onClick={() => setSlotsFilter('all')}
+                    onClick={() => setTableFilter('focused')}
                     className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                      slotsFilter === 'all'
+                      tableFilter === 'focused'
                         ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
                         : 'text-[#697a7c] hover:text-[#edf5f4]'
                     }`}
                   >
-                    Todos ({slots.length} Slots)
+                    Focalizada (Mintbes + Abajo)
                   </button>
                   <button
-                    onClick={() => setSlotsFilter('mintbes_only')}
+                    onClick={() => setTableFilter('mintbes')}
                     className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                      slotsFilter === 'mintbes_only'
+                      tableFilter === 'mintbes'
                         ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
                         : 'text-[#697a7c] hover:text-[#edf5f4]'
                     }`}
                   >
-                    Solo Mintbes ({myData?.keys || 0})
+                    Solo Mintbes
                   </button>
                 </div>
 
                 <div className="relative">
                   <input
                     type="search"
-                    placeholder="Buscar slot, validador o key..."
+                    placeholder="Buscar validador o slot..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border border-[#202a35] bg-[#090d13] focus:border-[#1fdfb67a] rounded-lg px-3 py-1.5 text-[11px] text-[#edf5f4] placeholder-[#697a7c] outline-none font-mono w-52"
@@ -610,157 +612,141 @@ export default function MintbesDashboard({ onLock }) {
               </div>
             </div>
 
-            {/* Slots Table */}
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+            {/* SmartStake "Bid Slots" Exact Table */}
+            <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
               <table className="w-full text-left border-collapse font-mono text-xs">
                 <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
-                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
-                    <th className="py-3 px-5">Slot #</th>
-                    <th className="py-3 px-5">Validador & Llave</th>
-                    <th className="py-3 px-5">Raw Bid (ONE)</th>
-                    <th className="py-3 px-5">Effective Stake (EPoS)</th>
-                    <th className="py-3 px-5">Voting Power</th>
-                    <th className="py-3 px-5 text-right">Estado EPoS</th>
+                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[10px] uppercase tracking-[0.06em]">
+                    <th className="py-3 px-3 text-center w-8">♡</th>
+                    <th className="py-3 px-4">Slot</th>
+                    <th className="py-3 px-4">Name</th>
+                    <th className="py-3 px-4 text-right">Bid</th>
+                    <th className="py-3 px-4 text-right">Effective Stake</th>
+                    <th className="py-3 px-3 text-center">Slots Requested</th>
+                    <th className="py-3 px-3 text-center">Slots Allotted</th>
+                    <th className="py-3 px-4 text-right">Used Stake</th>
+                    <th className="py-3 px-4 text-right">Actual Stake</th>
+                    <th className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6]">BLS +2</th>
+                    <th className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6]">BLS +1</th>
+                    <th className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342]">BLS -1</th>
+                    <th className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342]">BLS -2</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#202a35]">
-                  {filteredSlots.map((s) => {
-                    const isMe = s.isMe;
-                    const isCutoff = s.slotRank === stats?.totalSlots;
-
-                    let pillClass = 'bg-[#1fdfb61a] text-[#1fdfb6] border border-[#1fdfb647]';
-                    if (s.eposStatus === 'BOOSTED') {
-                      pillClass = 'bg-[#f5b3421a] text-[#f5b342] border border-[#f5b34247]';
-                    } else if (s.eposStatus === 'CAPPED') {
-                      pillClass = 'bg-[#6e80ff1f] text-[#aab8ff] border border-[#6e80ff47]';
-                    }
-
-                    return (
-                      <tr
-                        key={`${s.address}-${s.keyHex}`}
-                        className={`transition-colors ${
-                          isMe
-                            ? 'bg-[#1fdfb614] font-bold border-l-2 border-l-[#1fdfb6]'
-                            : isCutoff
-                            ? 'bg-[#ff50500f] font-bold'
-                            : 'hover:bg-[#ffffff04]'
-                        }`}
-                      >
-                        <td className="py-3.5 px-5">
-                          <div className="flex items-center gap-1.5">
-                            <span 
-                              className={`font-bold text-sm ${
-                                isMe 
-                                  ? 'text-[#1fdfb6]' 
-                                  : isCutoff 
-                                  ? 'text-[#ff9b9b]' 
-                                  : 'text-[#697a7c]'
-                              }`}
-                            >
-                              #{s.slotRank}
-                            </span>
-                            {isCutoff && (
-                              <span className="text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#ff505026] text-[#ff9b9b] border border-[#ff606040]">
-                                Línea Corte
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-5">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className={isMe ? 'text-[#1fdfb6] font-bold text-sm' : 'text-[#edf5f4] font-semibold'}>
-                                {s.validatorName}
-                              </span>
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#090d13] border border-[#202a35] text-[#a8b6b6]">
-                                Key {s.keyIndex}/{s.totalKeys}
-                              </span>
-                            </div>
-                            <span className="block text-[10px] text-[#697a7c] font-mono mt-0.5" title={s.keyHex}>
-                              BLS: {s.keyHex.slice(0, 10)}...{s.keyHex.slice(-6)}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-5 text-[#edf5f4] font-semibold">
-                          {fmt(s.rawBid, 0)} ONE
-                        </td>
-
-                        <td className="py-3.5 px-5">
-                          <span className={s.eposStatus === 'BOOSTED' ? 'text-[#f5b342] font-bold' : s.eposStatus === 'CAPPED' ? 'text-[#aab8ff] font-bold' : 'text-[#1fdfb6] font-bold'}>
-                            {fmt(s.effectiveStake, 0)} ONE
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-5 text-[#1fdfb6] font-bold">
-                          {s.votingPower.toFixed(3)}%
-                        </td>
-
-                        <td className="py-3.5 px-5 text-right">
-                          <span className={`inline-block text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${pillClass}`}>
-                            {s.statusLabel}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 5. TAB: VALIDATORS CONSOLIDATED RADAR */}
-        {/* ========================================================================= */}
-        {activeViewTab === 'validators' && (
-          <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
-            <div className="border-b border-[#202a35] px-5 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-[17px] font-bold text-[#edf5f4]">
-                  Resumen Consolidado de Validadores Electos ({validators.length} Nodos)
-                </h2>
-                <span className="text-[11px] text-[#697a7c]">
-                  Agrupación por nodo validador, ordenados por stake promedio por llave.
-                </span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-              <table className="w-full text-left border-collapse font-mono text-xs">
-                <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
-                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
-                    <th className="py-3 px-5">Pos</th>
-                    <th className="py-3 px-5">Validador</th>
-                    <th className="py-3 px-5">Llaves</th>
-                    <th className="py-3 px-5">Stake / Llave</th>
-                    <th className="py-3 px-5">Delegación Total</th>
-                    <th className="py-3 px-5 text-right">Fee</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#202a35]">
-                  {validators.map((v, i) => {
+                  {filteredValidators.map((v) => {
                     const isMe = v.is_me;
-                    const pos = i + 1;
+                    const isFav = favorites.includes(v.addr);
+                    const isCutoff = v.slotEnd === stats?.totalSlots;
+
                     return (
                       <tr
                         key={v.addr}
                         className={`transition-colors ${
                           isMe
-                            ? 'bg-[#1fdfb614] font-bold border-l-2 border-l-[#1fdfb6]'
+                            ? 'bg-[#1fdfb614] font-bold border-l-4 border-l-[#1fdfb6]'
+                            : isCutoff
+                            ? 'bg-[#ff50500f]'
                             : 'hover:bg-[#ffffff04]'
                         }`}
                       >
-                        <td className="py-3.5 px-5 font-bold">#{pos}</td>
-                        <td className="py-3.5 px-5">
-                          <span className={isMe ? 'text-[#1fdfb6] font-bold' : 'text-[#edf5f4]'}>{v.name}</span>
-                          <span className="block text-[10px] text-[#697a7c]">{v.addr.slice(0, 10)}...</span>
+                        {/* Favorite */}
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            onClick={() => toggleFavorite(v.addr)}
+                            className={`p-1 transition cursor-pointer ${
+                              isFav ? 'text-[#ff6060]' : 'text-[#697a7c] hover:text-[#edf5f4]'
+                            }`}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
+                          </button>
                         </td>
-                        <td className="py-3.5 px-5 text-[#a8b6b6]">{v.keys} keys</td>
-                        <td className="py-3.5 px-5 text-[#edf5f4] font-bold">{fmt(v.stake_per_key)} ONE</td>
-                        <td className="py-3.5 px-5 text-[#a8b6b6]">{fmt(v.total_delg)} ONE</td>
-                        <td className="py-3.5 px-5 text-right text-[#697a7c]">{v.rate.toFixed(1)}%</td>
+
+                        {/* Slot Range Badge */}
+                        <td className="py-3 px-4">
+                          <span 
+                            className={`inline-block px-2.5 py-0.5 rounded text-xs font-bold font-mono ${
+                              isMe 
+                                ? 'bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb66b]'
+                                : isCutoff
+                                ? 'bg-[#ff505026] text-[#ff9b9b] border border-[#ff606040]'
+                                : 'bg-[#131b25] text-[#1fdfb6] border border-[#202a35]'
+                            }`}
+                          >
+                            {v.slotRange}
+                          </span>
+                        </td>
+
+                        {/* Name */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-[#131b25] border border-[#202a35] flex items-center justify-center text-[10px] text-[#1fdfb6] font-bold">
+                              {isMe ? '🌿' : v.name.slice(0, 1).toUpperCase()}
+                            </span>
+                            <a
+                              href={`https://staking.harmony.one/validators/mainnet/${v.addr}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`hover:underline truncate max-w-[190px] block ${
+                                isMe ? 'text-[#1fdfb6] font-bold text-sm' : 'text-[#edf5f4] font-medium'
+                              }`}
+                              title={v.name}
+                            >
+                              {v.name}
+                            </a>
+                          </div>
+                        </td>
+
+                        {/* Bid */}
+                        <td className="py-3 px-4 text-right text-[#edf5f4] font-semibold">
+                          {fmt(v.bid, 0)}
+                        </td>
+
+                        {/* Effective Stake */}
+                        <td className="py-3 px-4 text-right">
+                          <span className={v.eposStatus === 'BOOSTED' ? 'text-[#f5b342] font-bold' : v.eposStatus === 'CAPPED' ? 'text-[#aab8ff] font-bold' : 'text-[#1fdfb6] font-bold'}>
+                            {fmt(v.effectiveStake, 0)}
+                          </span>
+                        </td>
+
+                        {/* Slots Requested */}
+                        <td className="py-3 px-3 text-center text-[#a8b6b6]">
+                          {v.slotsRequested}
+                        </td>
+
+                        {/* Slots Allotted */}
+                        <td className="py-3 px-3 text-center font-bold text-[#edf5f4]">
+                          {v.slotsAllotted}
+                        </td>
+
+                        {/* Used Stake */}
+                        <td className="py-3 px-4 text-right text-[#a8b6b6]">
+                          {fmt(v.usedStake, 0)}
+                        </td>
+
+                        {/* Actual Stake */}
+                        <td className="py-3 px-4 text-right text-[#edf5f4] font-semibold">
+                          {fmt(v.actualStake, 0)}
+                        </td>
+
+                        {/* BLS +2 */}
+                        <td className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6] font-mono font-medium">
+                          {v.bls_2}
+                        </td>
+
+                        {/* BLS +1 */}
+                        <td className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6] font-mono font-medium">
+                          {v.bls_1}
+                        </td>
+
+                        {/* BLS -1 */}
+                        <td className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342] font-mono font-medium">
+                          {v['bls_-1']}
+                        </td>
+
+                        {/* BLS -2 */}
+                        <td className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342] font-mono font-medium">
+                          {v['bls_-2']}
+                        </td>
                       </tr>
                     );
                   })}
@@ -771,7 +757,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 6. TAB: SMARTSTAKE SLOTS SIMULATOR */}
+        {/* 5. TAB: DYNAMIC SIMULATOR */}
         {/* ========================================================================= */}
         {activeViewTab === 'simulator' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -806,7 +792,7 @@ export default function MintbesDashboard({ onLock }) {
                   <tr className="border-b border-[#202a35] bg-[#ffffff03] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
                     <th className="py-3 px-5">Configuración Llaves</th>
                     <th className="py-3 px-5">Raw Bid / Llave</th>
-                    <th className="py-3 px-5">Rango de Slots en la Subasta</th>
+                    <th className="py-3 px-5">Rango de Slots Proyectado</th>
                     <th className="py-3 px-5">Margen sobre Corte #{stats?.totalSlots || 400}</th>
                     <th className="py-3 px-5 text-right">Estado de Consenso</th>
                   </tr>
@@ -849,7 +835,7 @@ export default function MintbesDashboard({ onLock }) {
                         </td>
 
                         <td className="py-3 px-5 text-[#1fdfb6] font-bold">
-                          Slots #{sim.slotRankStart} - #{sim.slotRankEnd}
+                          Slots #{sim.slotRange}
                         </td>
 
                         <td className="py-3 px-5">
@@ -873,7 +859,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 7. TAB: RPC TELEMETRY */}
+        {/* 6. TAB: RPC TELEMETRY */}
         {/* ========================================================================= */}
         {activeViewTab === 'rpc' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -944,7 +930,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 8. FOOTER TELEMETRY */}
+        {/* 7. FOOTER TELEMETRY */}
         {/* ========================================================================= */}
         <footer className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-[#202a35]">
           <div className="border-l-2 border-[#32404d] pl-3.5 py-1">
@@ -952,7 +938,7 @@ export default function MintbesDashboard({ onLock }) {
               PROTOCOLO HARMONY EPOS & SUBASTA SMARTSTAKE
             </strong>
             <span className="text-[#697a7c] text-[10px] leading-relaxed block">
-              La subasta EPoS descompone cada validador en llaves BLS. Las {myData?.keys || 5} llaves de Mintbes compiten individualmente ocupando los slots #{myData?.firstSlotRank || '--'} al #{myData?.lastSlotRank || '--'} con un {myData?.totalVotingPower?.toFixed(3)}% de poder de voto acumulado.
+              La tabla "Bid Slots" reproduce el algoritmo exacto de SmartStake. Las {myData?.slotsAllotted || 5} llaves de Mintbes compiten individualmente ocupando los slots #{myData?.slotRange || '352-356'} con un {myData?.votingPower?.toFixed(3)}% de poder de voto acumulado.
             </span>
           </div>
 
@@ -969,7 +955,7 @@ export default function MintbesDashboard({ onLock }) {
       </main>
 
       {/* ========================================================================= */}
-      {/* 9. CLAIM REWARDS MODAL */}
+      {/* 8. CLAIM REWARDS MODAL */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {showClaimModal && (
