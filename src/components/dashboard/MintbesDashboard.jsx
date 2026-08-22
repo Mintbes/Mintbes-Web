@@ -454,19 +454,19 @@ export default function MintbesDashboard({ onLock }) {
                   <div className="grid grid-cols-4 gap-2 font-mono text-xs">
                     <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                       <span className="text-[9px] text-[#697a7c] block uppercase">BLS +2 (7 Keys)</span>
-                      <strong className="text-[#a8b6b6]">{myData?.bls_2 || '396-402'}</strong>
+                      <strong className="text-[#a8b6b6]">{myData?.['bls_+2'] || myData?.bls_plus_2 || myData?.bls_2 || '396-402'}</strong>
                     </div>
                     <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                       <span className="text-[9px] text-[#697a7c] block uppercase">BLS +1 (6 Keys)</span>
-                      <strong className="text-[#a8b6b6]">{myData?.bls_1 || '396-401'}</strong>
+                      <strong className="text-[#a8b6b6]">{myData?.['bls_+1'] || myData?.bls_plus_1 || myData?.bls_1 || '396-401'}</strong>
                     </div>
                     <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                       <span className="text-[9px] text-[#697a7c] block uppercase">BLS -1 (4 Keys)</span>
-                      <strong className="text-[#1fdfb6]">{myData?.['bls_-1'] || '295-298'}</strong>
+                      <strong className="text-[#1fdfb6]">{myData?.['bls_-1'] || myData?.bls_minus_1 || '295-298'}</strong>
                     </div>
                     <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                       <span className="text-[9px] text-[#697a7c] block uppercase">BLS -2 (3 Keys)</span>
-                      <strong className="text-[#1fdfb6]">{myData?.['bls_-2'] || '218-220'}</strong>
+                      <strong className="text-[#1fdfb6]">{myData?.['bls_-2'] || myData?.bls_minus_2 || '218-220'}</strong>
                     </div>
                   </div>
                 </div>
@@ -730,22 +730,22 @@ export default function MintbesDashboard({ onLock }) {
 
                         {/* BLS +2 */}
                         <td className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6] font-mono font-medium">
-                          {v.bls_2}
+                          {v['bls_+2'] || v.bls_plus_2 || v.bls_2 || '-'}
                         </td>
 
                         {/* BLS +1 */}
                         <td className="py-3 px-3 text-center bg-[#1fdfb608] text-[#1fdfb6] font-mono font-medium">
-                          {v.bls_1}
+                          {v['bls_+1'] || v.bls_plus_1 || v.bls_1 || '-'}
                         </td>
 
                         {/* BLS -1 */}
                         <td className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342] font-mono font-medium">
-                          {v['bls_-1']}
+                          {v['bls_-1'] || v.bls_minus_1 || '-'}
                         </td>
 
                         {/* BLS -2 */}
                         <td className="py-3 px-3 text-center bg-[#f5b34208] text-[#f5b342] font-mono font-medium">
-                          {v['bls_-2']}
+                          {v['bls_-2'] || v.bls_minus_2 || '-'}
                         </td>
                       </tr>
                     );

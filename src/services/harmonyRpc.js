@@ -204,10 +204,14 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       // BLS Simulations (+2, +1, -1, -2)
       [2, 1, -1, -2].forEach((delta) => {
         const newKeys = v.slotsRequested + delta;
-        const keyField = `bls_${delta > 0 ? '+' : ''}${delta}`;
+        const bracketKey = `bls_${delta > 0 ? '+' : ''}${delta}`;
+        const explicitKey = delta > 0 ? `bls_plus_${delta}` : `bls_minus_${Math.abs(delta)}`;
+        const shortKey = `bls_${delta}`;
 
         if (newKeys <= 0) {
-          v[keyField] = "-";
+          v[bracketKey] = "-";
+          v[explicitKey] = "-";
+          v[shortKey] = "-";
           return;
         }
 
@@ -215,7 +219,11 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
         const otherSlots = allSlots.filter((s) => s.address !== v.addr);
         const simStart = otherSlots.filter((s) => s.bid >= simBid).length + 1;
         const simEnd = simStart + newKeys - 1;
-        v[keyField] = `${simStart}-${simEnd}`;
+        const rangeStr = `${simStart}-${simEnd}`;
+
+        v[bracketKey] = rangeStr;
+        v[explicitKey] = rangeStr;
+        v[shortKey] = rangeStr;
       });
     });
 
