@@ -19,7 +19,10 @@ import {
   ExternalLink,
   ChevronDown,
   Terminal,
-  Cpu
+  Cpu,
+  Layers3,
+  TrendingUp,
+  Percent
 } from 'lucide-react';
 import { fetchHarmonyData, calculateKeySimulation, MY_ADDR, RPC_URL } from '../../services/harmonyRpc';
 
@@ -33,8 +36,10 @@ export default function MintbesDashboard({ onLock }) {
   const [countdown, setCountdown] = useState(30);
   const [copiedCmd, setCopiedCmd] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
-  const [activeViewTab, setActiveViewTab] = useState('overview'); // 'overview' | 'simulator' | 'validators' | 'rpc'
-  const [tableFilter, setTableFilter] = useState('focused'); // 'focused' | 'all'
+  
+  // Navigation
+  const [activeViewTab, setActiveViewTab] = useState('overview'); // 'overview' | 'slots' | 'validators' | 'simulator' | 'rpc'
+  const [slotsFilter, setSlotsFilter] = useState('mintbes_and_cutoff'); // 'all' | 'mintbes_and_cutoff' | 'mintbes_only'
   const [searchTerm, setSearchTerm] = useState('');
   const [simExtraStake, setSimExtraStake] = useState(0);
 
@@ -123,6 +128,7 @@ export default function MintbesDashboard({ onLock }) {
   // Derived values
   const myData = data?.myData;
   const validators = data?.validators || [];
+  const slots = data?.slots || [];
   const header = data?.header;
   const stats = data?.stats;
   const walletBalance = data?.walletBalance || 0;
@@ -130,25 +136,36 @@ export default function MintbesDashboard({ onLock }) {
   const effectiveStake = (myData?.total_delg || 0) + simExtraStake;
   const simResults = calculateKeySimulation(
     effectiveStake,
-    validators,
+    slots,
     stats?.cutoffStake || 0,
-    myData?.keys || 4
+    myData?.keys || 5
   );
 
-  const myIndex = validators.findIndex((v) => v.is_me);
-  const startIdx = Math.max(0, myIndex - 1);
-  const focusedValidators = validators.slice(startIdx);
+  // Filtered Slots for SmartStake View
+  const filteredSlots = slots.filter((s) => {
+    const matchesSearch =
+      s.validatorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.keyHex.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.slotRank.toString().includes(searchTerm);
 
-  const filteredAllValidators = validators.filter(
-    (v) =>
-      v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.addr.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    if (!matchesSearch) return false;
+
+    if (slotsFilter === 'mintbes_only') {
+      return s.isMe;
+    }
+    if (slotsFilter === 'mintbes_and_cutoff') {
+      const firstMintbesRank = myData?.firstSlotRank || 350;
+      // Show 10 slots before Mintbes, all Mintbes slots, and all down to cutoff + 5
+      return s.slotRank >= Math.max(1, firstMintbesRank - 10);
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#090d13] text-[#edf5f4] selection:bg-[#1fdfb6] selection:text-[#07110f] font-sans antialiased pb-16">
       
-      {/* Subtle Background Radial Mesh like rollback.country */}
+      {/* Background Mesh (rollback.country styling) */}
       <div 
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -159,7 +176,7 @@ export default function MintbesDashboard({ onLock }) {
       <main className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8 py-7 space-y-6">
         
         {/* ========================================================================= */}
-        {/* 1. HEADER (Direct rollback.country style) */}
+        {/* 1. HEADER (rollback.country style) */}
         {/* ========================================================================= */}
         <header className="border-b border-[#202a35] pb-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
           
@@ -176,7 +193,7 @@ export default function MintbesDashboard({ onLock }) {
             </div>
             <div>
               <span className="text-[#697a7c] text-[11px] font-bold uppercase tracking-[0.14em] block">
-                HARMONY EPOS VALIDATOR TELEMETRY
+                HARMONY EPOS VALIDATOR TELEMETRY & SMARTSTAKE ENGINE
               </span>
               <h1 className="text-[22px] font-bold text-[#edf5f4] tracking-[-0.02em]">
                 Mintbes Validator Command Center
@@ -184,7 +201,7 @@ export default function MintbesDashboard({ onLock }) {
             </div>
           </div>
 
-          {/* Header Actions & Freshness */}
+          {/* Actions & Auto-refresh */}
           <div className="flex flex-wrap items-center gap-4 justify-between md:justify-end">
             <div className="flex flex-col items-start md:items-end text-[11px] text-[#697a7c]">
               <span>ÚLTIMA SINCRONIZACIÓN</span>
@@ -245,34 +262,34 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 2. INTRO & SYSTEM STATUS */}
+        {/* 2. INTRO & SMARTSTAKE EPOS AUCTION METRICS */}
         {/* ========================================================================= */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 py-2">
           <div>
             <div className="inline-flex items-center gap-2 text-[#1fdfb6] text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5">
               <span className="w-2 h-2 rounded-full bg-[#1fdfb6] shadow-[0_0_10px_#1fdfb6b3]" />
-              CONSENSO HARMONY EPOS ACTIVO
+              MODELO DE SUBASTA EPOS (SMARTSTAKE AUCTION SYSTEM)
             </div>
             <p className="text-[#a8b6b6] text-[13px] leading-relaxed max-w-2xl font-normal">
-              Telemetría en tiempo real del nodo validador <strong>Mintbes</strong> en la red Harmony Mainnet (Shard 0). Monitoreo de posición en el comité, delegaciones, llaves BLS y margen respecto a la línea de corte.
+              Desglose individual de los <strong>{stats?.totalSlots || 400} slots</strong> en la subasta de consenso de Harmony. Cada llave BLS compite por su posición de slot con su <strong>Raw Bid</strong> y su poder de voto ponderado (<strong>Effective Stake</strong>).
             </p>
           </div>
 
           {/* Quick Metrics Rule Widget */}
-          <div className="border border-[#202a35] bg-[#ffffff05] rounded-xl p-3.5 min-w-[290px] flex items-center justify-between font-mono text-xs">
+          <div className="border border-[#202a35] bg-[#ffffff05] rounded-xl p-3.5 min-w-[320px] flex items-center justify-between font-mono text-xs">
             <div>
-              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Época Actual</span>
+              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Época Activa</span>
               <strong className="text-[#edf5f4] text-sm">{header?.epoch || 0}</strong>
             </div>
             <div className="h-7 w-px bg-[#202a35]" />
             <div>
-              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Bloque Shard 0</span>
-              <strong className="text-[#1fdfb6] text-sm">{fmt(header?.blockNumber)}</strong>
+              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Total Slots</span>
+              <strong className="text-[#1fdfb6] text-sm">{stats?.totalSlots || 400}</strong>
             </div>
             <div className="h-7 w-px bg-[#202a35]" />
             <div>
-              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Slots Red</span>
-              <strong className="text-[#edf5f4] text-sm">{stats?.totalSlots || 0}</strong>
+              <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block">Corte Slot #{stats?.totalSlots || 400}</span>
+              <strong className="text-[#ff6060] text-sm">{fmt(stats?.cutoffStake, 0)} ONE</strong>
             </div>
           </div>
         </div>
@@ -290,14 +307,14 @@ export default function MintbesDashboard({ onLock }) {
             🌿 Telemetría Mintbes
           </button>
           <button
-            onClick={() => setActiveViewTab('simulator')}
+            onClick={() => setActiveViewTab('slots')}
             className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer ${
-              activeViewTab === 'simulator'
+              activeViewTab === 'slots'
                 ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            🎛️ Simulador EPoS ({simResults.length} Slots)
+            📑 Subasta de Slots SmartStake (1 - {stats?.totalSlots || 400})
           </button>
           <button
             onClick={() => setActiveViewTab('validators')}
@@ -307,7 +324,17 @@ export default function MintbesDashboard({ onLock }) {
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            📡 Radar de Validadores ({validators.length})
+            🏛️ Resumen por Validador ({validators.length})
+          </button>
+          <button
+            onClick={() => setActiveViewTab('simulator')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer ${
+              activeViewTab === 'simulator'
+                ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
+                : 'text-[#697a7c] hover:text-[#edf5f4]'
+            }`}
+          >
+            🎛️ Simulador EPoS
           </button>
           <button
             onClick={() => setActiveViewTab('rpc')}
@@ -322,9 +349,9 @@ export default function MintbesDashboard({ onLock }) {
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. TAB 1: ONCHAIN HERO PANEL (MINTBES TELEMETRY) */}
+        {/* 3. HERO PANEL: MINTBES SMARTSTAKE ONCHAIN TELEMETRY */}
         {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'simulator') && (
+        {(activeViewTab === 'overview' || activeViewTab === 'slots') && (
           <div 
             className="border border-[#1fdfb67a] rounded-xl overflow-hidden shadow-2xl"
             style={{
@@ -336,79 +363,106 @@ export default function MintbesDashboard({ onLock }) {
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#1fdfb6] shadow-[0_0_10px_#1fdfb6]" />
                 <h2 className="text-[17px] font-bold text-[#edf5f4]">
-                  Estado del Validador en el Comité EPoS
+                  Posición de Mintbes en la Subasta EPoS
                 </h2>
               </div>
               <span className="text-[10px] text-[#697a7c] font-mono">
-                Operator Address: <strong className="text-[#a8b6b6]">{MY_ADDR}</strong>
+                Operator: <strong className="text-[#a8b6b6]">{MY_ADDR}</strong>
               </span>
             </div>
 
             {/* Grid 2-columns (rollback.country onchain-grid format) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#202a35]">
               
-              {/* Left Column: Ranking, BLS Keys, Safety Bar */}
+              {/* Left Column: Ranking, Slot Range, Voting Power */}
               <div className="p-6 space-y-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#697a7c] block">
-                      POSICIÓN EN EL RANKING ELECTO
+                      RANGO DE SLOTS SMARTSTAKE ({myData?.keys || 0} LLAVES BLS)
                     </span>
-                    <strong className="text-[34px] font-mono font-bold tracking-tight text-[#1fdfb6] block mt-0.5">
-                      Puesto #{myData?.rank || '--'} <span className="text-lg font-normal text-[#697a7c]">/ {stats?.totalNodes || 0}</span>
+                    <strong className="text-[32px] font-mono font-bold tracking-tight text-[#1fdfb6] block mt-0.5">
+                      Slots #{myData?.firstSlotRank || '--'} - #{myData?.lastSlotRank || '--'} <span className="text-lg font-normal text-[#697a7c]">/ {stats?.totalSlots || 400}</span>
                     </strong>
+                    <span className="text-xs text-[#a8b6b6] font-mono block mt-1">
+                      Puesto consolidado de nodo: <strong className="text-[#edf5f4]">#{myData?.rank || '--'} de {stats?.totalNodes || 0} validadores</strong>
+                    </span>
                   </div>
-                  <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#1fdfb61a] text-[#1fdfb6] border border-[#1fdfb647]">
-                    100% SEGURO EN EL COMITÉ
-                  </span>
+                  <div className="text-right">
+                    <span className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#1fdfb61a] text-[#1fdfb6] border border-[#1fdfb647] block mb-1">
+                      100% ELECTO
+                    </span>
+                    <span className="text-[10px] font-mono text-[#f5b342] bg-[#f5b3421a] px-2 py-0.5 rounded border border-[#f5b34247]">
+                      {myData?.statusLabel || 'Bonificado (85%)'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Progress Bar with Precision Cutoff & Median Markers */}
+                {/* Voting Power Box */}
+                <div className="border border-[#202a35] bg-[#131b25] rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#1fdfb61a] border border-[#1fdfb647] flex items-center justify-center text-[#1fdfb6]">
+                      <Percent className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#697a7c] tracking-wider block">Poder de Voto Total (Voting Power)</span>
+                      <strong className="text-xl font-mono text-[#1fdfb6] font-bold">{myData?.totalVotingPower?.toFixed(3) || '0.000'}% de la Red</strong>
+                    </div>
+                  </div>
+                  <div className="text-right text-[11px] font-mono text-[#a8b6b6]">
+                    <span>{(myData?.totalVotingPower / (myData?.keys || 1))?.toFixed(3)}% / llave</span>
+                  </div>
+                </div>
+
+                {/* EPoS Auction Visualizer Bar */}
                 <div>
                   <div className="flex items-center justify-between text-[11px] mb-1.5 font-mono">
-                    <span className="text-[#a8b6b6]">Nivel de Respaldo sobre Mediana</span>
-                    <strong className="text-[#1fdfb6] font-bold">{myData?.backup_pct.toFixed(0)}%</strong>
+                    <span className="text-[#a8b6b6]">Posición en la Banda EPoS (85% - 115% de Mediana)</span>
+                    <strong className="text-[#1fdfb6] font-bold">{myData?.backup_pct?.toFixed(0)}% de Mediana</strong>
                   </div>
                   
-                  <div className="relative h-2 bg-[#1a2530] rounded-full overflow-visible">
+                  <div className="relative h-2.5 bg-[#1a2530] rounded-full overflow-visible">
                     <div 
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${Math.min(100, myData?.backup_pct || 0)}%`,
+                        width: `${Math.min(100, (myData?.stake_per_key / (stats?.upperBound || 1)) * 100)}%`,
                         background: 'linear-gradient(90deg, #12b99b, #1fdfb6)',
                         boxShadow: '0 0 12px rgba(31, 223, 182, 0.38)'
                       }}
                     />
                     {/* Markers */}
-                    <div className="absolute top-[-3px] left-[50%] w-[1px] h-[14px] bg-[#f5b342]" title="Mediana de la red" />
-                    <div className="absolute top-[-3px] left-[25%] w-[1px] h-[14px] bg-[#ff6060]" title="Corte mínimo" />
+                    <div className="absolute top-[-3px] left-[73%] w-[1px] h-[16px] bg-[#f5b342]" title="Límite 85% EPoS" />
+                    <div className="absolute top-[-3px] left-[87%] w-[1px] h-[16px] bg-[#1fdfb6]" title="Mediana EPoS" />
+                    <div className="absolute top-[-3px] left-[100%] w-[1px] h-[16px] bg-[#6e80ff]" title="Tope 115% EPoS" />
                   </div>
 
                   <div className="relative h-4 text-[9px] text-[#697a7c] font-mono mt-2">
-                    <span className="absolute left-0">0 ONE</span>
-                    <span className="absolute left-[25%] text-[#ff6060] translate-x-[-50%]">Corte ({fmt(stats?.cutoffStake, 0)})</span>
-                    <span className="absolute left-[50%] text-[#f5b342] translate-x-[-50%]">Mediana ({fmt(stats?.medianStake, 0)})</span>
-                    <span className="absolute right-0 text-[#1fdfb6]">Mintbes ({fmt(myData?.stake_per_key, 0)})</span>
+                    <span className="absolute left-0">Corte #{stats?.totalSlots || 400}: {fmt(stats?.cutoffStake, 0)}</span>
+                    <span className="absolute left-[73%] text-[#f5b342] translate-x-[-50%]">85%: {fmt(stats?.lowerBound, 0)}</span>
+                    <span className="absolute right-0 text-[#6e80ff]">115%: {fmt(stats?.upperBound, 0)}</span>
                   </div>
                 </div>
 
-                {/* BLS Keys Tag List */}
-                <div className="pt-2">
+                {/* Individual BLS Keys Slots Table */}
+                <div className="pt-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#697a7c] block mb-2">
-                    LLAVES BLS ACTIVAS ({myData?.keys || 0} KEYS)
+                    DESGLOSE DE SLOTS DE MINTBES ({myData?.keys || 0} SLOTS)
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {myData?.blsKeys?.map((k, idx) => (
-                      <code 
-                        key={idx} 
-                        className="bg-[#090d13] border border-[#202a35] text-[#a8b6b6] px-2 py-1 rounded text-[10px] font-mono"
-                        title={k}
-                      >
-                        Key #{idx + 1}: {k.slice(0, 10)}...{k.slice(-6)}
-                      </code>
-                    )) || (
-                      <span className="text-xs text-[#697a7c]">No keys found</span>
-                    )}
+                  <div className="border border-[#202a35] rounded-lg overflow-hidden font-mono text-[11px]">
+                    <div className="bg-[#202a35] grid grid-cols-4 gap-[1px] text-[9px] text-[#697a7c] uppercase font-bold p-1">
+                      <div className="bg-[#131b25] px-2 py-1">Slot #</div>
+                      <div className="bg-[#131b25] px-2 py-1">Raw Bid</div>
+                      <div className="bg-[#131b25] px-2 py-1">Effective Stake</div>
+                      <div className="bg-[#131b25] px-2 py-1 text-right">Voting Power</div>
+                    </div>
+                    {myData?.mintbesSlots?.map((ms) => (
+                      <div key={ms.slotRank} className="bg-[#202a35] grid grid-cols-4 gap-[1px] p-0.5 text-[#edf5f4]">
+                        <div className="bg-[#0f151d] px-2 py-1 font-bold text-[#1fdfb6]">Slot #{ms.slotRank}</div>
+                        <div className="bg-[#0f151d] px-2 py-1 text-[#a8b6b6]">{fmt(ms.rawBid, 0)}</div>
+                        <div className="bg-[#0f151d] px-2 py-1 text-[#f5b342] font-semibold">{fmt(ms.effectiveStake, 0)}</div>
+                        <div className="bg-[#0f151d] px-2 py-1 text-right text-[#1fdfb6]">{ms.votingPower.toFixed(3)}%</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -416,10 +470,10 @@ export default function MintbesDashboard({ onLock }) {
               {/* Right Column: 4-Cell Telemetry Matrix */}
               <div className="p-6 space-y-4">
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#697a7c] block">
-                  MÉTRICAS PRINCIPALES DE STAKING
+                  MÉTRICAS CONSOLIDADAS DEL VALIDADOR
                 </span>
 
-                {/* 4-cell Stats Matrix (.card-stats from rollback.country) */}
+                {/* 4-cell Stats Matrix */}
                 <div className="border border-[#202a35] bg-[#202a35] rounded-lg grid grid-cols-2 gap-[1px] overflow-hidden">
                   <div className="bg-[#131b25] p-3">
                     <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Delegación Total</dt>
@@ -429,14 +483,14 @@ export default function MintbesDashboard({ onLock }) {
                   </div>
 
                   <div className="bg-[#131b25] p-3">
-                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Stake / Llave BLS</dt>
+                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Raw Bid / Llave BLS</dt>
                     <dd className="text-[#1fdfb6] font-mono text-[16px] font-bold mt-1">
                       {fmt(myData?.stake_per_key, 0)} <span className="text-xs font-normal text-[#697a7c]">ONE</span>
                     </dd>
                   </div>
 
                   <div className="bg-[#131b25] p-3">
-                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Margen sobre el Corte</dt>
+                    <dt className="text-[#697a7c] text-[9px] uppercase tracking-wider font-semibold">Margen sobre el Corte #{stats?.totalSlots || 400}</dt>
                     <dd className="text-[#1fdfb6] font-mono text-[16px] font-bold mt-1">
                       +{fmt(myData?.margin, 0)} <span className="text-xs font-normal text-[#1fdfb6]">(+{myData?.pct_margin.toFixed(1)}%)</span>
                     </dd>
@@ -486,29 +540,252 @@ export default function MintbesDashboard({ onLock }) {
             </div>
 
             {/* Note bar */}
-            <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex items-center justify-between">
-              <span>* Los cálculos de EPoS se actualizan en cada ciclo de época según la votación efectiva de Harmony.</span>
-              <span className="text-[#1fdfb6]">APR Teórico Red: ~7.2%</span>
+            <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <span>* SmartStake Engine: Los slots con bid menor al 85% de la mediana son bonificados (*Boosted*) en su Effective Stake.</span>
+              <span className="text-[#1fdfb6]">Mediana Red: {fmt(stats?.medianStake, 0)} ONE</span>
             </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* 4. TAB 2: EPOS KEY SIMULATOR PANEL */}
+        {/* 4. TAB: SMARTSTAKE SLOTS AUCTION TABLE (1 TO 400 SLOTS) */}
         {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'simulator') && (
+        {(activeViewTab === 'overview' || activeViewTab === 'slots') && (
+          <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
+            <div className="border-b border-[#202a35] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-[17px] font-bold text-[#edf5f4] flex items-center gap-2">
+                  <Layers3 className="w-5 h-5 text-[#1fdfb6]" />
+                  Subasta de Slots SmartStake (Tabla Global de {stats?.totalSlots || 400} Llaves)
+                </h2>
+                <span className="text-[11px] text-[#697a7c]">
+                  Cada fila representa 1 slot / llave BLS individual en consenso. El slot #{stats?.totalSlots || 400} marca la línea de corte mínima.
+                </span>
+              </div>
+
+              {/* Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="border border-[#202a35] bg-[#090d13] rounded-lg p-1 flex">
+                  <button
+                    onClick={() => setSlotsFilter('mintbes_and_cutoff')}
+                    className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                      slotsFilter === 'mintbes_and_cutoff'
+                        ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
+                        : 'text-[#697a7c] hover:text-[#edf5f4]'
+                    }`}
+                  >
+                    Focalizada (Mintbes + Corte)
+                  </button>
+                  <button
+                    onClick={() => setSlotsFilter('all')}
+                    className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                      slotsFilter === 'all'
+                        ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
+                        : 'text-[#697a7c] hover:text-[#edf5f4]'
+                    }`}
+                  >
+                    Todos ({slots.length} Slots)
+                  </button>
+                  <button
+                    onClick={() => setSlotsFilter('mintbes_only')}
+                    className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                      slotsFilter === 'mintbes_only'
+                        ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
+                        : 'text-[#697a7c] hover:text-[#edf5f4]'
+                    }`}
+                  >
+                    Solo Mintbes ({myData?.keys || 0})
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="search"
+                    placeholder="Buscar slot, validador o key..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-[#202a35] bg-[#090d13] focus:border-[#1fdfb67a] rounded-lg px-3 py-1.5 text-[11px] text-[#edf5f4] placeholder-[#697a7c] outline-none font-mono w-52"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Slots Table */}
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <table className="w-full text-left border-collapse font-mono text-xs">
+                <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
+                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
+                    <th className="py-3 px-5">Slot #</th>
+                    <th className="py-3 px-5">Validador & Llave</th>
+                    <th className="py-3 px-5">Raw Bid (ONE)</th>
+                    <th className="py-3 px-5">Effective Stake (EPoS)</th>
+                    <th className="py-3 px-5">Voting Power</th>
+                    <th className="py-3 px-5 text-right">Estado EPoS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#202a35]">
+                  {filteredSlots.map((s) => {
+                    const isMe = s.isMe;
+                    const isCutoff = s.slotRank === stats?.totalSlots;
+
+                    let pillClass = 'bg-[#1fdfb61a] text-[#1fdfb6] border border-[#1fdfb647]';
+                    if (s.eposStatus === 'BOOSTED') {
+                      pillClass = 'bg-[#f5b3421a] text-[#f5b342] border border-[#f5b34247]';
+                    } else if (s.eposStatus === 'CAPPED') {
+                      pillClass = 'bg-[#6e80ff1f] text-[#aab8ff] border border-[#6e80ff47]';
+                    }
+
+                    return (
+                      <tr
+                        key={`${s.address}-${s.keyHex}`}
+                        className={`transition-colors ${
+                          isMe
+                            ? 'bg-[#1fdfb614] font-bold border-l-2 border-l-[#1fdfb6]'
+                            : isCutoff
+                            ? 'bg-[#ff50500f] font-bold'
+                            : 'hover:bg-[#ffffff04]'
+                        }`}
+                      >
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-1.5">
+                            <span 
+                              className={`font-bold text-sm ${
+                                isMe 
+                                  ? 'text-[#1fdfb6]' 
+                                  : isCutoff 
+                                  ? 'text-[#ff9b9b]' 
+                                  : 'text-[#697a7c]'
+                              }`}
+                            >
+                              #{s.slotRank}
+                            </span>
+                            {isCutoff && (
+                              <span className="text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#ff505026] text-[#ff9b9b] border border-[#ff606040]">
+                                Línea Corte
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-5">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className={isMe ? 'text-[#1fdfb6] font-bold text-sm' : 'text-[#edf5f4] font-semibold'}>
+                                {s.validatorName}
+                              </span>
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#090d13] border border-[#202a35] text-[#a8b6b6]">
+                                Key {s.keyIndex}/{s.totalKeys}
+                              </span>
+                            </div>
+                            <span className="block text-[10px] text-[#697a7c] font-mono mt-0.5" title={s.keyHex}>
+                              BLS: {s.keyHex.slice(0, 10)}...{s.keyHex.slice(-6)}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-5 text-[#edf5f4] font-semibold">
+                          {fmt(s.rawBid, 0)} ONE
+                        </td>
+
+                        <td className="py-3.5 px-5">
+                          <span className={s.eposStatus === 'BOOSTED' ? 'text-[#f5b342] font-bold' : s.eposStatus === 'CAPPED' ? 'text-[#aab8ff] font-bold' : 'text-[#1fdfb6] font-bold'}>
+                            {fmt(s.effectiveStake, 0)} ONE
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-5 text-[#1fdfb6] font-bold">
+                          {s.votingPower.toFixed(3)}%
+                        </td>
+
+                        <td className="py-3.5 px-5 text-right">
+                          <span className={`inline-block text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${pillClass}`}>
+                            {s.statusLabel}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 5. TAB: VALIDATORS CONSOLIDATED RADAR */}
+        {/* ========================================================================= */}
+        {activeViewTab === 'validators' && (
+          <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
+            <div className="border-b border-[#202a35] px-5 py-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-[17px] font-bold text-[#edf5f4]">
+                  Resumen Consolidado de Validadores Electos ({validators.length} Nodos)
+                </h2>
+                <span className="text-[11px] text-[#697a7c]">
+                  Agrupación por nodo validador, ordenados por stake promedio por llave.
+                </span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <table className="w-full text-left border-collapse font-mono text-xs">
+                <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
+                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
+                    <th className="py-3 px-5">Pos</th>
+                    <th className="py-3 px-5">Validador</th>
+                    <th className="py-3 px-5">Llaves</th>
+                    <th className="py-3 px-5">Stake / Llave</th>
+                    <th className="py-3 px-5">Delegación Total</th>
+                    <th className="py-3 px-5 text-right">Fee</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#202a35]">
+                  {validators.map((v, i) => {
+                    const isMe = v.is_me;
+                    const pos = i + 1;
+                    return (
+                      <tr
+                        key={v.addr}
+                        className={`transition-colors ${
+                          isMe
+                            ? 'bg-[#1fdfb614] font-bold border-l-2 border-l-[#1fdfb6]'
+                            : 'hover:bg-[#ffffff04]'
+                        }`}
+                      >
+                        <td className="py-3.5 px-5 font-bold">#{pos}</td>
+                        <td className="py-3.5 px-5">
+                          <span className={isMe ? 'text-[#1fdfb6] font-bold' : 'text-[#edf5f4]'}>{v.name}</span>
+                          <span className="block text-[10px] text-[#697a7c]">{v.addr.slice(0, 10)}...</span>
+                        </td>
+                        <td className="py-3.5 px-5 text-[#a8b6b6]">{v.keys} keys</td>
+                        <td className="py-3.5 px-5 text-[#edf5f4] font-bold">{fmt(v.stake_per_key)} ONE</td>
+                        <td className="py-3.5 px-5 text-[#a8b6b6]">{fmt(v.total_delg)} ONE</td>
+                        <td className="py-3.5 px-5 text-right text-[#697a7c]">{v.rate.toFixed(1)}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 6. TAB: SMARTSTAKE SLOTS SIMULATOR */}
+        {/* ========================================================================= */}
+        {activeViewTab === 'simulator' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
             <div className="border-b border-[#202a35] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-[17px] font-bold text-[#edf5f4]">
-                  Simulador EPoS: Optimización y Límite de Llaves BLS
+                  Simulador EPoS: Proyección de Slots en la Subasta de {stats?.totalSlots || 400} Llaves
                 </h2>
                 <span className="text-[11px] text-[#697a7c]">
-                  Evalúa cómo varía el stake por llave y el puesto de Mintbes al modificar la cantidad de llaves activas.
+                  Calcula a qué rango exacto de slots SmartStake ascenderían o descenderían tus llaves según la cantidad de llaves activas.
                 </span>
               </div>
 
-              {/* Extra Stake Simulator Input */}
+              {/* Extra Stake */}
               <div className="flex items-center gap-2 border border-[#202a35] bg-[#090d13] px-3 py-1.5 rounded-lg text-xs font-mono">
                 <span className="text-[#697a7c]">Simular Extra Stake:</span>
                 <input
@@ -523,15 +800,14 @@ export default function MintbesDashboard({ onLock }) {
               </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse font-mono text-xs">
                 <thead>
                   <tr className="border-b border-[#202a35] bg-[#ffffff03] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
                     <th className="py-3 px-5">Configuración Llaves</th>
-                    <th className="py-3 px-5">Stake por Llave</th>
-                    <th className="py-3 px-5">Puesto Estimado</th>
-                    <th className="py-3 px-5">Margen sobre el Corte</th>
+                    <th className="py-3 px-5">Raw Bid / Llave</th>
+                    <th className="py-3 px-5">Rango de Slots en la Subasta</th>
+                    <th className="py-3 px-5">Margen sobre Corte #{stats?.totalSlots || 400}</th>
                     <th className="py-3 px-5 text-right">Estado de Consenso</th>
                   </tr>
                 </thead>
@@ -572,8 +848,8 @@ export default function MintbesDashboard({ onLock }) {
                           {fmt(sim.stake_per_key)} ONE
                         </td>
 
-                        <td className="py-3 px-5 text-[#a8b6b6]">
-                          Puesto #{sim.rank} de {stats?.totalNodes}
+                        <td className="py-3 px-5 text-[#1fdfb6] font-bold">
+                          Slots #{sim.slotRankStart} - #{sim.slotRankEnd}
                         </td>
 
                         <td className="py-3 px-5">
@@ -597,153 +873,9 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 5. TAB 3: VALIDATORS RADAR TABLE (Direct rollback.country detail-panel) */}
+        {/* 7. TAB: RPC TELEMETRY */}
         {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'validators') && (
-          <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
-            <div className="border-b border-[#202a35] px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-[17px] font-bold text-[#edf5f4]">
-                  Radar de Validadores Electos (Posición en Vivo)
-                </h2>
-                <span className="text-[11px] text-[#697a7c]">
-                  Seguimiento de competidores directos, validadores adyacentes y línea de corte mínima.
-                </span>
-              </div>
-
-              {/* Controls: Segmented tab + Search */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="border border-[#202a35] bg-[#090d13] rounded-lg p-1 flex">
-                  <button
-                    onClick={() => setTableFilter('focused')}
-                    className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                      tableFilter === 'focused'
-                        ? 'bg-[#131b25] text-[#edf5f4] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
-                        : 'text-[#697a7c] hover:text-[#edf5f4]'
-                    }`}
-                  >
-                    Focalizada (Mintbes + Abajo)
-                  </button>
-                  <button
-                    onClick={() => setTableFilter('all')}
-                    className={`px-3 py-1 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                      tableFilter === 'all'
-                        ? 'bg-[#131b25] text-[#edf5f4] shadow-[0_1px_4px_rgba(0,0,0,0.2)]'
-                        : 'text-[#697a7c] hover:text-[#edf5f4]'
-                    }`}
-                  >
-                    Todos ({validators.length})
-                  </button>
-                </div>
-
-                {tableFilter === 'all' && (
-                  <div className="relative">
-                    <input
-                      type="search"
-                      placeholder="Buscar validador..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border border-[#202a35] bg-[#090d13] focus:border-[#1fdfb67a] rounded-lg px-3 py-1.5 text-[11px] text-[#edf5f4] placeholder-[#697a7c] outline-none font-mono w-48"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto max-h-[550px] overflow-y-auto">
-              <table className="w-full text-left border-collapse font-mono text-xs">
-                <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
-                  <tr className="border-b border-[#202a35] text-[#697a7c] text-[9px] uppercase tracking-[0.07em]">
-                    <th className="py-3 px-5">Pos</th>
-                    <th className="py-3 px-5">Validador</th>
-                    <th className="py-3 px-5">Llaves</th>
-                    <th className="py-3 px-5">Stake / Llave</th>
-                    <th className="py-3 px-5">Delegación Total</th>
-                    <th className="py-3 px-5 text-right">Fee</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#202a35]">
-                  {(tableFilter === 'focused' ? focusedValidators : filteredAllValidators).map((v, i) => {
-                    const pos = tableFilter === 'focused' ? startIdx + i + 1 : validators.findIndex(item => item.addr === v.addr) + 1;
-                    const isMe = v.is_me;
-                    const isCutoff = pos === stats?.totalNodes;
-                    const isAboveMe = pos < (myData?.rank || 999);
-
-                    return (
-                      <tr
-                        key={v.addr}
-                        className={`transition-colors ${
-                          isMe
-                            ? 'bg-[#1fdfb614] font-bold border-l-2 border-l-[#1fdfb6]'
-                            : isCutoff
-                            ? 'bg-[#ff50500f]'
-                            : 'hover:bg-[#ffffff04]'
-                        }`}
-                      >
-                        <td className="py-3.5 px-5">
-                          <div className="flex items-center gap-1.5">
-                            {isAboveMe && <span className="text-[#f5b342]">▲</span>}
-                            <span 
-                              className={`font-bold ${
-                                isMe 
-                                  ? 'text-[#1fdfb6]' 
-                                  : isCutoff 
-                                  ? 'text-[#ff9b9b]' 
-                                  : isAboveMe 
-                                  ? 'text-[#f5b342]' 
-                                  : 'text-[#697a7c]'
-                              }`}
-                            >
-                              #{pos}
-                            </span>
-                            {isCutoff && (
-                              <span className="text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#ff505026] text-[#ff9b9b] border border-[#ff606040]">
-                                Línea Corte
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-5">
-                          <div>
-                            <span className={isMe ? 'text-[#1fdfb6] font-bold text-sm' : 'text-[#edf5f4] font-semibold'}>
-                              {v.name}
-                            </span>
-                            <span className="block text-[10px] text-[#697a7c] font-mono">
-                              {v.addr.slice(0, 12)}...{v.addr.slice(-6)}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="py-3.5 px-5 text-[#a8b6b6]">
-                          {v.keys} keys
-                        </td>
-
-                        <td className="py-3.5 px-5 text-[#edf5f4] font-bold">
-                          {fmt(v.stake_per_key)} ONE
-                        </td>
-
-                        <td className="py-3.5 px-5 text-[#a8b6b6]">
-                          {fmt(v.total_delg)} ONE
-                        </td>
-
-                        <td className="py-3.5 px-5 text-right text-[#697a7c]">
-                          {v.rate.toFixed(1)}%
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {/* ========================================================================= */}
-        {/* 6. TAB 4: RPC TELEMETRY PANEL (.rpc-panel style) */}
-        {/* ========================================================================= */}
-        {(activeViewTab === 'overview' || activeViewTab === 'rpc') && (
+        {activeViewTab === 'rpc' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
             <div className="border-b border-[#202a35] px-5 py-4 flex items-center justify-between">
               <div>
@@ -760,7 +892,6 @@ export default function MintbesDashboard({ onLock }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#202a35]">
-              {/* Shard 0 Status */}
               <div className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <strong className="text-xs text-[#edf5f4]">Harmony Shard 0</strong>
@@ -774,19 +905,8 @@ export default function MintbesDashboard({ onLock }) {
                   </strong>
                   <span className="text-[10px] text-[#697a7c]">Último bloque validado</span>
                 </div>
-                <div className="border border-[#202a35] bg-[#202a35] rounded grid grid-cols-2 gap-[1px] overflow-hidden text-[10px] font-mono">
-                  <div className="bg-[#131b25] p-2">
-                    <dt className="text-[#697a7c] text-[8px] uppercase">Epoch</dt>
-                    <dd className="text-[#a8b6b6]">{header?.epoch}</dd>
-                  </div>
-                  <div className="bg-[#131b25] p-2">
-                    <dt className="text-[#697a7c] text-[8px] uppercase">Gas Price</dt>
-                    <dd className="text-[#a8b6b6]">100 Gwei</dd>
-                  </div>
-                </div>
               </div>
 
-              {/* Endpoint RPC */}
               <div className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <strong className="text-xs text-[#edf5f4]">Endpoint Público</strong>
@@ -800,19 +920,8 @@ export default function MintbesDashboard({ onLock }) {
                   </strong>
                   <span className="text-[10px] text-[#697a7c]">Latencia estimada: &lt;180ms</span>
                 </div>
-                <div className="border border-[#202a35] bg-[#202a35] rounded grid grid-cols-2 gap-[1px] overflow-hidden text-[10px] font-mono">
-                  <div className="bg-[#131b25] p-2">
-                    <dt className="text-[#697a7c] text-[8px] uppercase">View ID</dt>
-                    <dd className="text-[#a8b6b6] truncate">{header?.viewID || '0'}</dd>
-                  </div>
-                  <div className="bg-[#131b25] p-2">
-                    <dt className="text-[#697a7c] text-[8px] uppercase">Shard ID</dt>
-                    <dd className="text-[#a8b6b6]">0</dd>
-                  </div>
-                </div>
               </div>
 
-              {/* Staking Explorer Link */}
               <div className="p-5 space-y-3 flex flex-col justify-between">
                 <div>
                   <strong className="text-xs text-[#edf5f4] block">Explorador Harmony</strong>
@@ -826,7 +935,7 @@ export default function MintbesDashboard({ onLock }) {
                   rel="noopener noreferrer"
                   className="bg-[#131b25] hover:bg-[#1a2530] border border-[#202a35] hover:border-[#1fdfb67a] text-[#1fdfb6] px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <span>Abrir Harmony Staking Dashboard</span>
+                  <span>Abrir Harmony Staking</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -835,15 +944,15 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 7. FOOTER TELEMETRY (rollback.country style) */}
+        {/* 8. FOOTER TELEMETRY */}
         {/* ========================================================================= */}
         <footer className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-[#202a35]">
           <div className="border-l-2 border-[#32404d] pl-3.5 py-1">
             <strong className="text-[#a8b6b6] text-[10px] uppercase tracking-[0.05em] block mb-1">
-              PROTOCOLO HARMONY EPOS (EFFECTIVE PROOF OF STAKE)
+              PROTOCOLO HARMONY EPOS & SUBASTA SMARTSTAKE
             </strong>
             <span className="text-[#697a7c] text-[10px] leading-relaxed block">
-              El protocolo EPoS penaliza a los validadores que acumulan excesiva delegación asignando votos por llaves BLS. El margen sobre la línea de corte asegura la permanencia ininterrumpida de Mintbes en el comité electo.
+              La subasta EPoS descompone cada validador en llaves BLS. Las {myData?.keys || 5} llaves de Mintbes compiten individualmente ocupando los slots #{myData?.firstSlotRank || '--'} al #{myData?.lastSlotRank || '--'} con un {myData?.totalVotingPower?.toFixed(3)}% de poder de voto acumulado.
             </span>
           </div>
 
@@ -860,7 +969,7 @@ export default function MintbesDashboard({ onLock }) {
       </main>
 
       {/* ========================================================================= */}
-      {/* 8. CLAIM REWARDS MODAL */}
+      {/* 9. CLAIM REWARDS MODAL */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {showClaimModal && (
@@ -889,7 +998,6 @@ export default function MintbesDashboard({ onLock }) {
                 </button>
               </div>
 
-              {/* Amount Display */}
               <div className="border border-[#f5b34247] bg-[#f5b3420e] rounded-lg p-4 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#f5b342] tracking-wider block">
@@ -906,7 +1014,6 @@ export default function MintbesDashboard({ onLock }) {
                 </div>
               </div>
 
-              {/* CLI Command */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#a8b6b6]">
                   <span>Comando CLI para el Servidor:</span>

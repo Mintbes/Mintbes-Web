@@ -1,21 +1,23 @@
 /**
  * Harmony JSON-RPC Service for Mintbes EPoS Dashboard
- * Updated to match the latest epos_dashboard.py logic (30s interval, streamlined batch)
+ * Enhanced with SmartStake Auction Engine:
+ * - Slot-by-slot ranking (1 to 400 slots)
+ * - Raw Bid vs Effective Stake (85% - 115% EPoS bounds)
+ * - Voting Power percentage calculation
  */
 
 export const MY_ADDR = "one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k";
 export const RPC_URL = "https://a.api.s0.t.hmny.io";
 export const DEFAULT_INTERVAL_SECS = 30;
 
-// Clean string helper
-function cleanName(name, maxLen = 22) {
+function cleanName(name, maxLen = 24) {
   if (!name) return "";
   const clean = name.replace(/[^\x20-\x7E]/g, "");
   return clean.trim().slice(0, maxLen);
 }
 
 /**
- * Fetch complete dashboard data from Harmony JSON-RPC
+ * Fetch complete dashboard data with SmartStake slot decomposition
  */
 export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
   try {
@@ -50,7 +52,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       throw new Error("No elected validator addresses returned from Harmony RPC.");
     }
 
-    // 2. Batch Request for all validators + Wallet balance (matching Python script)
+    // 2. Batch Request for all validators + Wallet balance
     const batch = electedAddrs.map((addr, i) => ({
       jsonrpc: "2.0",
       method: "hmyv2_getValidatorInformation",
@@ -58,7 +60,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       id: i,
     }));
 
-    // Add balance query for validatorAddress (id: 9998)
+    // Balance query (id: 9998)
     batch.push({
       jsonrpc: "2.0",
       method: "hmy_getBalance",
@@ -83,7 +85,6 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
     for (const item of batchRes) {
       const iId = item?.id;
 
-      // Handle balance query (id: 9998)
       if (iId === 9998) {
         const balRaw = item?.result;
         if (balRaw !== undefined && balRaw !== null) {
@@ -100,7 +101,6 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
         continue;
       }
 
-      // Handle Validator Information
       const v = item?.result || {};
       const valData = v.validator || {};
       const addr = valData.address || "";
@@ -139,23 +139,93 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       }
     }
 
-    // Sort validators by stake_per_key descending
+    // =========================================================================
+    // SMARTSTAKE ENGINE: DECOMPOSE INTO 396+ INDIVIDUAL SLOTS (BLS KEYS)
+    // =========================================================================
+    const allSlots = [];
+    validators.forEach((val) => {
+      val.blsKeys.forEach((keyHex, idx) => {
+        allSlots.push({
+          validatorName: val.name,
+          address: val.addr,
+          keyHex,
+          keyIndex: idx + 1,
+          totalKeys: val.keys,
+          rawBid: val.stake_per_key,
+          totalDelegation: val.total_delg,
+          rate: val.rate,
+          isMe: val.is_me,
+        });
+      });
+    });
+
+    // Sort all slots globally by rawBid descending
+    allSlots.sort((a, b) => b.rawBid - a.rawBid);
+
+    // Add slot rank
+    allSlots.forEach((slot, index) => {
+      slot.slotRank = index + 1;
+    });
+
+    const totalSlots = allSlots.length;
+    const medianSlotIdx = Math.floor(totalSlots / 2);
+    const medianSlotBid = allSlots[medianSlotIdx]?.rawBid || 0;
+    const upperBound = medianSlotBid * 1.15; // 115% EPoS cap
+    const lowerBound = medianSlotBid * 0.85; // 85% EPoS boost
+
+    const cutoffSlot = allSlots[allSlots.length - 1] || { rawBid: 0 };
+    const cutoffBid = cutoffSlot.rawBid;
+
+    // Compute Effective Stake and Voting Power
+    let totalEffectiveStake = 0;
+    allSlots.forEach((s) => {
+      let eff = s.rawBid;
+      let eposStatus = "OPTIMAL";
+      let statusLabel = "Óptimo (100%)";
+
+      if (s.rawBid > upperBound) {
+        eff = upperBound;
+        eposStatus = "CAPPED";
+        statusLabel = "Topado (115%)";
+      } else if (s.rawBid < lowerBound) {
+        eff = lowerBound;
+        eposStatus = "BOOSTED";
+        statusLabel = "Bonificado (85%)";
+      }
+
+      s.effectiveStake = eff;
+      s.eposStatus = eposStatus;
+      s.statusLabel = statusLabel;
+      totalEffectiveStake += eff;
+    });
+
+    // Calculate voting power % per slot
+    allSlots.forEach((s) => {
+      s.votingPower = totalEffectiveStake > 0 ? (s.effectiveStake / totalEffectiveStake) * 100 : 0;
+    });
+
+    // Sort validators by validator rank (average stake per key)
     validators.sort((a, b) => b.stake_per_key - a.stake_per_key);
 
-    const totalSlots = validators.reduce((acc, v) => acc + v.keys, 0);
-    const cutoffNode = validators[validators.length - 1] || { stake_per_key: 0 };
-    const cutoffStake = cutoffNode.stake_per_key;
-    const medianIdx = Math.floor(validators.length / 2);
-    const medianStake = validators[medianIdx]?.stake_per_key || 0;
+    // Filter Mintbes slots
+    const mintbesSlots = allSlots.filter((s) => s.isMe);
+    const totalMintbesVotingPower = mintbesSlots.reduce((sum, s) => sum + s.votingPower, 0);
 
-    // Enhance myData calculations
+    // Enhance myData
     if (myData) {
       const myIdx = validators.findIndex((v) => v.is_me);
       myData.rank = myIdx + 1;
-      myData.margin = myData.stake_per_key - cutoffStake;
-      myData.pct_margin = cutoffStake > 0 ? (myData.margin / cutoffStake) * 100 : 0;
+      myData.margin = myData.stake_per_key - cutoffBid;
+      myData.pct_margin = cutoffBid > 0 ? (myData.margin / cutoffBid) * 100 : 0;
       myData.daily_estimate = (myData.total_delg * 0.072) / 365;
-      myData.backup_pct = medianStake > 0 ? Math.min(100, (myData.stake_per_key / medianStake) * 100) : 100;
+      myData.backup_pct = medianSlotBid > 0 ? Math.min(100, (myData.stake_per_key / medianSlotBid) * 100) : 100;
+      myData.mintbesSlots = mintbesSlots;
+      myData.totalVotingPower = totalMintbesVotingPower;
+      myData.firstSlotRank = mintbesSlots[0]?.slotRank || 0;
+      myData.lastSlotRank = mintbesSlots[mintbesSlots.length - 1]?.slotRank || 0;
+      myData.effectiveStakePerSlot = mintbesSlots[0]?.effectiveStake || myData.stake_per_key;
+      myData.eposStatus = mintbesSlots[0]?.eposStatus || "OPTIMAL";
+      myData.statusLabel = mintbesSlots[0]?.statusLabel || "Óptimo";
     }
 
     return {
@@ -170,12 +240,16 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       stats: {
         totalNodes: validators.length,
         totalSlots,
-        medianStake,
-        cutoffStake,
+        medianStake: medianSlotBid,
+        cutoffStake: cutoffBid,
+        upperBound,
+        lowerBound,
+        totalEffectiveStake,
       },
       myData,
       walletBalance,
       validators,
+      slots: allSlots,
     };
   } catch (error) {
     console.error("Error fetching Harmony EPoS data:", error);
@@ -187,24 +261,28 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
 }
 
 /**
- * Calculates EPoS Key simulation given total stake and all validator list
+ * Calculates EPoS Key simulation against the global slots auction
  */
-export function calculateKeySimulation(totalStake, validators, cutoffStake, activeKeys = 4) {
-  if (!totalStake || !validators || !validators.length) return [];
+export function calculateKeySimulation(totalStake, allSlots, cutoffBid, activeKeys = 5) {
+  if (!totalStake) return [];
 
   const results = [];
+  const otherSlots = (allSlots || []).filter((s) => !s.isMe);
+
   for (let k = 1; k <= 8; k++) {
     const simSpk = totalStake / k;
-    const simRank = validators.filter((v) => v.stake_per_key >= simSpk).length + 1;
-    const simMargin = simSpk - cutoffStake;
-    const simPct = cutoffStake > 0 ? (simMargin / cutoffStake) * 100 : 0;
+
+    // Simulate where this bid would land in the global slots list
+    const simSlotRank = otherSlots.filter((s) => s.rawBid >= simSpk).length + 1;
+    const simMargin = simSpk - cutoffBid;
+    const simPct = cutoffBid > 0 ? (simMargin / cutoffBid) * 100 : 0;
     const isActive = k === activeKeys;
 
     let status = "OPTIMO";
-    let statusLabel = "Óptimo";
+    let statusLabel = "Óptimo (100% Seguro)";
     let color = "emerald";
 
-    if (simMargin <= 0) {
+    if (simMargin <= 0 || simSlotRank > (allSlots?.length || 400)) {
       status = "FUERA";
       statusLabel = "Fuera del Comité";
       color = "rose";
@@ -221,7 +299,8 @@ export function calculateKeySimulation(totalStake, validators, cutoffStake, acti
     results.push({
       keys: k,
       stake_per_key: simSpk,
-      rank: simRank,
+      slotRankStart: simSlotRank,
+      slotRankEnd: simSlotRank + k - 1,
       margin: simMargin,
       pct: simPct,
       isActive,
