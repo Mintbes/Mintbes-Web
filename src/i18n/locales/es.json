@@ -1,6 +1,7 @@
 {
   "nav": {
     "active": "Activo",
+    "validators": "Validadores",
     "arcade": "Mintbes Arcade",
     "staking": "Staking",
     "gallery": "Galería",
