@@ -31,7 +31,9 @@ import {
   Database,
   ArrowRight,
   TrendingUp,
-  Globe
+  Globe,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import {
   fetchHarmonyData,
@@ -122,13 +124,15 @@ export default function MintbesDashboard({ onLock }) {
   // Modals
   const [showClaimModal, setShowClaimModal] = useState(false);
 
-  // Navigation Tabs: 'overview' | 'performance' | 'delegators' | 'bids' | 'simulator' | 'rpc'
+  // Navigation Tabs: 'overview' | 'validators_explorer' | 'performance' | 'delegators' | 'bids' | 'simulator' | 'rpc'
   const [activeTab, setActiveTab] = useState('overview');
 
   // Filters & Favorites
   const [tableFilter, setTableFilter] = useState('all'); // 'all' | 'focused' | 'mintbes' | 'favs'
   const [searchTerm, setSearchTerm] = useState('');
   const [delegatorSearch, setDelegatorSearch] = useState('');
+  const [valExplorerTab, setValExplorerTab] = useState('all'); // 'all' | 'elected' | 'eligible' | 'not_eligible'
+  const [valExplorerSearch, setValExplorerSearch] = useState('');
   const [favorites, setFavorites] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('mintbes_fav_validators') || '[]');
@@ -167,13 +171,16 @@ export default function MintbesDashboard({ onLock }) {
     loadData();
   }, []);
 
-  // Keyboard Shortcuts: [F], [D], [S], [P], [1], [R], [Q]/[2]
+  // Keyboard Shortcuts: [V], [F], [D], [S], [P], [1], [R], [Q]/[2]
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
       const key = e.key.toLowerCase();
-      if (key === 'f') {
+      if (key === 'v') {
+        e.preventDefault();
+        setActiveTab('validators_explorer');
+      } else if (key === 'f') {
         e.preventDefault();
         setActiveTab('performance');
       } else if (key === 'd') {
@@ -279,6 +286,23 @@ export default function MintbesDashboard({ onLock }) {
     if (tableFilter === 'focused') {
       const myRank = myData?.validatorRank || 30;
       return v.validatorRank >= Math.max(1, myRank - 3);
+    }
+    return true;
+  });
+
+  // Filtered validators for Harmony Validators Explorer tab
+  const filteredValExplorer = validators.filter((v) => {
+    const matchesSearch =
+      v.name.toLowerCase().includes(valExplorerSearch.toLowerCase()) ||
+      v.addr.toLowerCase().includes(valExplorerSearch.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (valExplorerTab === 'favs') {
+      return favorites.includes(v.addr) || v.is_me;
+    }
+    if (valExplorerTab === 'eligible' || valExplorerTab === 'not_eligible') {
+      return false;
     }
     return true;
   });
@@ -441,7 +465,7 @@ export default function MintbesDashboard({ onLock }) {
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. NAVIGATION TABS */}
+        {/* 3. NAVIGATION TABS (INCLUDING HARMONY VALIDATORS SECTION) */}
         {/* ========================================================================= */}
         <div className="border border-[#202a35] bg-[#090d13] rounded-xl p-1 flex flex-wrap gap-1">
           <button
@@ -453,6 +477,18 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <span>🌿 Mintbes Telemetry</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('validators_explorer')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'validators_explorer'
+                ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
+                : 'text-[#697a7c] hover:text-[#edf5f4]'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5 text-sky-400" />
+            <span>🌐 Harmony Validators [V]</span>
           </button>
 
           <button
@@ -517,7 +553,321 @@ export default function MintbesDashboard({ onLock }) {
         </div>
 
         {/* ========================================================================= */}
-        {/* 4. TAB 1: OVERVIEW & EPOS ADVISOR */}
+        {/* 4. TAB: HARMONY VALIDATORS EXPLORER (MATCHING USER SCREENSHOT) */}
+        {/* ========================================================================= */}
+        {activeTab === 'validators_explorer' && (
+          <div className="space-y-4">
+            
+            {/* Top 2x3 Metric Card Grid */}
+            <div className="bg-[#0f151d] border border-[#202a35] rounded-xl overflow-hidden shadow-xl font-mono">
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#202a35]">
+                
+                {/* Left Column */}
+                <div className="divide-y divide-[#202a35]">
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Total Staked</span>
+                    <strong className="text-white text-sm font-bold">{fmt(stats?.totalNetworkStaked || 3112608080, 0)} ONE</strong>
+                  </div>
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Current Epoch</span>
+                    <strong className="text-white text-sm font-bold">#{header?.epoch || 3011}</strong>
+                  </div>
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Latest Block</span>
+                    <strong className="text-[#1fdfb6] text-sm font-bold">#{fmt(header?.blockNumber)}</strong>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="divide-y divide-[#202a35]">
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Percent Staked</span>
+                    <strong className="text-white text-sm font-bold">{(stats?.percentStaked || 20.7).toFixed(1)}%</strong>
+                  </div>
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Next Epoch</span>
+                    <strong className="text-white text-xs font-semibold">{header?.nextEpochDateStr || 'Calculating...'}</strong>
+                  </div>
+                  <div className="p-3.5 flex items-center justify-between">
+                    <span className="text-xs text-[#a8b6b6] font-sans">Shard 0 Block Rate</span>
+                    <strong className="text-sky-400 text-sm font-bold">{header?.blockRate || '2.00 Seconds'}</strong>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Subtitle / Timestamp */}
+            <div className="text-[11px] text-[#697a7c] flex flex-wrap items-center justify-between gap-2">
+              <div>
+                Last updated - <strong className="text-[#a8b6b6]">{lastUpdated ? lastUpdated.toLocaleTimeString() : 'Just now'}</strong>. Official Harmony EPoS Validator Consensus.
+              </div>
+              <a
+                href="https://staking.harmony.one"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-400 hover:text-sky-300 underline flex items-center gap-1 font-medium"
+              >
+                <span>Harmony Staking Dashboard</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <div className="flex flex-wrap items-center gap-1.5 font-sans">
+                <button
+                  onClick={() => setValExplorerTab('all')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                    valExplorerTab === 'all'
+                      ? 'bg-sky-500 text-white shadow-sm'
+                      : 'bg-[#0f151d] border border-[#202a35] text-sky-400 hover:bg-[#131b25]'
+                  }`}
+                >
+                  All Eligible {validators.length}
+                </button>
+
+                <button
+                  onClick={() => setValExplorerTab('elected')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                    valExplorerTab === 'elected'
+                      ? 'bg-sky-500 text-white shadow-sm'
+                      : 'bg-[#0f151d] border border-[#202a35] text-sky-400 hover:bg-[#131b25]'
+                  }`}
+                >
+                  Elected {validators.length}
+                </button>
+
+                <button
+                  onClick={() => setValExplorerTab('eligible')}
+                  className="px-3 py-1 rounded text-xs font-semibold bg-[#0f151d] border border-[#202a35] text-slate-500 cursor-not-allowed opacity-60"
+                >
+                  Eligible 0
+                </button>
+
+                <button
+                  onClick={() => setValExplorerTab('commission_inc')}
+                  className="px-3 py-1 rounded text-xs font-semibold bg-[#0f151d] border border-[#202a35] text-slate-500 cursor-not-allowed opacity-60"
+                >
+                  Commission Increase 0
+                </button>
+
+                <button
+                  onClick={() => setValExplorerTab('not_eligible')}
+                  className="px-3 py-1 rounded text-xs font-semibold bg-[#0f151d] border border-[#202a35] text-slate-500 cursor-not-allowed opacity-60"
+                >
+                  Not Eligible 743
+                </button>
+
+                <button
+                  onClick={() => setValExplorerTab('favs')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                    valExplorerTab === 'favs'
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'bg-[#0f151d] border border-[#202a35] text-rose-400 hover:bg-[#131b25]'
+                  }`}
+                >
+                  <Heart className="w-3 h-3 fill-current" />
+                  <span>Favorites ({favorites.length})</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="search"
+                  placeholder="Search validator..."
+                  value={valExplorerSearch}
+                  onChange={(e) => setValExplorerSearch(e.target.value)}
+                  className="bg-[#0f151d] border border-[#202a35] focus:border-sky-500 rounded-lg px-3.5 py-1.5 text-xs text-white placeholder-[#697a7c] outline-none font-mono w-56 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-[#0f151d] border border-[#202a35] rounded-xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto max-h-[680px] overflow-y-auto">
+                <table className="w-full text-left border-collapse font-mono text-xs">
+                  <thead className="sticky top-0 z-20 bg-[#131b25] text-[#697a7c] uppercase text-[10px] tracking-wider border-b border-[#202a35]">
+                    <tr>
+                      <th className="py-3 px-2.5 text-center w-8">♡</th>
+                      <th className="py-3 px-2 text-center w-8"></th>
+                      <th className="py-3 px-3">Name</th>
+                      <th className="py-3 px-3 text-right">Total Staked</th>
+                      <th className="py-3 px-2.5 text-center">Commission</th>
+                      <th className="py-3 px-3 text-right">Stake Weight</th>
+                      <th className="py-3 px-2.5 text-center">Status</th>
+                      <th className="py-3 px-2.5 text-right">Delegates</th>
+                      <th className="py-3 px-2.5 text-center">Election Rate</th>
+                      <th className="py-3 px-2.5 text-center">Avg ERI</th>
+                      <th className="py-3 px-2.5 text-right">Avg Sign %</th>
+                      <th className="py-3 px-2.5 text-right">Last ERI</th>
+                      <th className="py-3 px-2.5 text-center">Current ERI</th>
+                      <th className="py-3 px-2.5 text-right">Current Sign %</th>
+                      <th className="py-3 px-3 text-center">Stake</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#202a35]">
+                    {filteredValExplorer.map((v) => {
+                      const isMe = v.is_me;
+                      const isFav = favorites.includes(v.addr);
+                      const signPct = v.ep_pct || 100.0;
+                      const avgSign = v.lt_pct || 99.9;
+                      const currentEri = v.currentEri || 1.0;
+                      const avgEri = v.avgEri || 1.0;
+
+                      return (
+                        <tr
+                          key={v.addr}
+                          className={`transition-colors ${
+                            isMe
+                              ? 'bg-[#1fdfb614] font-bold border-l-4 border-l-[#1fdfb6]'
+                              : 'hover:bg-[#ffffff04]'
+                          }`}
+                        >
+                          {/* 1. Favorite Heart */}
+                          <td className="py-3 px-2.5 text-center">
+                            <button
+                              onClick={() => toggleFavorite(v.addr)}
+                              className={`transition cursor-pointer ${
+                                isFav ? 'text-rose-500' : 'text-[#697a7c] hover:text-[#edf5f4]'
+                              }`}
+                              title="Save favorite"
+                            >
+                              <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
+                            </button>
+                          </td>
+
+                          {/* 2. Logo */}
+                          <td className="py-3 px-2 text-center">
+                            <div className="flex justify-center">
+                              <ValidatorAvatar validator={v} size="w-6 h-6" />
+                            </div>
+                          </td>
+
+                          {/* 3. Name */}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-1.5 max-w-[210px] truncate">
+                              <a
+                                href={`https://staking.harmony.one/validators/mainnet/${v.addr}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`hover:underline truncate ${
+                                  isMe ? 'text-[#1fdfb6] font-bold' : 'text-sky-300 hover:text-sky-200'
+                                }`}
+                                title={v.name}
+                              >
+                                {v.name}
+                              </a>
+                              {isMe && (
+                                <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb66b]">
+                                  Your Node
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* 4. Total Staked */}
+                          <td className="py-3 px-3 text-right font-bold text-white">
+                            {fmt(v.actualStake, 0)}
+                          </td>
+
+                          {/* 5. Commission */}
+                          <td className="py-3 px-2.5 text-center text-[#a8b6b6]">
+                            {v.rate?.toFixed(0)}%
+                          </td>
+
+                          {/* 6. Stake Weight */}
+                          <td className="py-3 px-3 text-right relative">
+                            <div
+                              className="absolute inset-y-1.5 right-1 rounded bg-sky-500/15 pointer-events-none"
+                              style={{ width: `${Math.min(100, (v.stakeWeight || 0) * 8)}%` }}
+                            />
+                            <span className="relative z-10 text-slate-200 font-semibold">
+                              {v.stakeWeight?.toFixed(2)}%
+                            </span>
+                          </td>
+
+                          {/* 7. Status */}
+                          <td className="py-3 px-2.5 text-center">
+                            <span className="inline-flex items-center gap-1 text-[#1fdfb6] text-[11px] font-medium">
+                              <span className="w-2 h-2 rounded-full bg-[#1fdfb6] shadow-[0_0_6px_#1fdfb6]" />
+                              Elected
+                            </span>
+                          </td>
+
+                          {/* 8. Delegates */}
+                          <td className="py-3 px-2.5 text-right text-[#a8b6b6]">
+                            {fmt(v.delegatesCount || 1)}
+                          </td>
+
+                          {/* 9. Election Rate */}
+                          <td className="py-3 px-2.5 text-center text-[#a8b6b6]">
+                            100
+                          </td>
+
+                          {/* 10. Avg ERI */}
+                          <td className="py-3 px-2.5 text-center">
+                            <span className="inline-flex items-center gap-1">
+                              <span className={`w-2 h-2 rounded-full ${avgEri >= 1.0 ? 'bg-[#1fdfb6]' : 'bg-rose-400'}`} />
+                              <span className="text-white">{avgEri.toFixed(2)}</span>
+                            </span>
+                          </td>
+
+                          {/* 11. Avg Sign % */}
+                          <td className="py-3 px-2.5 text-right">
+                            <span className="inline-flex items-center gap-1 justify-end">
+                              <span className={`w-2 h-2 rounded-full ${avgSign >= 98 ? 'bg-[#1fdfb6]' : 'bg-amber-400'}`} />
+                              <span className="text-white">{avgSign.toFixed(2)}</span>
+                            </span>
+                          </td>
+
+                          {/* 12. Last ERI */}
+                          <td className="py-3 px-2.5 text-right text-[#a8b6b6]">
+                            {v.lastEri?.toFixed(2) || '1.00'}
+                          </td>
+
+                          {/* 13. Current ERI */}
+                          <td className="py-3 px-2.5 text-center">
+                            <span className="inline-flex items-center gap-1">
+                              <span className={`w-2 h-2 rounded-full ${currentEri >= 1.0 ? 'bg-[#1fdfb6]' : 'bg-rose-400'}`} />
+                              <span className={currentEri >= 1.0 ? 'text-[#1fdfb6] font-semibold' : 'text-rose-300'}>
+                                {currentEri.toFixed(2)}
+                              </span>
+                            </span>
+                          </td>
+
+                          {/* 14. Current Sign % */}
+                          <td className="py-3 px-2.5 text-right">
+                            <span className="inline-flex items-center gap-1 justify-end">
+                              <span className={`w-2 h-2 rounded-full ${signPct >= 98 ? 'bg-[#1fdfb6]' : signPct >= 90 ? 'bg-amber-400' : 'bg-rose-400'}`} />
+                              <span className="text-white font-bold">{signPct >= 100 ? '100' : signPct.toFixed(2)}</span>
+                            </span>
+                          </td>
+
+                          {/* 15. Stake Button */}
+                          <td className="py-3 px-3 text-center">
+                            <a
+                              href={`https://staking.harmony.one/validators/mainnet/${v.addr}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block bg-sky-500 hover:bg-sky-400 text-white font-sans text-[11px] font-bold px-3 py-1 rounded transition-colors shadow-sm"
+                            >
+                              Stake
+                            </a>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 5. TAB 1: OVERVIEW & EPOS ADVISOR */}
         {/* ========================================================================= */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
@@ -772,7 +1122,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 5. TAB 2: HOURLY SIGNING & EPOCH PERFORMANCE HISTORY */}
+        {/* 6. TAB: HOURLY SIGNING & EPOCH PERFORMANCE HISTORY */}
         {/* ========================================================================= */}
         {activeTab === 'performance' && (
           <div className="space-y-6">
@@ -923,7 +1273,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 6. TAB 3: TOP DELEGATORS BREAKDOWN */}
+        {/* 7. TAB: TOP DELEGATORS BREAKDOWN */}
         {/* ========================================================================= */}
         {activeTab === 'delegators' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -1009,7 +1359,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 7. TAB 4: BID SLOTS AUCTION TABLE (WITH OFFICIAL HARMONY LOGOS) */}
+        {/* 8. TAB: BID SLOTS AUCTION TABLE (WITH OFFICIAL HARMONY LOGOS) */}
         {/* ========================================================================= */}
         {activeTab === 'bids' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -1235,7 +1585,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 8. TAB 5: SIMULATOR */}
+        {/* 9. TAB: SIMULATOR */}
         {/* ========================================================================= */}
         {activeTab === 'simulator' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -1342,7 +1692,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 9. TAB 6: RPC TELEMETRY */}
+        {/* 10. TAB: RPC TELEMETRY */}
         {/* ========================================================================= */}
         {activeTab === 'rpc' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -1413,7 +1763,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 10. FOOTER TELEMETRY */}
+        {/* 11. FOOTER TELEMETRY */}
         {/* ========================================================================= */}
         <footer className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-[#202a35]">
           <div className="border-l-2 border-[#32404d] pl-3.5 py-1">
@@ -1430,7 +1780,7 @@ export default function MintbesDashboard({ onLock }) {
               OPERATOR QUICK SHORTCUTS
             </strong>
             <span className="text-[#697a7c] text-[10px] leading-relaxed block font-mono">
-              [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [1] Claim | [R] Refresh | [Q] Lock.
+              [V] Harmony Validators | [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [1] Claim | [R] Refresh | [Q] Lock.
             </span>
           </div>
         </footer>
@@ -1438,7 +1788,7 @@ export default function MintbesDashboard({ onLock }) {
       </main>
 
       {/* ========================================================================= */}
-      {/* 11. MODAL: CLAIM REWARDS [1] */}
+      {/* 12. MODAL: CLAIM REWARDS [1] */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {showClaimModal && (
