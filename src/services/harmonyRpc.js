@@ -1,12 +1,12 @@
 /**
  * Harmony JSON-RPC Service for Mintbes EPoS Dashboard
- * Fully updated with the complete features from epos_dashboard.py:
+ * - Real-time Harmony JSON-RPC batch querying (Shard 0 Mainnet)
  * - Epoch Last Block & Countdown calculation
- * - Hourly signing performance tracking (with localStorage persistence)
+ * - Hourly signing performance tracking (with browser localStorage persistence)
  * - Epoch performance history (last 15 epochs with APR & Signing %)
- * - Full Delegators breakdown (Top 20 + rest, Self-stake detection)
- * - EPoS Smart Key Advisor (Key addition/removal safety analysis)
- * - SmartStake "Bid Slots" Auction Engine (1-400 slots, BLS +2/+1/-1/-2 shifts)
+ * - Full Delegators breakdown (Top Delegators, Self-stake detection)
+ * - EPoS Telemetry & Advisor Analysis
+ * - Bidding Slots consensus matrix (1 to 400 slots ranking & voting power)
  */
 
 export const MY_ADDR = "one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k";
@@ -38,7 +38,7 @@ export function trackHourlyPerformance(epoch, epSigned, epToSign, myStake, myRat
     }
 
     const now = new Date();
-    const hourKey = `${now.toISOString().slice(0, 10)} ${String(now.getUTCHours()).padStart(2, '0')}:00 (GMT)`;
+    const hourKey = `${now.toISOString().slice(0, 10)} ${String(now.getUTCHours()).padStart(2, '0')}:00 (UTC)`;
 
     const poolDaily = (myStake * 0.112) / 365;
     const validatorHourComm = (poolDaily / 24.0) * (myRate / 100.0);
@@ -135,7 +135,7 @@ export function trackHourlyPerformance(epoch, epSigned, epToSign, myStake, myRat
  */
 export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
   try {
-    // 1. Fetch Header & Elected Validators
+    // 1. Fetch Header & Elected Validators in parallel
     const [headerRes, electedRes] = await Promise.all([
       fetch(RPC_URL, {
         method: "POST",
@@ -383,7 +383,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
     const cutoffSlot = allSlots[allSlots.length - 1] || { bid: 0 };
     const cutoffBid = cutoffSlot.bid;
 
-    // Calculate Slot Ranges & Simulations (BLS +2, +1, -1, -2) for each validator
+    // Calculate Slot Ranges for each validator
     let currentSlot = 1;
     let totalEffectiveStake = 0;
 
@@ -397,47 +397,22 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       // Effective Stake
       let eff = v.bid;
       let eposStatus = "OPTIMAL";
-      let statusLabel = "Óptimo (100%)";
+      let statusLabel = "Optimal (100%)";
 
       if (v.bid > upperBound) {
         eff = upperBound;
         eposStatus = "CAPPED";
-        statusLabel = "Topado (115%)";
+        statusLabel = "Capped (115%)";
       } else if (v.bid < lowerBound) {
         eff = lowerBound;
         eposStatus = "BOOSTED";
-        statusLabel = "Bonificado (85%)";
+        statusLabel = "Boosted (85%)";
       }
 
       v.effectiveStake = eff;
       v.eposStatus = eposStatus;
       v.statusLabel = statusLabel;
       totalEffectiveStake += (eff * v.slotsAllotted);
-
-      // BLS Simulations (+2, +1, -1, -2)
-      [2, 1, -1, -2].forEach((delta) => {
-        const newKeys = v.slotsRequested + delta;
-        const bracketKey = `bls_${delta > 0 ? '+' : ''}${delta}`;
-        const explicitKey = delta > 0 ? `bls_plus_${delta}` : `bls_minus_${Math.abs(delta)}`;
-        const shortKey = `bls_${delta}`;
-
-        if (newKeys <= 0) {
-          v[bracketKey] = "-";
-          v[explicitKey] = "-";
-          v[shortKey] = "-";
-          return;
-        }
-
-        const simBid = v.actualStake / newKeys;
-        const otherSlots = allSlots.filter((s) => s.address !== v.addr);
-        const simStart = otherSlots.filter((s) => s.bid >= simBid).length + 1;
-        const simEnd = simStart + newKeys - 1;
-        const rangeStr = `${simStart}-${simEnd}`;
-
-        v[bracketKey] = rangeStr;
-        v[explicitKey] = rangeStr;
-        v[shortKey] = rangeStr;
-      });
     });
 
     // Compute Voting Power % per validator
@@ -454,7 +429,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
     const hLeft = Math.floor(secsLeft / 3600);
     const mLeft = Math.floor((secsLeft % 3600) / 60);
     const sLeft = secsLeft % 60;
-    const countdownStr = epochLastBlock > 0 ? `${String(hLeft).padStart(2, '0')}h ${String(mLeft).padStart(2, '0')}m ${String(sLeft).padStart(2, '0')}s` : "Calculando...";
+    const countdownStr = epochLastBlock > 0 ? `${String(hLeft).padStart(2, '0')}h ${String(mLeft).padStart(2, '0')}m ${String(sLeft).padStart(2, '0')}s` : "Calculating...";
 
     // Track hourly performance
     let hourlyList = [];
@@ -468,7 +443,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       );
     }
 
-    // Enhance myData with Smart Advisor & Staking math
+    // Enhance myData with Telemetry & Staking math
     if (myData) {
       myData.margin = myData.bid - cutoffBid;
       myData.pct_margin = cutoffBid > 0 ? (myData.margin / cutoffBid) * 100 : 0;
@@ -478,7 +453,7 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       myData.backup_pct = medianBid > 0 ? Math.min(100, (myData.bid / medianBid) * 100) : 100;
       myData.activeBlsKeys = activeBlsKeys;
 
-      // Smart Key Advisor Logic (matching epos_dashboard.py)
+      // Smart EPoS Advisor Status (English)
       const safeMarginTarget = 700000;
       const curKeys = myData.keys;
       const spkNext = myData.actualStake / (curKeys + 1);
@@ -486,26 +461,22 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
 
       if (myData.margin <= 0) {
         myData.advisorStatus = "DANGER";
-        myData.advisorTitle = "⚠️ PELIGRO: FUERA DE ELECCIÓN";
-        myData.advisorMessage = "Tu stake por llave está por debajo del corte. Retira 1 llave BLS de inmediato.";
-        myData.advisorAction = "remove";
+        myData.advisorTitle = "⚠️ DANGER: OUT OF COMMITTEE";
+        myData.advisorMessage = "Your stake per key has fallen below the cutoff threshold. Immediate node rebalancing required.";
       } else if (myData.margin < 500000) {
         myData.advisorStatus = "WARNING";
-        myData.advisorTitle = `⚠️ RIESGO ALTO (+${Math.round(myData.margin).toLocaleString()} ONE)`;
-        myData.advisorMessage = `Margen muy ajustado. Considera retirar 1 llave para subir a ${Math.round(myData.actualStake / (curKeys - 1)).toLocaleString()} ONE/llave.`;
-        myData.advisorAction = "remove";
+        myData.advisorTitle = `⚠️ ELEVATED RISK (+${Math.round(myData.margin).toLocaleString()} ONE)`;
+        myData.advisorMessage = `Tight safety margin. Monitor cutoff line closely to maintain elected status.`;
       } else if (marginNext >= safeMarginTarget) {
         const extraDaily = ((curKeys + 1) * myData.poolDailyEst / curKeys) * (myData.rate / 100) - myData.dailyCommission;
         myData.advisorStatus = "CAN_ADD";
-        myData.advisorTitle = `🚀 PUEDES AÑADIR LA LLAVE #${curKeys + 1}`;
-        myData.advisorMessage = `Tienes suficiente delegación segura. Añade una llave para ganar +${Math.round(extraDaily).toLocaleString()} ONE/día más de comisión.`;
-        myData.advisorAction = "add";
+        myData.advisorTitle = `🚀 EXPANSION READY: HEALTHY MARGIN (+${Math.round(myData.margin).toLocaleString()} ONE)`;
+        myData.advisorMessage = `Your delegation level is strong. Potential reward capacity allows safe operations with up to ${curKeys + 1} slots.`;
       } else {
         const stakeNeeded = ((curKeys + 1) * (cutoffBid + safeMarginTarget)) - myData.actualStake;
         myData.advisorStatus = "OPTIMAL";
-        myData.advisorTitle = `✅ ÓPTIMO: MANTÉN ${curKeys} LLAVES`;
-        myData.advisorMessage = `Tu configuración es perfecta. Te faltan ~${Math.max(0, Math.round(stakeNeeded)).toLocaleString()} ONE de delegación para activar de forma segura la llave #${curKeys + 1}.`;
-        myData.advisorAction = "keep";
+        myData.advisorTitle = `✅ OPTIMAL: ${curKeys} ACTIVE SLOTS`;
+        myData.advisorMessage = `Current allocation is solid. Approximately ~${Math.max(0, Math.round(stakeNeeded)).toLocaleString()} ONE in additional delegation needed to expand capacity safely.`;
       }
     }
 
@@ -578,19 +549,19 @@ export function calculateKeySimulation(totalStake, allValidators, cutoffBid, act
       simComm = (poolDailyEst * (k / activeKeys)) * (myRate / 100.0);
     }
 
-    let status = "OPTIMO";
-    let statusLabel = "Óptimo (100% Seguro)";
+    let status = "OPTIMAL";
+    let statusLabel = "Optimal (100% Secure)";
 
     if (simMargin <= 0 || simStart > 400) {
-      status = "FUERA";
-      statusLabel = "Fuera del Comité";
+      status = "OUT";
+      statusLabel = "Out of Committee";
       simComm = 0;
     } else if (simMargin < 600000) {
-      status = "ALTO_RIESGO";
-      statusLabel = "Alto Riesgo";
+      status = "HIGH_RISK";
+      statusLabel = "High Risk";
     } else if (simMargin < 1300000) {
-      status = "MODERADO";
-      statusLabel = "Moderado";
+      status = "MODERATE";
+      statusLabel = "Moderate";
     }
 
     results.push({

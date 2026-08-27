@@ -79,7 +79,7 @@ const Footer = ({ onOpenDashboard }) => {
                                 onClick={onOpenDashboard}
                                 className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors text-sm cursor-pointer"
                             >
-                                <span>🌿 Panel Privado del Nodo (EPoS)</span>
+                                <span>🌿 Node Ops Dashboard (EPoS)</span>
                             </button>
                         </li>
                         <li className="flex items-center gap-2 mt-4">
