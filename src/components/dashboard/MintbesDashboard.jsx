@@ -476,7 +476,8 @@ export default function MintbesDashboard({ onLock }) {
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            <span>🌿 Mintbes Telemetry</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>Mintbes Telemetry</span>
           </button>
 
           <button
@@ -487,8 +488,8 @@ export default function MintbesDashboard({ onLock }) {
                 : 'text-[#697a7c] hover:text-[#edf5f4]'
             }`}
           >
-            <Globe className="w-3.5 h-3.5 text-sky-400" />
-            <span>🌐 Harmony Validators [V]</span>
+            <Globe className="w-3.5 h-3.5" />
+            <span>Harmony Validators [V]</span>
           </button>
 
           <button
@@ -500,7 +501,7 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>⏱️ Hourly & Epoch Performance [F]</span>
+            <span>Hourly & Epoch Performance [F]</span>
           </button>
 
           <button
@@ -512,7 +513,7 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            <span>👥 Delegators ({delegators.length}) [D]</span>
+            <span>Delegators ({delegators.length}) [D]</span>
           </button>
 
           <button
@@ -524,7 +525,7 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <Layers3 className="w-3.5 h-3.5" />
-            <span>📑 Bid Slots Auction ({validators.length} Nodes) [P]</span>
+            <span>Bid Slots Auction ({validators.length} Nodes) [P]</span>
           </button>
 
           <button
@@ -536,7 +537,7 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>🎛️ EPoS Simulator [S]</span>
+            <span>EPoS Simulator [S]</span>
           </button>
 
           <button
@@ -548,7 +549,7 @@ export default function MintbesDashboard({ onLock }) {
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>⚡ RPC Protocol</span>
+            <span>RPC Protocol</span>
           </button>
         </div>
 
@@ -685,7 +686,7 @@ export default function MintbesDashboard({ onLock }) {
 
             {/* Table */}
             <div className="bg-[#0f151d] border border-[#202a35] rounded-xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto max-h-[680px] overflow-y-auto">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse font-mono text-xs">
                   <thead className="sticky top-0 z-20 bg-[#131b25] text-[#697a7c] uppercase text-[10px] tracking-wider border-b border-[#202a35]">
                     <tr>
@@ -1299,7 +1300,7 @@ export default function MintbesDashboard({ onLock }) {
               </div>
             </div>
 
-            <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse font-mono text-xs">
                 <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
                   <tr className="border-b border-[#202a35] text-[#697a7c] text-[10px] uppercase tracking-[0.06em]">
@@ -1432,7 +1433,7 @@ export default function MintbesDashboard({ onLock }) {
             </div>
 
             {/* Bid Slots Table */}
-            <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse font-mono text-xs">
                 <thead className="sticky top-0 z-10 bg-[#0f151d] shadow-sm">
                   <tr className="border-b border-[#202a35] text-[#697a7c] text-[10px] uppercase tracking-[0.06em]">

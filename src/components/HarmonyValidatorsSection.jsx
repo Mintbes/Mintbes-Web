@@ -332,7 +332,7 @@ export default function HarmonyValidatorsSection() {
         {/* 4. VALIDATORS TABLE WITH EXACT SCREENSHOT COLUMNS */}
         {/* ========================================================================= */}
         <div className="bg-[#151e29] border border-[#253242] rounded-xl overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto max-h-[680px] overflow-y-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse font-mono text-xs">
               <thead className="sticky top-0 z-20 bg-[#121922] text-slate-400 uppercase text-[10px] tracking-wider border-b border-[#253242]">
                 <tr>
