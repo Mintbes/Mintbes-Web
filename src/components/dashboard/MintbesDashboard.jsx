@@ -30,7 +30,8 @@ import {
   HardDrive,
   Database,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Globe
 } from 'lucide-react';
 import {
   fetchHarmonyData,
@@ -39,6 +40,49 @@ import {
   MY_ADDR,
   RPC_URL,
 } from '../../services/harmonyRpc';
+
+/**
+ * Validator Logo Avatar Component
+ */
+function ValidatorAvatar({ validator, size = "w-6 h-6" }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (validator.is_me || validator.addr?.toLowerCase() === MY_ADDR.toLowerCase()) {
+    return (
+      <div 
+        className={`${size} rounded-full flex items-center justify-center text-xs shrink-0 border border-[#1fdfb66b] shadow-[0_0_8px_rgba(31,223,182,0.3)]`}
+        style={{
+          background: 'linear-gradient(135deg, rgba(31, 223, 182, 0.28), rgba(15, 21, 29, 0.9))',
+        }}
+        title="Mintbes Node"
+      >
+        🌿
+      </div>
+    );
+  }
+
+  if (validator.logoUrl && !imgError) {
+    return (
+      <div className={`${size} rounded-full overflow-hidden bg-[#131b25] border border-[#202a35] shrink-0 flex items-center justify-center`}>
+        <img
+          src={validator.logoUrl}
+          alt={validator.name}
+          onError={() => setImgError(true)}
+          className="w-full h-full object-cover rounded-full p-0.5"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  // Stylish fallback
+  const firstLetter = (validator.name || 'V').trim()[0].toUpperCase();
+  return (
+    <div className={`${size} rounded-full bg-[#131b25] border border-[#202a35] text-[#1fdfb6] flex items-center justify-center text-[10px] font-bold font-mono shrink-0 shadow-inner`}>
+      {firstLetter}
+    </div>
+  );
+}
 
 export default function MintbesDashboard({ onLock }) {
   // Data State
@@ -232,7 +276,7 @@ export default function MintbesDashboard({ onLock }) {
         }}
       />
 
-      <main className="relative z-10 max-w-[1560px] mx-auto px-4 sm:px-8 py-7 space-y-6">
+      <main className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-8 py-7 space-y-6">
         
         {/* ========================================================================= */}
         {/* 1. HEADER & EPOCH COUNTDOWN */}
@@ -940,7 +984,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 7. TAB 4: BID SLOTS AUCTION TABLE */}
+        {/* 7. TAB 4: BID SLOTS AUCTION TABLE (WITH REAL LOGOS) */}
         {/* ========================================================================= */}
         {activeTab === 'bids' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -1082,17 +1126,15 @@ export default function MintbesDashboard({ onLock }) {
                           </span>
                         </td>
 
-                        {/* Name */}
+                        {/* Validator Name & Logo */}
                         <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full bg-[#131b25] border border-[#202a35] flex items-center justify-center text-[10px] text-[#1fdfb6] font-bold">
-                              {isMe ? '🌿' : v.name.slice(0, 1).toUpperCase()}
-                            </span>
+                          <div className="flex items-center gap-2.5 min-w-[200px]">
+                            <ValidatorAvatar validator={v} size="w-6 h-6" />
                             <a
                               href={`https://staking.harmony.one/validators/mainnet/${v.addr}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`hover:underline truncate max-w-[200px] block ${
+                              className={`hover:underline transition-colors block text-left font-mono ${
                                 isMe ? 'text-[#1fdfb6] font-bold text-sm' : 'text-[#edf5f4] font-medium'
                               }`}
                               title={v.name}

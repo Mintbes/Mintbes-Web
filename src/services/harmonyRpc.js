@@ -7,6 +7,7 @@
  * - Full Delegators breakdown (Top Delegators, Self-stake detection)
  * - EPoS Telemetry & Advisor Analysis
  * - Bidding Slots consensus matrix (1 to 400 slots ranking & voting power)
+ * - Real validator logo & favicon resolution
  */
 
 export const MY_ADDR = "one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k";
@@ -14,16 +15,58 @@ export const RPC_URL = "https://a.api.s0.t.hmny.io";
 export const DEFAULT_INTERVAL_SECS = 30;
 export const HOURLY_STORAGE_KEY = "mintbes_validator_hourly_perf";
 
-function cleanName(name, maxLen = 28) {
+function cleanName(name) {
   if (!name) return "";
   const clean = name.replace(/[^\x20-\x7E]/g, "");
-  return clean.trim().slice(0, maxLen);
+  return clean.trim();
 }
 
 export function shortAddr(addr) {
   if (!addr) return "";
   if (addr.length <= 18) return addr;
   return `${addr.slice(0, 9)}...${addr.slice(-6)}`;
+}
+
+/**
+ * Extract clean domain for favicon resolution
+ */
+export function getDomainFromWebsite(website) {
+  if (!website || typeof website !== 'string') return null;
+  const trimmed = website.trim().toLowerCase();
+  if (trimmed === 'anonymous' || trimmed === 'none' || trimmed === 'n/a' || trimmed === '') return null;
+  try {
+    let clean = trimmed.replace(/^https?:\/\//, '').split('/')[0].trim();
+    if (clean.includes('.')) {
+      return clean;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Resolve validator logo URL
+ */
+export function getValidatorLogoUrl(validator) {
+  if (!validator) return null;
+  if (validator.is_me || validator.addr?.toLowerCase() === MY_ADDR.toLowerCase()) {
+    return null; // Render special Mintbes leaf badge
+  }
+
+  // Check known domain from website
+  const domain = getDomainFromWebsite(validator.website);
+  if (domain) {
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+  }
+
+  // Keybase username if not a hex hash
+  const id = validator.identity?.trim();
+  if (id && !/^[0-9a-fA-F]{16,40}$/.test(id) && !id.includes(' ')) {
+    return `https://keybase.io/${encodeURIComponent(id)}/picture`;
+  }
+
+  return null;
 }
 
 /**
@@ -246,6 +289,8 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
       const keys = valData["bls-public-keys"] || [];
       const rewards = (parseFloat(v.lifetime?.["reward-accumulated"] || 0)) / 1e18;
       const rate = (parseFloat(valData.rate || 0)) * 100;
+      const website = valData.website || "";
+      const identity = valData.identity || "";
 
       const rawDelegations = valData.delegations || [];
       const myDel = rawDelegations.find((d) => d["delegator-address"] === validatorAddress);
@@ -342,6 +387,8 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
           rewards,
           unclaimed,
           rate,
+          website,
+          identity,
           is_me: isMe,
           rawValidator: v,
           ep_signed: epSigned,
@@ -351,6 +398,9 @@ export async function fetchHarmonyData(validatorAddress = MY_ADDR) {
           lt_to_sign: ltToSign,
           lt_pct: ltPct,
         };
+
+        obj.logoUrl = getValidatorLogoUrl(obj);
+
         rawValidators.push(obj);
         if (isMe) {
           myData = obj;
