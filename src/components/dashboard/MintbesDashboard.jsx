@@ -42,10 +42,15 @@ import {
 } from '../../services/harmonyRpc';
 
 /**
- * Validator Logo Avatar Component
+ * Validator Logo Avatar Component with Multi-Tier Fallback:
+ * 1. Harmony Official Staking API: https://api.stake.hmny.io/networks/mainnet/validators/{addr}/avatar
+ * 2. Harmony GitHub Repo (JPG): https://raw.githubusercontent.com/harmony-one/validator-logos/master/validators/{addr}.jpg
+ * 3. Harmony GitHub Repo (PNG): https://raw.githubusercontent.com/harmony-one/validator-logos/master/validators/{addr}.png
+ * 4. Keybase Identity: https://keybase.io/{identity}/picture
+ * 5. Brand match: Binance / Harmony
  */
 function ValidatorAvatar({ validator, size = "w-6 h-6" }) {
-  const [imgError, setImgError] = useState(false);
+  const [srcIndex, setSrcIndex] = useState(0);
 
   if (validator.is_me || validator.addr?.toLowerCase() === MY_ADDR.toLowerCase()) {
     return (
@@ -61,21 +66,41 @@ function ValidatorAvatar({ validator, size = "w-6 h-6" }) {
     );
   }
 
-  if (validator.logoUrl && !imgError) {
+  const sources = [];
+  if (validator.addr) {
+    sources.push(`https://api.stake.hmny.io/networks/mainnet/validators/${validator.addr}/avatar`);
+    sources.push(`https://raw.githubusercontent.com/harmony-one/validator-logos/master/validators/${validator.addr}.jpg`);
+    sources.push(`https://raw.githubusercontent.com/harmony-one/validator-logos/master/validators/${validator.addr}.png`);
+  }
+
+  const nameLower = (validator.name || '').toLowerCase();
+  if (nameLower.includes('binance')) {
+    sources.push('https://binance.com/favicon.ico');
+  } else if (nameLower.includes('harmony') && !nameLower.includes('believer')) {
+    sources.push('https://harmony.one/favicon.ico');
+  }
+
+  if (validator.identity && !validator.identity.includes(' ') && validator.identity.length < 30) {
+    sources.push(`https://keybase.io/${encodeURIComponent(validator.identity)}/picture`);
+  }
+
+  // If still sources available
+  if (srcIndex < sources.length) {
     return (
       <div className={`${size} rounded-full overflow-hidden bg-[#131b25] border border-[#202a35] shrink-0 flex items-center justify-center`}>
         <img
-          src={validator.logoUrl}
+          key={sources[srcIndex]}
+          src={sources[srcIndex]}
           alt={validator.name}
-          onError={() => setImgError(true)}
-          className="w-full h-full object-cover rounded-full p-0.5"
+          onError={() => setSrcIndex((prev) => prev + 1)}
+          className="w-full h-full object-cover rounded-full"
           loading="lazy"
         />
       </div>
     );
   }
 
-  // Stylish fallback
+  // Monogram Fallback
   const firstLetter = (validator.name || 'V').trim()[0].toUpperCase();
   return (
     <div className={`${size} rounded-full bg-[#131b25] border border-[#202a35] text-[#1fdfb6] flex items-center justify-center text-[10px] font-bold font-mono shrink-0 shadow-inner`}>
@@ -984,7 +1009,7 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
-        {/* 7. TAB 4: BID SLOTS AUCTION TABLE (WITH REAL LOGOS) */}
+        {/* 7. TAB 4: BID SLOTS AUCTION TABLE (WITH OFFICIAL HARMONY LOGOS) */}
         {/* ========================================================================= */}
         {activeTab === 'bids' && (
           <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg">
@@ -995,7 +1020,7 @@ export default function MintbesDashboard({ onLock }) {
                   EPoS Bid Slots Auction
                 </h2>
                 <span className="text-[11px] text-[#697a7c]">
-                  Global consensus slot allocation matrix and effective voting power distribution.
+                  Global consensus slot allocation matrix with official validator logos from Harmony registry.
                 </span>
               </div>
 
