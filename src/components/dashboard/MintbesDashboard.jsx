@@ -119,10 +119,6 @@ export default function MintbesDashboard({ onLock }) {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [countdown, setCountdown] = useState(30);
-  const [copiedCmd, setCopiedCmd] = useState('');
-
-  // Modals
-  const [showClaimModal, setShowClaimModal] = useState(false);
 
   // Navigation Tabs: 'overview' | 'validators_explorer' | 'performance' | 'delegators' | 'bids' | 'simulator' | 'rpc'
   const [activeTab, setActiveTab] = useState('overview');
@@ -171,7 +167,7 @@ export default function MintbesDashboard({ onLock }) {
     loadData();
   }, []);
 
-  // Keyboard Shortcuts: [V], [F], [D], [S], [P], [1], [R], [Q]/[2]
+  // Keyboard Shortcuts: [V], [F], [D], [S], [P], [R], [Q]/[2]
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
@@ -192,9 +188,6 @@ export default function MintbesDashboard({ onLock }) {
       } else if (key === 'p' || key === 'b') {
         e.preventDefault();
         setActiveTab('bids');
-      } else if (e.key === '1') {
-        e.preventDefault();
-        setShowClaimModal(true);
       } else if (key === 'r') {
         e.preventDefault();
         loadData(false);
@@ -234,12 +227,6 @@ export default function MintbesDashboard({ onLock }) {
     });
   };
 
-  const copyToClipboard = (text, label = 'claim') => {
-    navigator.clipboard.writeText(text);
-    setCopiedCmd(label);
-    setTimeout(() => setCopiedCmd(''), 2500);
-  };
-
   const toggleFavorite = (address) => {
     const updated = favorites.includes(address)
       ? favorites.filter((a) => a !== address)
@@ -268,9 +255,6 @@ export default function MintbesDashboard({ onLock }) {
     myData?.poolDailyEst || 0,
     myData?.rate || 5
   );
-
-  // CLI Command
-  const claimCliCmd = `/home/harmony/hmy --node=${RPC_URL} staking collect-rewards --delegator-addr ${MY_ADDR} --gas-price 100 --chain-id mainnet --passphrase`;
 
   // Filtered validators for Table
   const filteredValidators = validators.filter((v) => {
@@ -378,15 +362,6 @@ export default function MintbesDashboard({ onLock }) {
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#1fdfb6]' : ''}`} />
                 <span>⏱️ {countdown}s</span>
-              </button>
-
-              <button
-                onClick={() => setShowClaimModal(true)}
-                className="bg-[#f5b3421a] hover:bg-[#f5b34226] border border-[#f5b34247] text-[#f5b342] hover:text-[#ffca6e] px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Collect Staking Rewards (HotKey 1)"
-              >
-                <Coins className="w-3.5 h-3.5" />
-                <span>Claim Rewards</span>
               </button>
 
               <button
@@ -1779,95 +1754,12 @@ export default function MintbesDashboard({ onLock }) {
               OPERATOR QUICK SHORTCUTS
             </strong>
             <span className="text-[#697a7c] text-[10px] leading-relaxed block font-mono">
-              [V] Harmony Validators | [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [1] Claim | [R] Refresh | [Q] Lock.
+              [V] Harmony Validators | [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [R] Refresh | [Q] Lock.
             </span>
           </div>
         </footer>
 
       </main>
-
-      {/* ========================================================================= */}
-      {/* 12. MODAL: CLAIM REWARDS [1] */}
-      {/* ========================================================================= */}
-      <AnimatePresence>
-        {showClaimModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#07110fd4] backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="w-full max-w-lg bg-[#0f151d] border border-[#202a35] rounded-xl p-6 shadow-2xl space-y-4 relative"
-            >
-              <div className="flex items-center justify-between border-b border-[#202a35] pb-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#f5b3421a] border border-[#f5b34247] flex items-center justify-center text-[#f5b342]">
-                    <Coins className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#edf5f4]">Collect Staking Rewards</h3>
-                    <p className="text-[10px] text-[#697a7c] font-mono">Validator: {MY_ADDR.slice(0, 16)}...</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowClaimModal(false)}
-                  className="p-1 rounded text-[#697a7c] hover:text-[#edf5f4] hover:bg-[#131b25] transition cursor-pointer"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="border border-[#f5b34247] bg-[#f5b3420e] rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-[#f5b342] tracking-wider block">
-                    PENDING REWARDS READY TO CLAIM
-                  </span>
-                  <div className="text-[26px] font-bold text-[#f5b342] font-mono mt-0.5">
-                    {fmt(myData?.unclaimed, 4)} <span className="text-sm font-normal text-[#a8b6b6]">ONE</span>
-                  </div>
-                </div>
-                <div className="text-right text-[10px] text-[#697a7c] font-mono">
-                  <span>Gas: 100 Gwei</span>
-                  <br />
-                  <span>Chain: Mainnet</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#a8b6b6]">
-                  <span>Server CLI Command:</span>
-                  <button
-                    onClick={() => copyToClipboard(claimCliCmd, 'claim')}
-                    className="text-[#1fdfb6] hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    {copiedCmd === 'claim' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copiedCmd === 'claim' ? 'Copied!' : 'Copy command'}
-                  </button>
-                </div>
-                <div className="bg-[#090d13] border border-[#202a35] rounded-lg p-3 font-mono text-[11px] text-[#1fdfb6] break-all select-all">
-                  {claimCliCmd}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2">
-                <button
-                  onClick={() => setShowClaimModal(false)}
-                  className="px-4 py-2 rounded-lg bg-[#131b25] hover:bg-[#1a2530] text-[#a8b6b6] hover:text-[#edf5f4] text-xs font-semibold transition cursor-pointer"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => copyToClipboard(claimCliCmd, 'claim')}
-                  className="px-4 py-2 rounded-lg bg-[#1fdfb6] hover:bg-[#12b99b] text-[#07110f] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-[#1fdfb626]"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy CLI Command</span>
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }
