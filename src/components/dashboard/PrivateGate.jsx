@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Terminal, AlertCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Terminal, AlertCircle } from 'lucide-react';
 
-const DEFAULT_PIN = "mintbes2026";
+const MASTER_PIN = "mintbes2026";
 
 export default function PrivateGate({ onUnlock, onBack }) {
   const [pin, setPin] = useState('');
@@ -17,7 +17,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
       return;
     }
 
-    const savedPin = localStorage.getItem('mintbes_custom_pin') || DEFAULT_PIN;
+    const savedPin = localStorage.getItem('mintbes_custom_pin') || MASTER_PIN;
     if (
       pin.trim().toLowerCase() === savedPin.toLowerCase() ||
       pin.trim() === '1234' ||
@@ -27,13 +27,9 @@ export default function PrivateGate({ onUnlock, onBack }) {
       onUnlock();
     } else {
       setError(true);
-      setErrorMessage('Incorrect PIN. Default PIN: mintbes2026');
+      setErrorMessage('Incorrect security PIN. Access denied.');
       setPin('');
     }
-  };
-
-  const handleQuickUnlock = () => {
-    setPin(DEFAULT_PIN);
   };
 
   return (
@@ -92,7 +88,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
             Restricted Zone
           </span>
           <span className="font-mono text-[10px] text-[#697a7c]">
-            Shard 0 • Mainnet
+            Shard 1 • Mainnet
           </span>
         </div>
 
@@ -103,13 +99,6 @@ export default function PrivateGate({ onUnlock, onBack }) {
               <label className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#a8b6b6]">
                 Security PIN
               </label>
-              <button
-                type="button"
-                onClick={handleQuickUnlock}
-                className="text-[10px] text-[#1fdfb6] hover:underline cursor-pointer flex items-center gap-1"
-              >
-                <Sparkles className="w-3 h-3" /> Use default PIN
-              </button>
             </div>
             
             <div className="relative">
@@ -142,18 +131,6 @@ export default function PrivateGate({ onUnlock, onBack }) {
             <span>Unlock EPoS Dashboard</span>
           </button>
         </form>
-
-        {/* Footer Meta */}
-        <div className="mt-6 pt-4 border-t border-[#202a35] grid grid-cols-2 gap-2 text-[10px] font-mono text-[#697a7c]">
-          <div>
-            <span className="block text-[8px] uppercase tracking-wider text-[#697a7c]">Address</span>
-            <span className="text-[#a8b6b6]">one12jell...465r3k</span>
-          </div>
-          <div className="text-right">
-            <span className="block text-[8px] uppercase tracking-wider text-[#697a7c]">Protocol</span>
-            <span className="text-[#a8b6b6]">EPoS Consensus</span>
-          </div>
-        </div>
       </motion.div>
     </div>
   );
