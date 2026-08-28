@@ -1312,7 +1312,7 @@ export default function MintbesDashboard({ onLock }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#202a35]">
-                  {filteredDelegators.slice(0, 30).map((d, idx) => {
+                  {filteredDelegators.map((d, idx) => {
                     const pct = myData?.actualStake > 0 ? (d.amount / myData.actualStake) * 100 : 0;
                     return (
                       <tr
@@ -1348,14 +1348,12 @@ export default function MintbesDashboard({ onLock }) {
               </table>
             </div>
 
-            {delegators.length > 30 && (
-              <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex items-center justify-between bg-[#090d13]">
-                <span>Showing top 30 delegators of {delegators.length} total.</span>
-                <span className="text-[#a8b6b6]">
-                  Remaining sum: ~{fmt(delegators.slice(30).reduce((a, b) => a + b.amount, 0), 0)} ONE
-                </span>
-              </div>
-            )}
+            <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex items-center justify-between bg-[#090d13]">
+              <span>Showing all {filteredDelegators.length} delegators.</span>
+              <span className="text-[#1fdfb6]">
+                Total Delegated: ~{fmt(filteredDelegators.reduce((a, b) => a + b.amount, 0), 2)} ONE
+              </span>
+            </div>
           </section>
         )}
 
