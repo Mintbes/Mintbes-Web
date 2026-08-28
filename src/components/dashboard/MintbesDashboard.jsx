@@ -1000,7 +1000,7 @@ export default function MintbesDashboard({ onLock }) {
                     <div className="grid grid-cols-4 gap-2 font-mono text-xs">
                       <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                         <span className="text-[9px] text-[#697a7c] block uppercase">Network Shard</span>
-                        <strong className="text-[#edf5f4]">Shard 0 (Beacon)</strong>
+                        <strong className="text-[#1fdfb6]">Shard 1</strong>
                       </div>
                       <div className="bg-[#131b25] border border-[#202a35] rounded-lg p-2 text-center">
                         <span className="text-[9px] text-[#697a7c] block uppercase">Active BLS Keys</span>
@@ -1687,7 +1687,7 @@ export default function MintbesDashboard({ onLock }) {
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#202a35]">
               <div className="p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <strong className="text-xs text-[#edf5f4]">Harmony Shard 0</strong>
+                  <strong className="text-xs text-[#edf5f4]">Harmony Shard 1</strong>
                   <span className="bg-[#1fdfb61a] text-[#1fdfb6] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
                     Advancing
                   </span>
