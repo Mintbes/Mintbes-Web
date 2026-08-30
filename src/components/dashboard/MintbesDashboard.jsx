@@ -30,6 +30,9 @@ import {
   HardDrive,
   Database,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
+  History,
   TrendingUp,
   Globe,
   Maximize2,
@@ -37,6 +40,7 @@ import {
 } from 'lucide-react';
 import {
   fetchHarmonyData,
+  fetchDelegationHistory,
   calculateKeySimulation,
   shortAddr,
   MY_ADDR,
@@ -137,10 +141,30 @@ export default function MintbesDashboard({ onLock }) {
     }
   });
 
+  // Delegation History State
+  const [delegationHistory, setDelegationHistory] = useState({ events: [], stats: {} });
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState('ALL'); // 'ALL' | 'DELEGATE' | 'UNDELEGATE'
+  const [historySearch, setHistorySearch] = useState('');
+
   // Simulator State
   const [simExtraStake, setSimExtraStake] = useState(0);
 
   const timerRef = useRef(null);
+
+  const loadDelegationHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetchDelegationHistory(MY_ADDR, 5);
+      if (res.success) {
+        setDelegationHistory(res);
+      }
+    } catch (err) {
+      console.warn("Failed to load delegation history", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   // Load Data
   const loadData = async (isSilent = false) => {
@@ -160,6 +184,8 @@ export default function MintbesDashboard({ onLock }) {
       setLoading(false);
       setCountdown(30);
     }
+
+    loadDelegationHistory();
   };
 
   // Initial load
@@ -176,6 +202,9 @@ export default function MintbesDashboard({ onLock }) {
       if (key === 'v') {
         e.preventDefault();
         setActiveTab('validators_explorer');
+      } else if (key === 'h') {
+        e.preventDefault();
+        setActiveTab('delegation_history');
       } else if (key === 'f') {
         e.preventDefault();
         setActiveTab('performance');
@@ -297,6 +326,23 @@ export default function MintbesDashboard({ onLock }) {
       d.address.toLowerCase().includes(delegatorSearch.toLowerCase()) ||
       (d.is_me && 'mintbes self-stake'.includes(delegatorSearch.toLowerCase()))
   );
+
+  // Filtered Delegation History Events
+  const filteredHistoryEvents = (delegationHistory.events || []).filter((e) => {
+    if (historyFilter === 'DELEGATE' && !e.isDelegation) return false;
+    if (historyFilter === 'UNDELEGATE' && e.isDelegation) return false;
+
+    if (historySearch.trim()) {
+      const q = historySearch.toLowerCase().trim();
+      return (
+        e.delegator?.toLowerCase().includes(q) ||
+        e.hash?.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  const historyStats = delegationHistory.stats || {};
 
   return (
     <div className="min-h-screen bg-[#090d13] text-[#edf5f4] selection:bg-[#1fdfb6] selection:text-[#07110f] font-sans antialiased pb-16">
@@ -489,6 +535,18 @@ export default function MintbesDashboard({ onLock }) {
           >
             <Users className="w-3.5 h-3.5" />
             <span>Delegators ({delegators.length}) [D]</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('delegation_history')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold tracking-[0.04em] uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'delegation_history'
+                ? 'bg-[#131b25] text-[#1fdfb6] shadow-[0_1px_5px_rgba(0,0,0,0.3)]'
+                : 'text-[#697a7c] hover:text-[#edf5f4]'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>Delegation History [H]</span>
           </button>
 
           <button
@@ -1333,6 +1391,293 @@ export default function MintbesDashboard({ onLock }) {
         )}
 
         {/* ========================================================================= */}
+        {/* TAB: DELEGATIONS & UNDELEGATIONS FLOW (MATCHING SCREENSHOT) */}
+        {/* ========================================================================= */}
+        {activeTab === 'delegation_history' && (
+          <section className="border border-[#202a35] bg-[#0f151d] rounded-xl overflow-hidden shadow-lg space-y-4 p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#202a35] pb-4">
+              <div>
+                <h2 className="text-[17px] font-bold text-[#edf5f4] flex items-center gap-2">
+                  <History className="w-5 h-5 text-[#1fdfb6]" />
+                  Mintbes Delegations & Undelegations Flow
+                </h2>
+                <span className="text-[11px] text-[#697a7c]">
+                  Chronological on-chain transactions ledger of all delegations and undelegations on Harmony Shard 1.
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={loadDelegationHistory}
+                  disabled={loadingHistory}
+                  className="bg-[#131b25] hover:bg-[#1a2530] border border-[#202a35] text-[#a8b6b6] hover:text-[#edf5f4] px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                  title="Refresh history"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin text-[#1fdfb6]' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Top Stat Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+              <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
+                <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
+                  Total Delegations (Inflows)
+                </span>
+                <strong className="text-[#1fdfb6] text-base font-bold mt-1 block">
+                  +{fmt(historyStats.totalInflow, 0)} ONE
+                </strong>
+                <span className="text-[10px] text-[#1fdfb6]/80 font-sans">
+                  {historyStats.delegationCount || 0} delegation events
+                </span>
+              </div>
+
+              <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
+                <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
+                  Total Undelegations (Outflows)
+                </span>
+                <strong className="text-[#ff6060] text-base font-bold mt-1 block">
+                  -{fmt(historyStats.totalOutflow, 0)} ONE
+                </strong>
+                <span className="text-[10px] text-[#ff6060]/80 font-sans">
+                  {historyStats.undelegationCount || 0} undelegation events
+                </span>
+              </div>
+
+              <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
+                <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
+                  Net Staking Flow
+                </span>
+                <strong className={`text-base font-bold mt-1 block ${historyStats.netFlow >= 0 ? 'text-[#1fdfb6]' : 'text-[#ff6060]'}`}>
+                  {historyStats.netFlow >= 0 ? '+' : ''}{fmt(historyStats.netFlow, 0)} ONE
+                </strong>
+                <span className="text-[10px] text-[#697a7c] font-sans">
+                  Cumulative net balance
+                </span>
+              </div>
+
+              <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
+                <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
+                  Total Events Loaded
+                </span>
+                <strong className="text-sky-400 text-base font-bold mt-1 block">
+                  {fmt(filteredHistoryEvents.length)} Events
+                </strong>
+                <span className="text-[10px] text-[#697a7c] font-sans">
+                  Harmony Consensus Shard 1
+                </span>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 font-sans">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => setHistoryFilter('ALL')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                    historyFilter === 'ALL'
+                      ? 'bg-sky-500 text-white shadow-sm'
+                      : 'bg-[#131b25] border border-[#202a35] text-[#a8b6b6] hover:text-white hover:bg-[#1a2530]'
+                  }`}
+                >
+                  All ({historyStats.totalEvents || filteredHistoryEvents.length})
+                </button>
+
+                <button
+                  onClick={() => setHistoryFilter('DELEGATE')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    historyFilter === 'DELEGATE'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-[#131b25] border border-[#202a35] text-emerald-400 hover:bg-[#1a2530]'
+                  }`}
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                  <span>Delegations ({historyStats.delegationCount || 0})</span>
+                </button>
+
+                <button
+                  onClick={() => setHistoryFilter('UNDELEGATE')}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    historyFilter === 'UNDELEGATE'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'bg-[#131b25] border border-[#202a35] text-rose-400 hover:bg-[#1a2530]'
+                  }`}
+                >
+                  <ArrowDown className="w-3.5 h-3.5" />
+                  <span>Undelegations ({historyStats.undelegationCount || 0})</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="search"
+                  placeholder="Search delegator or tx hash..."
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  className="bg-[#131b25] border border-[#202a35] focus:border-[#1fdfb67a] rounded-lg px-3 py-1 text-xs text-white placeholder-[#697a7c] outline-none font-mono w-60"
+                />
+              </div>
+            </div>
+
+            {/* Table without inner scrollbars */}
+            <div className="bg-[#090d13] border border-[#202a35] rounded-xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse font-mono text-xs">
+                  <thead className="sticky top-0 z-20 bg-[#131b25] text-[#697a7c] uppercase text-[10px] tracking-wider border-b border-[#202a35]">
+                    <tr>
+                      <th className="py-3.5 px-4 w-36">Type</th>
+                      <th className="py-3.5 px-4">Validator</th>
+                      <th className="py-3.5 px-4">Delegator</th>
+                      <th className="py-3.5 px-4 text-right">Amount</th>
+                      <th className="py-3.5 px-4 text-right w-28">When</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#202a35]">
+                    {loadingHistory && filteredHistoryEvents.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="py-10 text-center text-[#697a7c] font-sans">
+                          <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1fdfb6]" />
+                          Loading on-chain staking records from Harmony RPC...
+                        </td>
+                      </tr>
+                    ) : filteredHistoryEvents.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="py-8 text-center text-[#697a7c] font-sans">
+                          No delegation records found.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredHistoryEvents.map((evt) => {
+                        const isDel = evt.isDelegation;
+                        const dAddr = evt.delegator;
+                        const dLine1 = dAddr ? dAddr.slice(0, 8) + '...' : '';
+                        const dLine2 = dAddr ? dAddr.slice(-6) : '';
+
+                        return (
+                          <tr
+                            key={evt.id}
+                            className={`transition-colors ${
+                              isDel ? 'hover:bg-[#1fdfb608]' : 'hover:bg-[#ff505008]'
+                            }`}
+                          >
+                            {/* Type Badge */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div className="space-y-1">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold font-sans ${
+                                    isDel
+                                      ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-300'
+                                      : 'bg-rose-500/15 border border-rose-500/40 text-rose-300'
+                                  }`}
+                                >
+                                  <span className="text-sky-400">{isDel ? '⬆' : '⬇'}</span>
+                                  <span>{evt.type}</span>
+                                </span>
+                                <span className="block text-[10px] text-[#697a7c] font-sans">
+                                  EVM
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Validator */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div className="space-y-0.5">
+                                <strong className="text-white text-xs block font-sans font-bold hover:text-[#1fdfb6] transition-colors">
+                                  Mintbes 🌿
+                                </strong>
+                                <a
+                                  href={`https://staking.harmony.one/validators/mainnet/${MY_ADDR}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] text-[#697a7c] hover:text-[#a8b6b6] block"
+                                  title={MY_ADDR}
+                                >
+                                  {shortAddr(MY_ADDR)}
+                                </a>
+                              </div>
+                            </td>
+
+                            {/* Delegator (2 lines matching screenshot) */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div className="space-y-0.5">
+                                <a
+                                  href={`https://explorer.harmony.one/address/${dAddr}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#a8b6b6] hover:text-white hover:underline text-xs block leading-tight font-mono"
+                                  title={dAddr}
+                                >
+                                  <div>{dLine1}</div>
+                                  <div>{dLine2}</div>
+                                </a>
+                                {evt.isSelfStake && (
+                                  <span className="inline-block text-[9px] uppercase px-1.5 py-0.2 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb647]">
+                                    Self-Stake
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Amount */}
+                            <td className="py-3.5 px-4 text-right align-top">
+                              <div className="space-y-0.5">
+                                <strong
+                                  className={`text-sm font-bold block ${
+                                    isDel ? 'text-[#1fdfb6]' : 'text-[#ff6060]'
+                                  }`}
+                                >
+                                  {fmt(evt.amount, 0)} ONE
+                                </strong>
+                                <span className="text-[11px] text-[#697a7c] block">
+                                  {evt.usdVal}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* When */}
+                            <td className="py-3.5 px-4 text-right align-top">
+                              <div className="space-y-0.5">
+                                <a
+                                  href={`https://explorer.harmony.one/tx/${evt.hash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-slate-300 hover:text-sky-400 transition-colors block font-sans"
+                                  title={`Block #${fmt(evt.blockNumber)} - ${evt.dateStr}`}
+                                >
+                                  {evt.timeAgo}
+                                </a>
+                                <span className="text-[10px] text-[#697a7c] block">
+                                  Tx Verified
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-t border-[#202a35] px-5 py-3 text-[11px] text-[#697a7c] font-mono flex flex-col sm:flex-row items-center justify-between gap-2 bg-[#090d13]">
+                <span>Showing {filteredHistoryEvents.length} transactions recorded on Harmony Shard 1.</span>
+                <a
+                  href={`https://staking.harmony.one/validators/mainnet/${MY_ADDR}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sky-400 hover:underline flex items-center gap-1 font-sans"
+                >
+                  <span>Verify on Official Harmony Staking</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+          </section>
+        )}
+
+        {/* ========================================================================= */}
         {/* 8. TAB: BID SLOTS AUCTION TABLE (WITH OFFICIAL HARMONY LOGOS) */}
         {/* ========================================================================= */}
         {activeTab === 'bids' && (
@@ -1754,7 +2099,7 @@ export default function MintbesDashboard({ onLock }) {
               OPERATOR QUICK SHORTCUTS
             </strong>
             <span className="text-[#697a7c] text-[10px] leading-relaxed block font-mono">
-              [V] Harmony Validators | [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [R] Refresh | [Q] Lock.
+              [V] Harmony Validators | [H] Delegation History | [F] Signings | [D] Delegators | [S] Simulator | [P] Positions | [R] Refresh | [Q] Lock.
             </span>
           </div>
         </footer>

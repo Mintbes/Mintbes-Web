@@ -2,6 +2,7 @@
   "nav": {
     "active": "Active",
     "validators": "Validators",
+    "delegations": "Delegations",
     "arcade": "Mintbes Arcade",
     "staking": "Staking",
     "gallery": "Gallery",

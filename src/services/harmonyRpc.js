@@ -662,3 +662,155 @@ export function calculateKeySimulation(totalStake, allValidators, cutoffBid, act
 
   return results;
 }
+
+/**
+ * Format relative time ago (e.g. 33m ago, 1h ago, 2d ago)
+ */
+export function formatTimeAgo(timestampInSeconds) {
+  if (!timestampInSeconds) return '';
+  const now = Math.floor(Date.now() / 1000);
+  const diff = Math.max(0, now - timestampInSeconds);
+
+  if (diff < 60) return `${diff}s ago`;
+  const mins = Math.floor(diff / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years}y ago`;
+}
+
+/**
+ * Fetch on-chain delegation and undelegation history for a validator
+ */
+export async function fetchDelegationHistory(validatorAddress = MY_ADDR, pagesCount = 5) {
+  try {
+    const batch = [];
+    for (let p = 0; p < pagesCount; p++) {
+      batch.push({
+        jsonrpc: "2.0",
+        method: "hmyv2_getStakingTransactionsHistory",
+        params: [{
+          address: validatorAddress,
+          pageIndex: p,
+          pageSize: 50,
+          fullTx: true,
+          txType: "ALL",
+          order: "DESC"
+        }],
+        id: p
+      });
+    }
+
+    const res = await fetch(RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(batch),
+    }).then(r => r.json());
+
+    if (!Array.isArray(res)) {
+      throw new Error("Invalid staking history response from Harmony RPC");
+    }
+
+    let allTxs = [];
+    res.forEach(item => {
+      const txs = item?.result?.staking_transactions || [];
+      allTxs.push(...txs);
+    });
+
+    const events = [];
+    let totalInflow = 0;
+    let totalOutflow = 0;
+    let delegationCount = 0;
+    let undelegationCount = 0;
+
+    const ONE_PRICE_USD = 0.015; // Estimated ONE USD reference
+
+    allTxs.forEach((t) => {
+      if (t.type === 'Delegate' || t.type === 'Undelegate') {
+        const isDel = t.type === 'Delegate';
+        const rawAmt = t.msg?.amount;
+        let amount = 0;
+        if (typeof rawAmt === 'string' && rawAmt.startsWith('0x')) {
+          amount = parseInt(rawAmt, 16) / 1e18;
+        } else {
+          amount = parseFloat(rawAmt || 0) / 1e18;
+        }
+
+        if (isDel) {
+          totalInflow += amount;
+          delegationCount++;
+        } else {
+          totalOutflow += amount;
+          undelegationCount++;
+        }
+
+        const delegatorAddr = t.msg?.delegatorAddress || t.from || '';
+        const validatorAddr = t.msg?.validatorAddress || validatorAddress;
+        const ts = t.timestamp || 0;
+        const usdVal = (amount * ONE_PRICE_USD).toLocaleString('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        });
+
+        events.push({
+          id: t.hash || `${t.timestamp}-${Math.random()}`,
+          hash: t.hash,
+          type: isDel ? 'Delegation' : 'Undelegation',
+          isDelegation: isDel,
+          amount,
+          usdVal: `$${usdVal}`,
+          timestamp: ts,
+          timeAgo: formatTimeAgo(ts),
+          dateStr: ts ? new Date(ts * 1000).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : '',
+          delegator: delegatorAddr,
+          validator: validatorAddr,
+          validatorName: 'Mintbes',
+          blockNumber: t.blockNumber,
+          isSelfStake: delegatorAddr.toLowerCase() === validatorAddress.toLowerCase()
+        });
+      }
+    });
+
+    // Deduplicate by transaction hash and sort descending by timestamp
+    const uniqueMap = new Map();
+    events.forEach(e => {
+      if (e.hash && !uniqueMap.has(e.hash)) {
+        uniqueMap.set(e.hash, e);
+      }
+    });
+
+    const uniqueEvents = Array.from(uniqueMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+
+    return {
+      success: true,
+      events: uniqueEvents,
+      stats: {
+        totalEvents: uniqueEvents.length,
+        delegationCount,
+        undelegationCount,
+        totalInflow,
+        totalOutflow,
+        netFlow: totalInflow - totalOutflow
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching delegation history:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to fetch staking history",
+      events: [],
+      stats: { totalEvents: 0, delegationCount: 0, undelegationCount: 0, totalInflow: 0, totalOutflow: 0, netFlow: 0 }
+    };
+  }
+}

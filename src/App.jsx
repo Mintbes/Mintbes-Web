@@ -10,6 +10,7 @@ import AIConcierge from './components/AIConcierge';
 import PrivateGate from './components/dashboard/PrivateGate';
 import MintbesDashboard from './components/dashboard/MintbesDashboard';
 import HarmonyValidatorsSection from './components/HarmonyValidatorsSection';
+import DelegationsFlowSection from './components/DelegationsFlowSection';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -130,6 +131,7 @@ function App() {
         <main className="flex-grow">
           <Hero />
           <HarmonyValidatorsSection />
+          <DelegationsFlowSection />
           <About />
           <WhyDelegate />
           <StakingInfo />
