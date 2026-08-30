@@ -142,8 +142,9 @@ export default function MintbesDashboard({ onLock }) {
   });
 
   // Delegation History State
-  const [delegationHistory, setDelegationHistory] = useState({ events: [], stats: {} });
+  const [delegationHistory, setDelegationHistory] = useState({ events: [], allNetworkEvents: [], stats: {} });
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyScope, setHistoryScope] = useState('mintbes'); // 'mintbes' | 'network'
   const [historyFilter, setHistoryFilter] = useState('ALL'); // 'ALL' | 'DELEGATE' | 'UNDELEGATE'
   const [historySearch, setHistorySearch] = useState('');
 
@@ -155,7 +156,7 @@ export default function MintbesDashboard({ onLock }) {
   const loadDelegationHistory = async () => {
     setLoadingHistory(true);
     try {
-      const res = await fetchDelegationHistory(MY_ADDR, 5);
+      const res = await fetchDelegationHistory(MY_ADDR, 15);
       if (res.success) {
         setDelegationHistory(res);
       }
@@ -328,7 +329,12 @@ export default function MintbesDashboard({ onLock }) {
   );
 
   // Filtered Delegation History Events
-  const filteredHistoryEvents = (delegationHistory.events || []).filter((e) => {
+  const currentHistorySource =
+    historyScope === 'mintbes'
+      ? delegationHistory.events || []
+      : delegationHistory.allNetworkEvents || [];
+
+  const filteredHistoryEvents = currentHistorySource.filter((e) => {
     if (historyFilter === 'DELEGATE' && !e.isDelegation) return false;
     if (historyFilter === 'UNDELEGATE' && e.isDelegation) return false;
 
@@ -336,6 +342,8 @@ export default function MintbesDashboard({ onLock }) {
       const q = historySearch.toLowerCase().trim();
       return (
         e.delegator?.toLowerCase().includes(q) ||
+        e.validator?.toLowerCase().includes(q) ||
+        e.validatorName?.toLowerCase().includes(q) ||
         e.hash?.toLowerCase().includes(q)
       );
     }
@@ -1399,10 +1407,10 @@ export default function MintbesDashboard({ onLock }) {
               <div>
                 <h2 className="text-[17px] font-bold text-[#edf5f4] flex items-center gap-2">
                   <History className="w-5 h-5 text-[#1fdfb6]" />
-                  Mintbes Delegations & Undelegations Flow
+                  Delegations & Undelegations History
                 </h2>
                 <span className="text-[11px] text-[#697a7c]">
-                  Chronological on-chain transactions ledger of all delegations and undelegations on Harmony Shard 1.
+                  Chronological on-chain transactions decoded directly from Harmony Staking Precompile and consensus protocol.
                 </span>
               </div>
 
@@ -1423,43 +1431,43 @@ export default function MintbesDashboard({ onLock }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
               <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
                 <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-                  Total Delegations (Inflows)
+                  {historyScope === 'mintbes' ? 'Mintbes Delegations (Inflows)' : 'Network Delegations'}
                 </span>
                 <strong className="text-[#1fdfb6] text-base font-bold mt-1 block">
-                  +{fmt(historyStats.totalInflow, 0)} ONE
+                  {historyScope === 'mintbes' ? `+${fmt(historyStats.totalInflow, 0)} ONE` : `${(delegationHistory.allNetworkEvents || []).filter(e => e.isDelegation).length} Events`}
                 </strong>
                 <span className="text-[10px] text-[#1fdfb6]/80 font-sans">
-                  {historyStats.delegationCount || 0} delegation events
+                  {historyScope === 'mintbes' ? `${historyStats.delegationCount || 0} delegation events` : 'Harmony Network Total'}
                 </span>
               </div>
 
               <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
                 <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-                  Total Undelegations (Outflows)
+                  {historyScope === 'mintbes' ? 'Mintbes Undelegations (Outflows)' : 'Network Undelegations'}
                 </span>
                 <strong className="text-[#ff6060] text-base font-bold mt-1 block">
-                  -{fmt(historyStats.totalOutflow, 0)} ONE
+                  {historyScope === 'mintbes' ? `-${fmt(historyStats.totalOutflow, 0)} ONE` : `${(delegationHistory.allNetworkEvents || []).filter(e => !e.isDelegation).length} Events`}
                 </strong>
                 <span className="text-[10px] text-[#ff6060]/80 font-sans">
-                  {historyStats.undelegationCount || 0} undelegation events
+                  {historyScope === 'mintbes' ? `${historyStats.undelegationCount || 0} undelegation events` : 'Harmony Network Total'}
                 </span>
               </div>
 
               <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
                 <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-                  Net Staking Flow
+                  {historyScope === 'mintbes' ? 'Net Staking Flow' : 'Network Flow Ratio'}
                 </span>
                 <strong className={`text-base font-bold mt-1 block ${historyStats.netFlow >= 0 ? 'text-[#1fdfb6]' : 'text-[#ff6060]'}`}>
-                  {historyStats.netFlow >= 0 ? '+' : ''}{fmt(historyStats.netFlow, 0)} ONE
+                  {historyScope === 'mintbes' ? `${historyStats.netFlow >= 0 ? '+' : ''}${fmt(historyStats.netFlow, 0)} ONE` : 'Live EVM Stream'}
                 </strong>
                 <span className="text-[10px] text-[#697a7c] font-sans">
-                  Cumulative net balance
+                  {historyScope === 'mintbes' ? 'Cumulative net balance' : 'Inflow vs Outflow'}
                 </span>
               </div>
 
               <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
                 <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-                  Total Events Loaded
+                  Transactions Loaded
                 </span>
                 <strong className="text-sky-400 text-base font-bold mt-1 block">
                   {fmt(filteredHistoryEvents.length)} Events
@@ -1470,53 +1478,80 @@ export default function MintbesDashboard({ onLock }) {
               </div>
             </div>
 
-            {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 font-sans">
-              <div className="flex flex-wrap items-center gap-1.5">
+            {/* Scope Switcher & Filter Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 font-sans">
+              <div className="flex items-center gap-1.5 p-1 bg-[#131b25] border border-[#202a35] rounded-xl self-start">
                 <button
-                  onClick={() => setHistoryFilter('ALL')}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                    historyFilter === 'ALL'
-                      ? 'bg-sky-500 text-white shadow-sm'
-                      : 'bg-[#131b25] border border-[#202a35] text-[#a8b6b6] hover:text-white hover:bg-[#1a2530]'
+                  onClick={() => setHistoryScope('mintbes')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    historyScope === 'mintbes'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
+                      : 'text-[#697a7c] hover:text-white'
                   }`}
                 >
-                  All ({historyStats.totalEvents || filteredHistoryEvents.length})
+                  <span>🌿 Mintbes Ledger ({delegationHistory.events?.length || 0})</span>
                 </button>
 
                 <button
-                  onClick={() => setHistoryFilter('DELEGATE')}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    historyFilter === 'DELEGATE'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-[#131b25] border border-[#202a35] text-emerald-400 hover:bg-[#1a2530]'
+                  onClick={() => setHistoryScope('network')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    historyScope === 'network'
+                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/50 shadow-sm'
+                      : 'text-[#697a7c] hover:text-white'
                   }`}
                 >
-                  <ArrowUp className="w-3.5 h-3.5" />
-                  <span>Delegations ({historyStats.delegationCount || 0})</span>
-                </button>
-
-                <button
-                  onClick={() => setHistoryFilter('UNDELEGATE')}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    historyFilter === 'UNDELEGATE'
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'bg-[#131b25] border border-[#202a35] text-rose-400 hover:bg-[#1a2530]'
-                  }`}
-                >
-                  <ArrowDown className="w-3.5 h-3.5" />
-                  <span>Undelegations ({historyStats.undelegationCount || 0})</span>
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>All Network Live Feed ({delegationHistory.allNetworkEvents?.length || 0})</span>
                 </button>
               </div>
 
-              <div className="relative">
-                <input
-                  type="search"
-                  placeholder="Search delegator or tx hash..."
-                  value={historySearch}
-                  onChange={(e) => setHistorySearch(e.target.value)}
-                  className="bg-[#131b25] border border-[#202a35] focus:border-[#1fdfb67a] rounded-lg px-3 py-1 text-xs text-white placeholder-[#697a7c] outline-none font-mono w-60"
-                />
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setHistoryFilter('ALL')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      historyFilter === 'ALL'
+                        ? 'bg-sky-500 text-white shadow-sm'
+                        : 'bg-[#131b25] border border-[#202a35] text-[#a8b6b6] hover:text-white hover:bg-[#1a2530]'
+                    }`}
+                  >
+                    All
+                  </button>
+
+                  <button
+                    onClick={() => setHistoryFilter('DELEGATE')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      historyFilter === 'DELEGATE'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-[#131b25] border border-[#202a35] text-emerald-400 hover:bg-[#1a2530]'
+                    }`}
+                  >
+                    <ArrowUp className="w-3 h-3" />
+                    <span>Delegations</span>
+                  </button>
+
+                  <button
+                    onClick={() => setHistoryFilter('UNDELEGATE')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      historyFilter === 'UNDELEGATE'
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'bg-[#131b25] border border-[#202a35] text-rose-400 hover:bg-[#1a2530]'
+                    }`}
+                  >
+                    <ArrowDown className="w-3 h-3" />
+                    <span>Undelegations</span>
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="search"
+                    placeholder="Search address, validator or hash..."
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    className="bg-[#131b25] border border-[#202a35] focus:border-[#1fdfb67a] rounded-lg px-3 py-1.5 text-xs text-white placeholder-[#697a7c] outline-none font-mono w-56"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1538,7 +1573,7 @@ export default function MintbesDashboard({ onLock }) {
                       <tr>
                         <td colSpan="5" className="py-10 text-center text-[#697a7c] font-sans">
                           <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#1fdfb6]" />
-                          Loading on-chain staking records from Harmony RPC...
+                          Loading on-chain staking records from Harmony Precompile...
                         </td>
                       </tr>
                     ) : filteredHistoryEvents.length === 0 ? (
@@ -1583,17 +1618,26 @@ export default function MintbesDashboard({ onLock }) {
                             {/* Validator */}
                             <td className="py-3.5 px-4 align-top">
                               <div className="space-y-0.5">
-                                <strong className="text-white text-xs block font-sans font-bold hover:text-[#1fdfb6] transition-colors">
-                                  Mintbes 🌿
-                                </strong>
+                                <div className="flex items-center gap-1.5">
+                                  <strong className={`text-xs block font-sans font-bold transition-colors ${
+                                    evt.isMintbes ? 'text-[#1fdfb6] font-extrabold' : 'text-white hover:text-sky-400'
+                                  }`}>
+                                    {evt.validatorName}
+                                  </strong>
+                                  {evt.isMintbes && (
+                                    <span className="text-[9px] uppercase px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono font-bold">
+                                      Your Node
+                                    </span>
+                                  )}
+                                </div>
                                 <a
-                                  href={`https://staking.harmony.one/validators/mainnet/${MY_ADDR}`}
+                                  href={`https://staking.harmony.one/validators/mainnet/${evt.validator}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[11px] text-[#697a7c] hover:text-[#a8b6b6] block"
-                                  title={MY_ADDR}
+                                  title={evt.validator}
                                 >
-                                  {shortAddr(MY_ADDR)}
+                                  {shortAddr(evt.validator)}
                                 </a>
                               </div>
                             </td>

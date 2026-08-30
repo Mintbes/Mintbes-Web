@@ -684,13 +684,99 @@ export function formatTimeAgo(timestampInSeconds) {
   return `${years}y ago`;
 }
 
+export const PRECOMPILE_ADDR = "one1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8uuuycsy";
+const CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+
+export const validatorNamesCache = new Map([
+  ["one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k", "Mintbes 🌿"],
+  ["one1mxjrugqety8t6v23m3et0j4zfussf4v8ktycur", "KRATOS 💙"],
+  ["one14141d8ehy844e995j573h9m2q5x689h2z9mgdc", "Validator.ONE | Top Trusted Validator | Low Minimum Fee"],
+  ["one1aha9g2d6scsyktjgx7wm9jwssxjp6lrtl8959z", "三潭映月 | Since 2020"],
+  ["one102lcjqy44ett8wu07dxdtce6gm988j0eu3z6cy", "Smart Stake - harmony.smartstake.io & HarmonyAnalyticsBot"],
+  ["one1qk7mp94ydftmq4ag8xn6y80876vc28q7s9kpp7", "EasyNode.PRO 🟢"],
+  ["one1r2lx24n0fpfch7cqyhccekqfd6dk79f0wqw7p4", "Fortune.ONE 🌟"],
+  ["one1p2rmvndevvw682qynqu08hyvx24hh4runsw6pz", "SlugONE 🐌"],
+  ["one13y34ejv2h0llyj5dnj7rk05xdft560hft9gefk", "Trantor 🚀"],
+  ["one1leh5rmuclw5u68gw07d86kqxjd69zuny3h23c3", "PeaceLoveHarmony ✌️"],
+  ["one1txaatrq6cvm34gdgwegrzu97mrl7herh36m6yn", "SesameSeed 🌱"]
+]);
+
 /**
- * Fetch on-chain delegation and undelegation history for a validator
+ * Convert EVM hex address (0x...) to Harmony Bech32 address (one1...)
  */
-export async function fetchDelegationHistory(validatorAddress = MY_ADDR, pagesCount = 5) {
+export function hexToBech32(hex) {
+  if (!hex) return '';
+  if (hex.startsWith('one1')) return hex;
+  if (hex.startsWith('0x')) hex = hex.slice(2);
+  hex = hex.toLowerCase();
+  const bytes = [];
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes.push(parseInt(hex.substr(i, 2), 16));
+  }
+  let acc = 0, bits = 0, words = [];
+  for (let b of bytes) {
+    acc = (acc << 8) | b;
+    bits += 8;
+    while (bits >= 5) {
+      bits -= 5;
+      words.push((acc >> bits) & 31);
+    }
+  }
+  if (bits > 0) words.push((acc << (5 - bits)) & 31);
+  function polymod(values) {
+    let chk = 1;
+    for (let p = 0; p < values.length; ++p) {
+      const top = chk >> 25;
+      chk = ((chk & 0x1ffffff) << 5) ^ values[p];
+      if ((top >> 0) & 1) chk ^= 0x3b6a57b2;
+      if ((top >> 1) & 1) chk ^= 0x26508e6d;
+      if ((top >> 2) & 1) chk ^= 0x1ea119fa;
+      if ((top >> 3) & 1) chk ^= 0x3d4233dd;
+      if ((top >> 4) & 1) chk ^= 0x2a1462b3;
+    }
+    return chk;
+  }
+  function hrpExpand(hrp) {
+    const ret = [];
+    for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) >> 5);
+    ret.push(0);
+    for (let p = 0; p < hrp.length; ++p) ret.push(hrp.charCodeAt(p) & 31);
+    return ret;
+  }
+  const enc = hrpExpand('one').concat(words).concat([0, 0, 0, 0, 0, 0]);
+  const mod = polymod(enc) ^ 1;
+  const ret = words.slice();
+  for (let p = 0; p < 6; ++p) ret.push((mod >> 5 * (5 - p)) & 31);
+  return 'one1' + ret.map(c => CHARSET[c]).join('');
+}
+
+/**
+ * Fetch on-chain delegation and undelegation history
+ * Decodes real-time EVM transactions from the Staking Precompile (0x...fc)
+ * and merges with historical native staking transactions.
+ */
+export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precompilePages = 15) {
   try {
     const batch = [];
-    for (let p = 0; p < pagesCount; p++) {
+    // 1. Batch query real-time EVM transactions on the Harmony Staking Precompile
+    for (let p = 0; p < precompilePages; p++) {
+      batch.push({
+        jsonrpc: "2.0",
+        method: "hmyv2_getTransactionsHistory",
+        params: [{
+          address: PRECOMPILE_ADDR,
+          pageIndex: p,
+          pageSize: 50,
+          fullTx: true,
+          txType: "ALL",
+          order: "DESC"
+        }],
+        id: `evm_${p}`
+      });
+    }
+
+    // 2. Batch query historical native staking transactions for the validator
+    for (let p = 0; p < 3; p++) {
       batch.push({
         jsonrpc: "2.0",
         method: "hmyv2_getStakingTransactionsHistory",
@@ -702,7 +788,7 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, pagesCo
           txType: "ALL",
           order: "DESC"
         }],
-        id: p
+        id: `native_${p}`
       });
     }
 
@@ -716,92 +802,175 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, pagesCo
       throw new Error("Invalid staking history response from Harmony RPC");
     }
 
-    let allTxs = [];
-    res.forEach(item => {
-      const txs = item?.result?.staking_transactions || [];
-      allTxs.push(...txs);
+    const ONE_PRICE_USD = 0.015;
+    const mintbesEvents = [];
+    const allNetworkEvents = [];
+
+    res.forEach((item) => {
+      // Decode EVM precompile transactions
+      const evmTxList = item?.result?.transactions || [];
+      evmTxList.forEach((t) => {
+        if (!t.input || t.input.length < 10) return;
+        const sel = t.input.slice(0, 10);
+        if (sel === '0xbda8c0e9' || sel === '0x510b11bb') {
+          const isDel = sel === '0xbda8c0e9';
+          const delegatorHex = '0x' + t.input.slice(34, 74);
+          const validatorHex = '0x' + t.input.slice(98, 138);
+          const amtHex = '0x' + t.input.slice(138, 202);
+          let amount = 0;
+          try {
+            amount = Number(BigInt(amtHex) / 1000000000000000000n);
+          } catch {
+            amount = 0;
+          }
+
+          const valBech32 = hexToBech32(validatorHex);
+          const delBech32 = hexToBech32(delegatorHex);
+          const isMintbes = valBech32.toLowerCase() === validatorAddress.toLowerCase();
+          const valName = isMintbes
+            ? 'Mintbes 🌿'
+            : (validatorNamesCache.get(valBech32.toLowerCase()) || shortAddr(valBech32));
+
+          const ts = t.timestamp || 0;
+          const usdVal = (amount * ONE_PRICE_USD).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+
+          const evt = {
+            id: t.hash || `${t.timestamp}-${Math.random()}`,
+            hash: t.hash,
+            type: isDel ? 'Delegation' : 'Undelegation',
+            isDelegation: isDel,
+            amount,
+            usdVal: `$${usdVal}`,
+            timestamp: ts,
+            timeAgo: formatTimeAgo(ts),
+            dateStr: ts ? new Date(ts * 1000).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : '',
+            delegator: delBech32,
+            validator: valBech32,
+            validatorName: valName,
+            blockNumber: t.blockNumber ? parseInt(t.blockNumber, 16) : null,
+            isSelfStake: delBech32.toLowerCase() === valBech32.toLowerCase(),
+            isMintbes,
+            source: 'EVM'
+          };
+
+          allNetworkEvents.push(evt);
+          if (isMintbes) {
+            mintbesEvents.push(evt);
+          }
+        }
+      });
+
+      // Decode native staking transactions
+      const nativeTxList = item?.result?.staking_transactions || [];
+      nativeTxList.forEach((t) => {
+        if (t.type === 'Delegate' || t.type === 'Undelegate') {
+          const isDel = t.type === 'Delegate';
+          const rawAmt = t.msg?.amount;
+          let amount = 0;
+          if (typeof rawAmt === 'string' && rawAmt.startsWith('0x')) {
+            amount = parseInt(rawAmt, 16) / 1e18;
+          } else {
+            amount = parseFloat(rawAmt || 0) / 1e18;
+          }
+
+          const delAddr = t.msg?.delegatorAddress || t.from || '';
+          const valAddr = t.msg?.validatorAddress || validatorAddress;
+          const ts = t.timestamp || 0;
+          const usdVal = (amount * ONE_PRICE_USD).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+          });
+
+          const evt = {
+            id: t.hash || `${t.timestamp}-${Math.random()}`,
+            hash: t.hash,
+            type: isDel ? 'Delegation' : 'Undelegation',
+            isDelegation: isDel,
+            amount,
+            usdVal: `$${usdVal}`,
+            timestamp: ts,
+            timeAgo: formatTimeAgo(ts),
+            dateStr: ts ? new Date(ts * 1000).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : '',
+            delegator: delAddr,
+            validator: valAddr,
+            validatorName: 'Mintbes 🌿',
+            blockNumber: t.blockNumber,
+            isSelfStake: delAddr.toLowerCase() === valAddr.toLowerCase(),
+            isMintbes: true,
+            source: 'EVM'
+          };
+
+          mintbesEvents.push(evt);
+          allNetworkEvents.push(evt);
+        }
+      });
     });
 
-    const events = [];
+    // Deduplicate Mintbes events by transaction hash
+    const uniqueMintbesMap = new Map();
+    mintbesEvents.forEach((e) => {
+      if (e.hash && !uniqueMintbesMap.has(e.hash.toLowerCase())) {
+        uniqueMintbesMap.set(e.hash.toLowerCase(), e);
+      }
+    });
+    const uniqueMintbesEvents = Array.from(uniqueMintbesMap.values()).sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+
+    // Deduplicate Network events by transaction hash
+    const uniqueNetworkMap = new Map();
+    allNetworkEvents.forEach((e) => {
+      if (e.hash && !uniqueNetworkMap.has(e.hash.toLowerCase())) {
+        uniqueNetworkMap.set(e.hash.toLowerCase(), e);
+      }
+    });
+    const uniqueNetworkEvents = Array.from(uniqueNetworkMap.values()).sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+
+    // Calculate Mintbes stats
     let totalInflow = 0;
     let totalOutflow = 0;
     let delegationCount = 0;
     let undelegationCount = 0;
 
-    const ONE_PRICE_USD = 0.015; // Estimated ONE USD reference
-
-    allTxs.forEach((t) => {
-      if (t.type === 'Delegate' || t.type === 'Undelegate') {
-        const isDel = t.type === 'Delegate';
-        const rawAmt = t.msg?.amount;
-        let amount = 0;
-        if (typeof rawAmt === 'string' && rawAmt.startsWith('0x')) {
-          amount = parseInt(rawAmt, 16) / 1e18;
-        } else {
-          amount = parseFloat(rawAmt || 0) / 1e18;
-        }
-
-        if (isDel) {
-          totalInflow += amount;
-          delegationCount++;
-        } else {
-          totalOutflow += amount;
-          undelegationCount++;
-        }
-
-        const delegatorAddr = t.msg?.delegatorAddress || t.from || '';
-        const validatorAddr = t.msg?.validatorAddress || validatorAddress;
-        const ts = t.timestamp || 0;
-        const usdVal = (amount * ONE_PRICE_USD).toLocaleString('en-US', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 2,
-        });
-
-        events.push({
-          id: t.hash || `${t.timestamp}-${Math.random()}`,
-          hash: t.hash,
-          type: isDel ? 'Delegation' : 'Undelegation',
-          isDelegation: isDel,
-          amount,
-          usdVal: `$${usdVal}`,
-          timestamp: ts,
-          timeAgo: formatTimeAgo(ts),
-          dateStr: ts ? new Date(ts * 1000).toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }) : '',
-          delegator: delegatorAddr,
-          validator: validatorAddr,
-          validatorName: 'Mintbes',
-          blockNumber: t.blockNumber,
-          isSelfStake: delegatorAddr.toLowerCase() === validatorAddress.toLowerCase()
-        });
+    uniqueMintbesEvents.forEach((e) => {
+      if (e.isDelegation) {
+        totalInflow += e.amount;
+        delegationCount++;
+      } else {
+        totalOutflow += e.amount;
+        undelegationCount++;
       }
     });
-
-    // Deduplicate by transaction hash and sort descending by timestamp
-    const uniqueMap = new Map();
-    events.forEach(e => {
-      if (e.hash && !uniqueMap.has(e.hash)) {
-        uniqueMap.set(e.hash, e);
-      }
-    });
-
-    const uniqueEvents = Array.from(uniqueMap.values()).sort((a, b) => b.timestamp - a.timestamp);
 
     return {
       success: true,
-      events: uniqueEvents,
+      events: uniqueMintbesEvents,
+      allNetworkEvents: uniqueNetworkEvents,
       stats: {
-        totalEvents: uniqueEvents.length,
+        totalEvents: uniqueMintbesEvents.length,
         delegationCount,
         undelegationCount,
         totalInflow,
         totalOutflow,
-        netFlow: totalInflow - totalOutflow
+        netFlow: totalInflow - totalOutflow,
+        networkTotalEvents: uniqueNetworkEvents.length,
       }
     };
   } catch (error) {
@@ -810,7 +979,8 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, pagesCo
       success: false,
       error: error.message || "Failed to fetch staking history",
       events: [],
-      stats: { totalEvents: 0, delegationCount: 0, undelegationCount: 0, totalInflow: 0, totalOutflow: 0, netFlow: 0 }
+      allNetworkEvents: [],
+      stats: { totalEvents: 0, delegationCount: 0, undelegationCount: 0, totalInflow: 0, totalOutflow: 0, netFlow: 0, networkTotalEvents: 0 }
     };
   }
 }
