@@ -59,16 +59,30 @@ export default function DelegationsFlowSection() {
   const currentSourceList = scope === 'mintbes' ? (data.events || []) : (data.allNetworkEvents || []);
 
   const filteredEvents = currentSourceList.filter((e) => {
-    if (filterType === 'DELEGATE' && !e.isDelegation) return false;
-    if (filterType === 'UNDELEGATE' && e.isDelegation) return false;
-
     if (search.trim()) {
       const query = search.toLowerCase().trim();
+      const matchHash =
+        e.hash?.toLowerCase().includes(query) ||
+        e.ethHash?.toLowerCase().includes(query) ||
+        e.harmonyHash?.toLowerCase().includes(query);
       const matchDelegator = e.delegator?.toLowerCase().includes(query);
-      const matchValidator = e.validator?.toLowerCase().includes(query) || e.validatorName?.toLowerCase().includes(query);
-      const matchHash = e.hash?.toLowerCase().includes(query);
+      const matchValidator =
+        e.validator?.toLowerCase().includes(query) ||
+        e.validatorName?.toLowerCase().includes(query);
+
+      // If user searches a tx hash, bypass type filter to find the exact tx
+      const isSearchingHash = query.startsWith('0x') && query.length > 6;
+      if (isSearchingHash) {
+        return matchHash;
+      }
+
+      if (filterType === 'DELEGATE' && !e.isDelegation) return false;
+      if (filterType === 'UNDELEGATE' && e.isDelegation) return false;
       return matchDelegator || matchValidator || matchHash;
     }
+
+    if (filterType === 'DELEGATE' && !e.isDelegation) return false;
+    if (filterType === 'UNDELEGATE' && e.isDelegation) return false;
     return true;
   });
 

@@ -837,9 +837,12 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
             maximumFractionDigits: 2,
           });
 
+          const primaryHash = t.ethHash || t.hash;
           const evt = {
-            id: t.hash || `${t.timestamp}-${Math.random()}`,
-            hash: t.hash,
+            id: primaryHash || `${t.timestamp}-${Math.random()}`,
+            hash: primaryHash,
+            ethHash: t.ethHash || '',
+            harmonyHash: t.hash || '',
             type: isDel ? 'Delegation' : 'Undelegation',
             isDelegation: isDel,
             amount,
@@ -890,10 +893,13 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
             maximumFractionDigits: 2,
           });
 
+          const primaryHash = t.ethHash || t.hash;
           const evt = {
-            id: t.hash || `${t.timestamp}-${Math.random()}`,
-            hash: t.hash,
-            type: isDel ? 'Delegation' : 'Undelegation',
+            id: primaryHash || `${t.timestamp}-${Math.random()}`,
+            hash: primaryHash,
+            ethHash: t.ethHash || '',
+            harmonyHash: t.hash || '',
+            type: isDel ? 'Delegate' : 'Undelegate',
             isDelegation: isDel,
             amount,
             usdVal: `$${usdVal}`,
@@ -923,10 +929,18 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
 
     // Deduplicate Mintbes events by transaction hash
     const uniqueMintbesMap = new Map();
+    const seenHashes = new Set();
     mintbesEvents.forEach((e) => {
-      if (e.hash && !uniqueMintbesMap.has(e.hash.toLowerCase())) {
-        uniqueMintbesMap.set(e.hash.toLowerCase(), e);
+      const h1 = (e.hash || '').toLowerCase();
+      const h2 = (e.ethHash || '').toLowerCase();
+      const h3 = (e.harmonyHash || '').toLowerCase();
+      if (seenHashes.has(h1) || (h2 && seenHashes.has(h2)) || (h3 && seenHashes.has(h3))) {
+        return;
       }
+      if (h1) seenHashes.add(h1);
+      if (h2) seenHashes.add(h2);
+      if (h3) seenHashes.add(h3);
+      uniqueMintbesMap.set(h1, e);
     });
     const uniqueMintbesEvents = Array.from(uniqueMintbesMap.values()).sort(
       (a, b) => b.timestamp - a.timestamp
@@ -934,10 +948,18 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
 
     // Deduplicate Network events by transaction hash
     const uniqueNetworkMap = new Map();
+    const seenNetworkHashes = new Set();
     allNetworkEvents.forEach((e) => {
-      if (e.hash && !uniqueNetworkMap.has(e.hash.toLowerCase())) {
-        uniqueNetworkMap.set(e.hash.toLowerCase(), e);
+      const h1 = (e.hash || '').toLowerCase();
+      const h2 = (e.ethHash || '').toLowerCase();
+      const h3 = (e.harmonyHash || '').toLowerCase();
+      if (seenNetworkHashes.has(h1) || (h2 && seenNetworkHashes.has(h2)) || (h3 && seenNetworkHashes.has(h3))) {
+        return;
       }
+      if (h1) seenNetworkHashes.add(h1);
+      if (h2) seenNetworkHashes.add(h2);
+      if (h3) seenNetworkHashes.add(h3);
+      uniqueNetworkMap.set(h1, e);
     });
     const uniqueNetworkEvents = Array.from(uniqueNetworkMap.values()).sort(
       (a, b) => b.timestamp - a.timestamp

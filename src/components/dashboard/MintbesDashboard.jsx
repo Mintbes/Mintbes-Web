@@ -194,6 +194,13 @@ export default function MintbesDashboard({ onLock }) {
     loadData();
   }, []);
 
+  // Auto-refresh delegation history when user switches to tab [H]
+  useEffect(() => {
+    if (activeTab === 'delegation_history') {
+      loadDelegationHistory();
+    }
+  }, [activeTab]);
+
   // Keyboard Shortcuts: [V], [F], [D], [S], [P], [R], [Q]/[2]
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -335,18 +342,30 @@ export default function MintbesDashboard({ onLock }) {
       : delegationHistory.allNetworkEvents || [];
 
   const filteredHistoryEvents = currentHistorySource.filter((e) => {
-    if (historyFilter === 'DELEGATE' && !e.isDelegation) return false;
-    if (historyFilter === 'UNDELEGATE' && e.isDelegation) return false;
-
     if (historySearch.trim()) {
       const q = historySearch.toLowerCase().trim();
-      return (
-        e.delegator?.toLowerCase().includes(q) ||
+      const matchHash =
+        e.hash?.toLowerCase().includes(q) ||
+        e.ethHash?.toLowerCase().includes(q) ||
+        e.harmonyHash?.toLowerCase().includes(q);
+      const matchDelegator = e.delegator?.toLowerCase().includes(q);
+      const matchValidator =
         e.validator?.toLowerCase().includes(q) ||
-        e.validatorName?.toLowerCase().includes(q) ||
-        e.hash?.toLowerCase().includes(q)
-      );
+        e.validatorName?.toLowerCase().includes(q);
+
+      // If user searches a tx hash, bypass type filter to find the exact tx
+      const isSearchingHash = q.startsWith('0x') && q.length > 6;
+      if (isSearchingHash) {
+        return matchHash;
+      }
+
+      if (historyFilter === 'DELEGATE' && !e.isDelegation) return false;
+      if (historyFilter === 'UNDELEGATE' && e.isDelegation) return false;
+      return matchDelegator || matchValidator || matchHash;
     }
+
+    if (historyFilter === 'DELEGATE' && !e.isDelegation) return false;
+    if (historyFilter === 'UNDELEGATE' && e.isDelegation) return false;
     return true;
   });
 
