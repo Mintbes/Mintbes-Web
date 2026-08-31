@@ -812,8 +812,8 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
       evmTxList.forEach((t) => {
         if (!t.input || t.input.length < 10) return;
         const sel = t.input.slice(0, 10);
-        if (sel === '0xbda8c0e9' || sel === '0x510b11bb') {
-          const isDel = sel === '0xbda8c0e9';
+        if (sel === '0x510b11bb' || sel === '0xbda8c0e9') {
+          const isDel = sel === '0x510b11bb';
           const delegatorHex = '0x' + t.input.slice(34, 74);
           const validatorHex = '0x' + t.input.slice(98, 138);
           const amtHex = '0x' + t.input.slice(138, 202);
