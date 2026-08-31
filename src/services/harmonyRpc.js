@@ -942,9 +942,10 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
       if (h3) seenHashes.add(h3);
       uniqueMintbesMap.set(h1, e);
     });
-    const uniqueMintbesEvents = Array.from(uniqueMintbesMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp
-    );
+    // Keep strictly the latest 100 transactions, discard older ones
+    const uniqueMintbesEvents = Array.from(uniqueMintbesMap.values())
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 100);
 
     // Deduplicate Network events by transaction hash
     const uniqueNetworkMap = new Map();
@@ -961,9 +962,10 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
       if (h3) seenNetworkHashes.add(h3);
       uniqueNetworkMap.set(h1, e);
     });
-    const uniqueNetworkEvents = Array.from(uniqueNetworkMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp
-    );
+    // Keep strictly the latest 100 network events
+    const uniqueNetworkEvents = Array.from(uniqueNetworkMap.values())
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 100);
 
     // Calculate Mintbes stats
     let totalInflow = 0;

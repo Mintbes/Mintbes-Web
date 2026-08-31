@@ -197,7 +197,7 @@ export default function DelegationsFlowSection() {
 
           <div className="bg-[#0f151d] border border-[#202a35] rounded-xl p-4">
             <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-              Transactions Loaded
+              Latest 100 Transactions
             </span>
             <div className="flex items-baseline gap-2 mt-1">
               <strong className="text-sky-400 text-lg font-bold">

@@ -1486,7 +1486,7 @@ export default function MintbesDashboard({ onLock }) {
 
               <div className="bg-[#131b25] border border-[#202a35] rounded-xl p-3.5">
                 <span className="text-[10px] text-[#697a7c] uppercase tracking-wider block font-sans">
-                  Transactions Loaded
+                  Latest 100 Transactions
                 </span>
                 <strong className="text-sky-400 text-base font-bold mt-1 block">
                   {fmt(filteredHistoryEvents.length)} Events
