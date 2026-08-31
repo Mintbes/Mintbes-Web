@@ -156,7 +156,7 @@ export default function MintbesDashboard({ onLock }) {
   const loadDelegationHistory = async () => {
     setLoadingHistory(true);
     try {
-      const res = await fetchDelegationHistory(MY_ADDR, 15);
+      const res = await fetchDelegationHistory(MY_ADDR, 50);
       if (res.success) {
         setDelegationHistory(res);
       }

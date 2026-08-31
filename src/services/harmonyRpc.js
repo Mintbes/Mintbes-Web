@@ -755,7 +755,7 @@ export function hexToBech32(hex) {
  * Decodes real-time EVM transactions from the Staking Precompile (0x...fc)
  * and merges with historical native staking transactions.
  */
-export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precompilePages = 15) {
+export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precompilePages = 50) {
   try {
     const batch = [];
     // 1. Batch query real-time EVM transactions on the Harmony Staking Precompile
