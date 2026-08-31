@@ -689,16 +689,62 @@ const CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 
 export const validatorNamesCache = new Map([
   ["one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k", "Mintbes 🌿"],
+  ["one1nkrwnhc9udee6400rncc06j3hhdmz6j3clj094", "Matrix Stake"],
+  ["one1fctfss8dr7prn602gnquf6xmdrphgftdfrca8x", "USS Harmony"],
+  ["one1hxk50mkx04nvcn78wc2pkq3c9hw6ea3u2mng5f", "Vanguard ⚡️"],
+  ["one13y34ejv2h0llyj5dnj7rk05xdft560hft9gefk", "Storm ⚡ in Harmony 💙"],
+  ["one1vgr9deywc5hg2c05cc8tva39vl07lppxtpsd2h", "SargatxetOnePool"],
   ["one1mxjrugqety8t6v23m3et0j4zfussf4v8ktycur", "KRATOS 💙"],
+  ["one18qk5uszfjq5wrkm2gfstqpx56jdpn0xd4563tk", "Tec Viva"],
+  ["one1jfe5c30pcyxnzktqfv7w7qqnxysm5r3hlgcgq4", "VALIDERA 🔥"],
+  ["one14l4lst4qnm9fecv38450upfjym00s4ejz9mgdc", "Validator.ONE | Top Trusted Validator"],
   ["one14141d8ehy844e995j573h9m2q5x689h2z9mgdc", "Validator.ONE | Top Trusted Validator | Low Minimum Fee"],
+  ["one169pe3q35m7g30a965q94lr222mtyu4h2jdtwm9", "StrongMindsHold 🧠"],
+  ["one19ds435t02h5wezlarqpus7w8s9chf3xtkw0d9l", "Sentinel 🔥"],
+  ["one1upv5r5y3n5zce7a3wdj4z7pqzussqtdm35rcl5", "Binance Staking"],
+  ["one1v0n7nw6c4fe88xnuasr0d65luult0fvclvvxmf", "Fortune ⭐️ #1 Validator"],
+  ["one18julyys26h67r4vq3zexzpfmvt9vpn0g75phmu", "EasyNodePro.com ⚡"],
+  ["one1wrvlznh27fywscexnc2l9fxk5gjelcqdnw8pvw", "BBIT"],
+  ["one1sw72xy472qsxqx7vesmy0va6wz5feukl2y4nps", "KryptoKnight"],
+  ["one1pzgc08u8xxj92srcgqutjkt6mmt6j8278zfpsk", "Affinity Shard | Top Trusted Community Validator"],
+  ["one1ktmfrzjv3hwgtse4j03e2el8qqzu8qkfkjmr6t", "Harmony Node"],
+  ["one1ktksx4t8t6grdllrf8vv78pj8pc6fwggvjhqzq", "Guardian of ONE"],
+  ["one1r3kwetfy3ekfah75qaedwlc72npqm2gkayn6ue", "Solitaire"],
+  ["one1qk7mp94ydftmq4ag8xn6y80876vc28q7s9kpp7", "Smart Stake - harmony.smartstake.io & HarmonyAnalyticsBot"],
+  ["one1w7nvheulzwprf9d9a3r8sqtv5q47qlqx7kured", "DK Validator 🔐"],
+  ["one18hum2avunkz3u448lftwmk7wr88qswdlfvvrdm", "Chainode Tech"],
+  ["one1p2rmvndevvw682qynqu08hyvx24hh4runsw6pz", "RockTheBlockchain ⚡"],
+  ["one13hr88u4zjrx2rf9gkdchawppdnsrctunlxug56", "ONE4All - Community Validator ✅"],
+  ["one1r2lx24n0fpfch7cqyhccekqfd6dk79f0wqw7p4", "Legion - the ONE who is many"],
+  ["one1kf42rl6yg2avkjsu34ch2jn8yjs64ycn4n9wdj", "P-OPS Team"],
+  ["one1x8pupl36puw7cczjx6a93rfhh48rzldl0qxvk8", "Strat | Harmony Believer"],
+  ["one1j5gzpfcywjpapytn4awhrd7feas0yulk98mnyp", "modulo.so"],
+  ["one1xrksyam05h78f47l70rtjsk5njy8u9f0ty995h", "Moonstake"],
+  ["one102lcjqy44ett8wu07dxdtce6gm988j0eu3z6cy", "TillyONE"],
   ["one1aha9g2d6scsyktjgx7wm9jwssxjp6lrtl8959z", "三潭映月 | Since 2020"],
-  ["one102lcjqy44ett8wu07dxdtce6gm988j0eu3z6cy", "Smart Stake - harmony.smartstake.io & HarmonyAnalyticsBot"],
-  ["one1qk7mp94ydftmq4ag8xn6y80876vc28q7s9kpp7", "EasyNode.PRO 🟢"],
-  ["one1r2lx24n0fpfch7cqyhccekqfd6dk79f0wqw7p4", "Fortune.ONE 🌟"],
-  ["one1p2rmvndevvw682qynqu08hyvx24hh4runsw6pz", "SlugONE 🐌"],
-  ["one13y34ejv2h0llyj5dnj7rk05xdft560hft9gefk", "Trantor 🚀"],
-  ["one1leh5rmuclw5u68gw07d86kqxjd69zuny3h23c3", "PeaceLoveHarmony ✌️"],
-  ["one1txaatrq6cvm34gdgwegrzu97mrl7herh36m6yn", "SesameSeed 🌱"]
+  ["one1leh5rmuclw5u68gw07d86kqxjd69zuny3h23c3", "Hound 2: Electric Boogaloo"],
+  ["one1txaatrq6cvm34gdgwegrzu97mrl7herh36m6yn", "Crypt0Tech 🇧🇷"],
+  ["one1xrtkrcpx7edw40zxpp26up939gc68u8hwepvnx", "Husaria ONE Validator"],
+  ["one1dcmp24uqgwszcvmm8n6r5dvhqhuukdj86pkg6n", "Staking4All"],
+  ["one1mlkylwnsgsam8cdxzn05hal3ytjngsunlpmp2j", "PeaceLoveHarmony.ONE"],
+  ["one1uketsyw6xch45caup8a3fyjmc97x3q9876v44g", "Crypto Land DAO"],
+  ["one14v636te9jxp4d9f2c5uwa9hvqmmmut4fdtpxw5", "AzureONE"],
+  ["one15hs9d9kdnsd5jxjmu507wljcmmdfe390akxe3d", "PPBCN"],
+  ["one1pxgvu7g3un02zntchjw0hyj0glj2qfsw8rqkju", "Phoenix"],
+  ["one1hlxe68d7trza48k0n4y77antwaken3x99pgw75", "Gordo"],
+  ["one1slf58d4kaus4h9st228dxagqcv5afluwzuj0nd", "Infinity Tech"],
+  ["one10j0tswg6x4udqafvsetjj3fl0g4e52spwp0wsh", "Algorithmiq Ventures"],
+  ["one1x8fhymx4xsygy4dju9ea9vhs3vqg0u3ht0nz74", "RoboValidator"],
+  ["one1nnrr65ntny5f4dnvkmv65zqkr28uplwrx2du62", "Africa.One🐘"],
+  ["one1twcvkx63304dplxcmx0j9jm32u6er3k0hxuf7z", "ONECelestial Validator"],
+  ["one12szkssdcwttafxtayvq3l07d6ktaz43xasmsda", "Hound"],
+  ["one139wxucm2rl0aag8ej24r2rh0qk86dylvszxg5u", "🔧Hank The Crank⚙️"],
+  ["one15q8n47dq5apft84rpa7k7z6f5uuulgpskgpw4j", "sparkle"],
+  ["one1t3tex27l80cs4eltq5t7wymcxwwct6xxuyf7w4", "gga 💙"],
+  ["one13asmvpre498085a8u68c0ncp302rlyt3wdqqvy", "In Perfect Harmony"],
+  ["one13jewk8w7jah3r9jfahh8rlzpr5r6valascd0mn", "JungleCity"],
+  ["one192wqdhlk84lvxmrd6jl9l9njy7f94q4a3hd87w", "QAPP"],
+  ["one1qm52lvursg036ly7zmmk4wstpfvnawncs45zvm", "CheekyOne"]
 ]);
 
 /**
@@ -926,6 +972,54 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
         }
       });
     });
+
+    // Dynamically resolve names for any unknown validators in allNetworkEvents
+    const unknownValidators = new Set();
+    allNetworkEvents.forEach((e) => {
+      if (e.validator && !e.isMintbes && !validatorNamesCache.has(e.validator.toLowerCase())) {
+        unknownValidators.add(e.validator);
+      }
+    });
+
+    if (unknownValidators.size > 0) {
+      const addrList = Array.from(unknownValidators);
+      const nameBatch = addrList.map((addr, idx) => ({
+        jsonrpc: "2.0",
+        method: "hmyv2_getValidatorInformation",
+        params: [addr],
+        id: `val_${idx}`,
+      }));
+
+      try {
+        const nameRes = await fetch(RPC_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nameBatch),
+        }).then((r) => r.json());
+
+        if (Array.isArray(nameRes)) {
+          nameRes.forEach((nr, idx) => {
+            const valInfo = nr?.result?.validator;
+            const addr = addrList[idx];
+            if (valInfo?.name && addr) {
+              validatorNamesCache.set(addr.toLowerCase(), valInfo.name);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to resolve validator names dynamically", e);
+      }
+
+      // Re-apply resolved validator names to all network events
+      allNetworkEvents.forEach((e) => {
+        if (e.validator && !e.isMintbes) {
+          const resolved = validatorNamesCache.get(e.validator.toLowerCase());
+          if (resolved) {
+            e.validatorName = resolved;
+          }
+        }
+      });
+    }
 
     // Deduplicate Mintbes events by transaction hash
     const uniqueMintbesMap = new Map();
