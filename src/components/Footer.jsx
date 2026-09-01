@@ -14,7 +14,6 @@ const Footer = ({ onOpenDashboard }) => {
 
     const quickLinks = [
         { title: t('nav.active'), href: '#active' },
-        { title: t('nav.validators'), href: '#validators' },
         { title: t('nav.arcade'), href: '#mintbes-arcade' },
         { title: t('nav.staking'), href: '#staking' },
         { title: t('nav.gallery'), href: '#gallery' }

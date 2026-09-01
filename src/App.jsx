@@ -9,7 +9,6 @@ import Footer from './components/Footer';
 import AIConcierge from './components/AIConcierge';
 import PrivateGate from './components/dashboard/PrivateGate';
 import MintbesDashboard from './components/dashboard/MintbesDashboard';
-import HarmonyValidatorsSection from './components/HarmonyValidatorsSection';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -129,7 +128,6 @@ function App() {
         <Navbar onOpenDashboard={handleOpenDashboard} />
         <main className="flex-grow">
           <Hero />
-          <HarmonyValidatorsSection />
           <About />
           <WhyDelegate />
           <StakingInfo />
