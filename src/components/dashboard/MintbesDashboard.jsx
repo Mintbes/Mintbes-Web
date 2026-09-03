@@ -38,6 +38,7 @@ import {
   Maximize2,
   Minimize2
 } from 'lucide-react';
+import DelegatorModal from './DelegatorModal';
 import {
   fetchHarmonyData,
   fetchDelegationHistory,
@@ -123,6 +124,7 @@ export default function MintbesDashboard({ onLock }) {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [countdown, setCountdown] = useState(30);
+  const [selectedDelegator, setSelectedDelegator] = useState(null);
 
   // Navigation Tabs: 'overview' | 'validators_explorer' | 'performance' | 'delegators' | 'bids' | 'simulator' | 'rpc'
   const [activeTab, setActiveTab] = useState('overview');
@@ -1382,17 +1384,27 @@ export default function MintbesDashboard({ onLock }) {
                         <td className="py-3.5 px-5 text-[#697a7c]">#{idx + 1}</td>
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setSelectedDelegator(d.address)}
+                              className={`group inline-flex items-center gap-2 font-mono text-xs transition-colors hover:underline text-left cursor-pointer ${
+                                d.is_me ? 'text-[#1fdfb6] font-bold hover:text-[#1fdfb6]/80' : 'text-[#edf5f4] hover:text-[#1fdfb6]'
+                              }`}
+                              title={`Ver desglose de validadores y portfolio de ${d.address}`}
+                            >
+                              <span className="font-mono select-all break-all">{d.address}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#131b25] border border-[#202a35] text-[#697a7c] group-hover:text-[#1fdfb6] group-hover:border-[#1fdfb6]/40 shrink-0 font-sans font-medium transition-all shadow-sm">
+                                📊 Portfolio
+                              </span>
+                            </button>
                             <a
                               href={`https://explorer.harmony.one/address/${d.address}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`group inline-flex items-center gap-1.5 font-mono text-xs transition-colors hover:underline ${
-                                d.is_me ? 'text-[#1fdfb6] font-bold hover:text-[#1fdfb6]/80' : 'text-[#edf5f4] hover:text-[#1fdfb6]'
-                              }`}
-                              title={`Open ${d.address} in Harmony Explorer`}
+                              className="p-1 rounded hover:bg-[#131b25] text-[#697a7c] hover:text-sky-400 transition-colors shrink-0"
+                              title="Abrir en Explorer"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <span className="font-mono select-all break-all">{d.address}</span>
-                              <ExternalLink className="w-3.5 h-3.5 text-[#697a7c] group-hover:text-[#1fdfb6] shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+                              <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                             {d.is_me && (
                               <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb66b] shrink-0 font-mono font-bold">
@@ -1673,16 +1685,28 @@ export default function MintbesDashboard({ onLock }) {
                             {/* Delegator Full Address */}
                             <td className="py-3.5 px-4 align-top">
                               <div className="space-y-1">
-                                <a
-                                  href={`https://explorer.harmony.one/address/${dAddr}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="group inline-flex items-center gap-1.5 text-[#a8b6b6] hover:text-emerald-400 hover:underline text-xs leading-tight font-mono transition-colors"
-                                  title={`Open ${dAddr} in Harmony Explorer`}
-                                >
-                                  <span className="font-mono select-all break-all">{dAddr}</span>
-                                  <ExternalLink className="w-3 h-3 text-[#697a7c] group-hover:text-emerald-400 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
-                                </a>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => setSelectedDelegator(dAddr)}
+                                    className="group inline-flex items-center gap-1.5 text-[#a8b6b6] hover:text-emerald-400 hover:underline text-xs leading-tight font-mono transition-colors text-left cursor-pointer"
+                                    title={`Ver portfolio y otros validadores de ${dAddr}`}
+                                  >
+                                    <span className="font-mono select-all break-all">{dAddr}</span>
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#131b25] border border-[#202a35] text-[#697a7c] group-hover:text-emerald-400 shrink-0 font-sans font-medium">
+                                      Portfolio
+                                    </span>
+                                  </button>
+                                  <a
+                                    href={`https://explorer.harmony.one/address/${dAddr}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 rounded hover:bg-[#131b25] text-[#697a7c] hover:text-emerald-400 transition-colors shrink-0"
+                                    title={`Open ${dAddr} in Harmony Explorer`}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
                                 {evt.isSelfStake && (
                                   <div>
                                     <span className="inline-block text-[9px] uppercase px-1.5 py-0.2 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb647] font-mono font-bold">
@@ -2177,6 +2201,14 @@ export default function MintbesDashboard({ onLock }) {
             </span>
           </div>
         </footer>
+
+        {/* Delegator Intelligence Modal */}
+        {selectedDelegator && (
+          <DelegatorModal
+            address={selectedDelegator}
+            onClose={() => setSelectedDelegator(null)}
+          />
+        )}
 
       </main>
     </div>

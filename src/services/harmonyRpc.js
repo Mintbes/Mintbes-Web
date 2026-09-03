@@ -1102,3 +1102,194 @@ export async function fetchDelegationHistory(validatorAddress = MY_ADDR, precomp
     };
   }
 }
+
+/**
+ * Fetch complete staking portfolio & liquid balance for a delegator address
+ */
+export async function fetchDelegatorDetails(delegatorAddress) {
+  if (!delegatorAddress) {
+    return { success: false, error: "Address is required" };
+  }
+
+  try {
+    const batch = [
+      {
+        jsonrpc: "2.0",
+        method: "hmyv2_getDelegationsByDelegator",
+        params: [delegatorAddress],
+        id: 1,
+      },
+      {
+        jsonrpc: "2.0",
+        method: "hmy_getBalance",
+        params: [delegatorAddress, "latest"],
+        id: 2,
+      },
+    ];
+
+    const batchRes = await fetch(RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(batch),
+    }).then((r) => r.json());
+
+    let rawDelegations = [];
+    let liquidBalance = 0;
+
+    if (Array.isArray(batchRes)) {
+      batchRes.forEach((item) => {
+        if (item.id === 1 && Array.isArray(item.result)) {
+          rawDelegations = item.result;
+        } else if (item.id === 2 && item.result) {
+          try {
+            liquidBalance = Number(BigInt(item.result) / 1000000000000000000n);
+          } catch {
+            liquidBalance = parseFloat(item.result || 0) / 1e18;
+          }
+        }
+      });
+    }
+
+    // Filter only active delegations (amount > 0)
+    const active = [];
+    const unknownValidators = new Set();
+
+    rawDelegations.forEach((d) => {
+      let amount = 0;
+      let reward = 0;
+
+      if (typeof d.amount === "number") {
+        amount = d.amount / 1e18;
+      } else if (typeof d.amount === "string" && d.amount.startsWith("0x")) {
+        amount = parseInt(d.amount, 16) / 1e18;
+      } else {
+        amount = parseFloat(d.amount || 0) / 1e18;
+      }
+
+      if (typeof d.reward === "number") {
+        reward = d.reward / 1e18;
+      } else if (typeof d.reward === "string" && d.reward.startsWith("0x")) {
+        reward = parseInt(d.reward, 16) / 1e18;
+      } else {
+        reward = parseFloat(d.reward || 0) / 1e18;
+      }
+
+      if (amount > 0.001) {
+        const valAddr = d.validator_address || "";
+        const isMintbes = valAddr.toLowerCase() === MY_ADDR.toLowerCase();
+        if (!isMintbes && valAddr && !validatorNamesCache.has(valAddr.toLowerCase())) {
+          unknownValidators.add(valAddr);
+        }
+        active.push({
+          validatorAddress: valAddr,
+          validatorName: isMintbes ? "Mintbes 🌿" : (validatorNamesCache.get(valAddr.toLowerCase()) || shortAddr(valAddr)),
+          isMintbes,
+          amount,
+          reward,
+          undelegations: d.Undelegations || [],
+        });
+      }
+    });
+
+    // Resolve any unknown validator names dynamically
+    if (unknownValidators.size > 0) {
+      const addrList = Array.from(unknownValidators);
+      const nameBatch = addrList.map((addr, idx) => ({
+        jsonrpc: "2.0",
+        method: "hmyv2_getValidatorInformation",
+        params: [addr],
+        id: `val_${idx}`,
+      }));
+
+      try {
+        const nameRes = await fetch(RPC_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nameBatch),
+        }).then((r) => r.json());
+
+        if (Array.isArray(nameRes)) {
+          nameRes.forEach((nr, idx) => {
+            const valInfo = nr?.result?.validator;
+            const addr = addrList[idx];
+            if (valInfo?.name && addr) {
+              validatorNamesCache.set(addr.toLowerCase(), valInfo.name);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to resolve validator names for delegator", e);
+      }
+
+      active.forEach((d) => {
+        if (!d.isMintbes && d.validatorAddress) {
+          const name = validatorNamesCache.get(d.validatorAddress.toLowerCase());
+          if (name) d.validatorName = name;
+        }
+      });
+    }
+
+    // Sort: Mintbes first, then by delegated amount descending
+    active.sort((a, b) => {
+      if (a.isMintbes) return -1;
+      if (b.isMintbes) return 1;
+      return b.amount - a.amount;
+    });
+
+    const totalStaked = active.reduce((sum, d) => sum + d.amount, 0);
+    const totalPendingRewards = active.reduce((sum, d) => sum + d.reward, 0);
+    const mintbesItem = active.find((d) => d.isMintbes);
+    const mintbesStaked = mintbesItem ? mintbesItem.amount : 0;
+    const mintbesShare = totalStaked > 0 ? (mintbesStaked / totalStaked) * 100 : 0;
+
+    // Add percentage share to each
+    active.forEach((d) => {
+      d.percentage = totalStaked > 0 ? (d.amount / totalStaked) * 100 : 0;
+    });
+
+    // Tier calculation
+    let tier = {
+      label: "Shrimp",
+      icon: "🦐",
+      color: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+    };
+    if (totalStaked >= 1000000) {
+      tier = {
+        label: "Mega Whale",
+        icon: "🐋",
+        color: "text-purple-400 bg-purple-500/15 border-purple-500/40",
+      };
+    } else if (totalStaked >= 100000) {
+      tier = {
+        label: "Dolphin",
+        icon: "🐬",
+        color: "text-sky-400 bg-sky-500/15 border-sky-500/40",
+      };
+    } else if (totalStaked >= 10000) {
+      tier = {
+        label: "Fish",
+        icon: "🐟",
+        color: "text-emerald-400 bg-emerald-500/15 border-emerald-500/40",
+      };
+    }
+
+    return {
+      success: true,
+      address: delegatorAddress,
+      liquidBalance,
+      totalStaked,
+      mintbesStaked,
+      mintbesShare,
+      totalPendingRewards,
+      tier,
+      activeValidatorsCount: active.length,
+      delegations: active,
+    };
+  } catch (err) {
+    console.error("Error fetching delegator details:", err);
+    return {
+      success: false,
+      error: err.message || "Failed to fetch delegator profile",
+    };
+  }
+}
