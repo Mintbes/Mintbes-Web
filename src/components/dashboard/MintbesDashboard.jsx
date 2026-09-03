@@ -1382,11 +1382,20 @@ export default function MintbesDashboard({ onLock }) {
                         <td className="py-3.5 px-5 text-[#697a7c]">#{idx + 1}</td>
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-2">
-                            <span className={d.is_me ? 'text-[#1fdfb6] font-bold' : 'text-[#edf5f4]'}>
-                              {shortAddr(d.address)}
-                            </span>
+                            <a
+                              href={`https://explorer.harmony.one/address/${d.address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`group inline-flex items-center gap-1.5 font-mono text-xs transition-colors hover:underline ${
+                                d.is_me ? 'text-[#1fdfb6] font-bold hover:text-[#1fdfb6]/80' : 'text-[#edf5f4] hover:text-[#1fdfb6]'
+                              }`}
+                              title={`Open ${d.address} in Harmony Explorer`}
+                            >
+                              <span className="font-mono select-all break-all">{d.address}</span>
+                              <ExternalLink className="w-3.5 h-3.5 text-[#697a7c] group-hover:text-[#1fdfb6] shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </a>
                             {d.is_me && (
-                              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb66b]">
+                              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb66b] shrink-0 font-mono font-bold">
                                 Self-Stake
                               </span>
                             )}
@@ -1661,23 +1670,25 @@ export default function MintbesDashboard({ onLock }) {
                               </div>
                             </td>
 
-                            {/* Delegator (2 lines matching screenshot) */}
+                            {/* Delegator Full Address */}
                             <td className="py-3.5 px-4 align-top">
-                              <div className="space-y-0.5">
+                              <div className="space-y-1">
                                 <a
                                   href={`https://explorer.harmony.one/address/${dAddr}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[#a8b6b6] hover:text-white hover:underline text-xs block leading-tight font-mono"
-                                  title={dAddr}
+                                  className="group inline-flex items-center gap-1.5 text-[#a8b6b6] hover:text-emerald-400 hover:underline text-xs leading-tight font-mono transition-colors"
+                                  title={`Open ${dAddr} in Harmony Explorer`}
                                 >
-                                  <div>{dLine1}</div>
-                                  <div>{dLine2}</div>
+                                  <span className="font-mono select-all break-all">{dAddr}</span>
+                                  <ExternalLink className="w-3 h-3 text-[#697a7c] group-hover:text-emerald-400 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
                                 </a>
                                 {evt.isSelfStake && (
-                                  <span className="inline-block text-[9px] uppercase px-1.5 py-0.2 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb647]">
-                                    Self-Stake
-                                  </span>
+                                  <div>
+                                    <span className="inline-block text-[9px] uppercase px-1.5 py-0.2 rounded bg-[#1fdfb62e] text-[#1fdfb6] border border-[#1fdfb647] font-mono font-bold">
+                                      Self-Stake
+                                    </span>
+                                  </div>
                                 )}
                               </div>
                             </td>
