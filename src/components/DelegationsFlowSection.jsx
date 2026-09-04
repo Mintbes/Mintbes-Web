@@ -393,7 +393,7 @@ export default function DelegationsFlowSection() {
                               className="group inline-flex items-center gap-1.5 text-[#a8b6b6] hover:text-emerald-400 hover:underline text-xs leading-tight font-mono transition-colors"
                               title={`Open ${dAddr} in Harmony Explorer`}
                             >
-                              <span className="font-mono select-all break-all">{dAddr}</span>
+                              <span className="font-mono">{shortAddr(dAddr)}</span>
                               <ExternalLink className="w-3 h-3 text-[#697a7c] group-hover:text-emerald-400 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
                             </a>
                             {evt.isSelfStake && (

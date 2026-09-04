@@ -1391,7 +1391,7 @@ export default function MintbesDashboard({ onLock }) {
                               }`}
                               title={`Ver desglose de validadores y portfolio de ${d.address}`}
                             >
-                              <span className="font-mono select-all break-all">{d.address}</span>
+                              <span className="font-mono">{shortAddr(d.address)}</span>
                               <span className="text-[10px] px-2 py-0.5 rounded bg-[#131b25] border border-[#202a35] text-[#697a7c] group-hover:text-[#1fdfb6] group-hover:border-[#1fdfb6]/40 shrink-0 font-sans font-medium transition-all shadow-sm">
                                 📊 Portfolio
                               </span>
@@ -1691,7 +1691,7 @@ export default function MintbesDashboard({ onLock }) {
                                     className="group inline-flex items-center gap-1.5 text-[#a8b6b6] hover:text-emerald-400 hover:underline text-xs leading-tight font-mono transition-colors text-left cursor-pointer"
                                     title={`Ver portfolio y otros validadores de ${dAddr}`}
                                   >
-                                    <span className="font-mono select-all break-all">{dAddr}</span>
+                                    <span className="font-mono">{shortAddr(dAddr)}</span>
                                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#131b25] border border-[#202a35] text-[#697a7c] group-hover:text-emerald-400 shrink-0 font-sans font-medium">
                                       Portfolio
                                     </span>
