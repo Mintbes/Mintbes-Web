@@ -1,16 +1,52 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers } from 'lucide-react';
+import { Sparkles, ArrowRight, Play, Pause, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Hero = () => {
   const { t } = useTranslation();
   const [showPromptOverlay, setShowPromptOverlay] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [copied, setCopied] = useState(false);
   const videoRef = useRef(null);
 
   const samplePrompt = t('hero.samplePromptText');
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = isMuted;
+    video.defaultMuted = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().then(() => setIsPlaying(true)).catch(() => {});
+          } else {
+            video.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isMuted]);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(samplePrompt);
@@ -115,7 +151,7 @@ const Hero = () => {
           className="w-full max-w-5xl mx-auto mb-10 flex justify-center relative"
         >
           {/* Center Card: Interactive 9:16 Video Player */}
-          <div className="w-72 sm:w-80 lg:w-[350px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/50 shadow-[0_0_50px_rgba(0,174,233,0.35)] bg-[#0B0F17] relative z-20 group">
+          <div className="w-[84vw] max-w-[320px] sm:w-80 lg:w-[350px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/50 shadow-[0_0_50px_rgba(0,174,233,0.35)] bg-[#0B0F17] relative z-20 group cursor-pointer select-none">
             <video
               ref={videoRef}
               src="videosAI/compressed/walking.mp4"
@@ -124,23 +160,54 @@ const Hero = () => {
               loop
               muted={isMuted}
               playsInline
+              preload="metadata"
+              onClick={togglePlay}
               className="w-full h-full object-cover"
             />
 
             {/* Video Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30 pointer-events-none" />
+            <div 
+              onClick={togglePlay}
+              className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30" 
+            />
+
+            {/* Center Play Icon when Paused */}
+            {!isPlaying && (
+              <div 
+                onClick={togglePlay}
+                className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+              >
+                <div className="w-14 h-14 rounded-full bg-black/70 backdrop-blur-md border border-[#00AEE9]/50 flex items-center justify-center text-white shadow-2xl animate-in zoom-in-75 duration-200">
+                  <Play className="w-6 h-6 text-[#69FABD] ml-0.5" />
+                </div>
+              </div>
+            )}
 
             {/* Top Bar on Video */}
-            <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between z-10">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[11px] font-semibold text-white">
+            <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] font-semibold text-white">
                 <span className="w-2 h-2 rounded-full bg-[#00AEE9] animate-pulse" />
                 <span>Harmony AI Video</span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={toggleAudio}
-                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 transition-all cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlay();
+                  }}
+                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  title={isPlaying ? "Pausar video" : "Reproducir video"}
+                  aria-label="Toggle Play/Pause"
+                >
+                  {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleAudio();
+                  }}
+                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 active:scale-95 transition-all cursor-pointer"
                   title={isMuted ? t('showcase.playAudio') : t('showcase.muteAudio')}
                   aria-label="Toggle Foley Audio"
                 >
@@ -150,14 +217,17 @@ const Hero = () => {
             </div>
 
             {/* Bottom Card Controls & Prompt Reveal Toggle */}
-            <div className="absolute bottom-3.5 left-3.5 right-3.5 z-10 space-y-2">
+            <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
               <div className="flex items-center justify-between text-left bg-black/60 backdrop-blur-md p-2.5 rounded-2xl border border-white/15">
                 <div>
                   <h3 className="text-xs font-bold text-white">Walking in Harmony</h3>
                   <p className="text-[10px] text-slate-300 font-mono">15s Native 9:16 UHD</p>
                 </div>
                 <button
-                  onClick={() => setShowPromptOverlay(!showPromptOverlay)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPromptOverlay(!showPromptOverlay);
+                  }}
                   className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#00AEE9]/30 border border-white/25 text-[11px] font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
                 >
                   <Terminal className="w-3 h-3 text-[#69FABD]" />

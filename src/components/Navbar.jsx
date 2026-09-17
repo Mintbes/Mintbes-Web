@@ -65,10 +65,10 @@ const Navbar = ({ onOpenDashboard }) => {
         </div>
 
         {/* Mobile Hamburger & Language */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
           <button
             onClick={onOpenDashboard}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#69FABD] animate-pulse" />
             <span>MintMax</span>
@@ -76,7 +76,7 @@ const Navbar = ({ onOpenDashboard }) => {
           <LanguageSelector />
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white"
+            className="p-1.5 sm:p-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white"
             aria-label="Toggle navigation menu"
           >
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

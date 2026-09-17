@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -182,20 +182,44 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = isMuted;
+    video.defaultMuted = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().then(() => setIsPlaying(true)).catch(() => {});
+          } else {
+            video.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isMuted]);
+
   const togglePlay = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     if (!videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      videoRef.current.play();
-      setIsPlaying(true);
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
     }
   };
 
   const toggleMute = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     if (!videoRef.current) return;
     videoRef.current.muted = !videoRef.current.muted;
     setIsMuted(videoRef.current.muted);
@@ -203,8 +227,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
 
   return (
     <div
-      onClick={() => onInspect(item)}
-      className="group relative flex flex-col aspect-[9/16] rounded-3xl overflow-hidden bg-[#0B0F17] border border-white/10 hover:border-[#00AEE9]/50 shadow-xl hover:shadow-[0_0_30px_rgba(0,174,233,0.25)] transition-all duration-500 cursor-pointer"
+      className="group relative flex flex-col aspect-[9/16] rounded-3xl overflow-hidden bg-[#0B0F17] border border-white/10 hover:border-[#00AEE9]/50 shadow-xl hover:shadow-[0_0_30px_rgba(0,174,233,0.25)] transition-all duration-500 cursor-pointer w-full max-w-[320px] sm:max-w-none mx-auto select-none"
     >
       {/* Video Media Layer */}
       <video
@@ -215,14 +238,31 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
         loop
         muted={isMuted}
         playsInline
+        preload="metadata"
+        onClick={togglePlay}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
       />
 
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/40 pointer-events-none" />
+      <div 
+        onClick={togglePlay}
+        className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/40" 
+      />
+
+      {/* Center Play Icon when Paused */}
+      {!isPlaying && (
+        <div 
+          onClick={togglePlay}
+          className="absolute inset-0 flex items-center justify-center pointer-events-auto"
+        >
+          <div className="w-12 h-12 rounded-full bg-black/70 backdrop-blur-md border border-[#00AEE9]/50 flex items-center justify-center text-white shadow-2xl animate-in zoom-in-75 duration-200">
+            <Play className="w-5 h-5 text-[#69FABD] ml-0.5" />
+          </div>
+        </div>
+      )}
 
       {/* Top Badges & Controls */}
-      <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between z-10">
+      <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-mono text-[#69FABD]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#00AEE9] animate-pulse" />
           <span>{item.duration}</span>
@@ -231,14 +271,14 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={togglePlay}
-            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] transition-colors cursor-pointer"
+            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
             aria-label="Play/Pause"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={toggleMute}
-            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] transition-colors cursor-pointer"
+            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
             aria-label="Mute/Unmute"
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#69FABD]" />}
@@ -247,7 +287,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
       </div>
 
       {/* Bottom Info & Quick Actions */}
-      <div className="absolute bottom-3.5 left-3.5 right-3.5 z-10 space-y-2">
+      <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
         {/* Tags */}
         <div className="flex flex-wrap gap-1">
           {item.tags.slice(0, 2).map((tag, idx) => (
@@ -261,7 +301,10 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
         </div>
 
         {/* Title & Engine */}
-        <div className="text-left">
+        <div 
+          onClick={() => onInspect(item)}
+          className="text-left cursor-pointer"
+        >
           <h3 className="text-sm font-bold text-white group-hover:text-[#69FABD] transition-colors line-clamp-1">
             {item.title}
           </h3>
@@ -298,7 +341,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
               e.stopPropagation();
               onInspect(item);
             }}
-            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-slate-200 hover:text-white transition-all cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/10 hover:bg-[#00AEE9]/30 border border-white/20 text-slate-200 hover:text-white transition-all cursor-pointer"
             title="Inspeccionar Desglose"
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -397,30 +440,31 @@ const VideoShowcase = () => {
       {/* Lightbox Modal for Prompt Breakdown */}
       <AnimatePresence>
         {selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0B0F17] border border-[#00AEE9]/30 rounded-3xl p-6 sm:p-8 shadow-2xl text-left"
+              className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#0B0F17] border border-[#00AEE9]/30 rounded-3xl p-4 sm:p-8 shadow-2xl text-left"
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer z-10"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 pt-4 sm:pt-0">
                 {/* Visual Left Preview (9:16) */}
                 <div className="md:col-span-5 flex flex-col items-center">
-                  <div className="w-full max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
+                  <div className="w-full max-w-[220px] sm:max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
                     <video
                       src={selectedItem.src}
                       autoPlay
                       loop
+                      muted
                       playsInline
                       controls
                       className="w-full h-full object-cover"
