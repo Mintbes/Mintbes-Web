@@ -377,10 +377,10 @@ const VideoShowcase = () => {
   };
 
   return (
-    <section id="showcase" className="relative w-full py-24 bg-[#070A0F] text-white">
+    <section id="showcase" className="relative w-full py-24 bg-[#070A0F] text-white overflow-hidden">
       {/* Background Lighting */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AEE9]/5 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AEE9]/5 rounded-full blur-[160px] pointer-events-none max-w-full" />
+      <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

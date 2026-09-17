@@ -24,12 +24,25 @@
     scroll-padding-top: 90px;
     background-color: #070A0F;
     color: #F8FAFC;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
     background-color: #070A0F;
     color: #F8FAFC;
+    width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
+    position: relative;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    min-height: 100vh;
   }
 }
 

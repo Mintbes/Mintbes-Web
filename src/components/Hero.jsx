@@ -88,11 +88,11 @@ const Hero = () => {
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0B0F17]/90 border border-[#00AEE9]/30 text-xs sm:text-sm font-medium text-slate-200 backdrop-blur-md shadow-lg shadow-[#00AEE9]/10 mb-6"
+          className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#0B0F17]/90 border border-[#00AEE9]/30 text-xs sm:text-sm font-medium text-slate-200 backdrop-blur-md shadow-lg shadow-[#00AEE9]/10 mb-6 max-w-full text-center"
         >
-          <span className="w-2 h-2 rounded-full bg-[#69FABD] animate-pulse" />
-          <ShieldCheck className="w-4 h-4 text-[#00AEE9]" />
-          <span>{t('hero.badge')}</span>
+          <span className="w-2 h-2 rounded-full bg-[#69FABD] animate-pulse shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-[#00AEE9] shrink-0" />
+          <span className="truncate sm:overflow-visible">{t('hero.badge')}</span>
         </motion.div>
 
         {/* Title */}
@@ -100,7 +100,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.1] mb-6 font-display"
+          className="text-3xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.15] mb-6 font-display break-words"
         >
           {t('hero.titlePrefix')}{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00AEE9] via-[#69FABD] to-[#00AEE9] animate-gradient">

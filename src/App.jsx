@@ -122,9 +122,9 @@ function App() {
   // Public Flagship Landing Page
   return (
     <ErrorBoundary>
-      <div className="font-sans antialiased text-slate-100 bg-[#070A0F] selection:bg-[#00AEE9] selection:text-black min-h-screen flex flex-col">
+      <div className="font-sans antialiased text-slate-100 bg-[#070A0F] selection:bg-[#00AEE9] selection:text-black min-h-screen flex flex-col w-full max-w-full overflow-x-hidden">
         <Navbar onOpenDashboard={handleOpenDashboard} />
-        <main className="flex-grow">
+        <main className="flex-grow w-full max-w-full overflow-x-hidden">
           <Hero />
           <VideoShowcase />
           <PromptVault />

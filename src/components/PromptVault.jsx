@@ -16,10 +16,10 @@ const PromptVault = () => {
   ];
 
   return (
-    <section id="prompt-vault" className="relative w-full py-24 bg-[#0B0F17] text-white border-t border-white/10">
+    <section id="prompt-vault" className="relative w-full py-24 bg-[#0B0F17] text-white border-t border-white/10 overflow-hidden">
       {/* Glow Effects */}
-      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-[#00AEE9]/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-[#00AEE9]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
+      <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

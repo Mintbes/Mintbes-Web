@@ -8,9 +8,9 @@ const EcosystemBridge = ({ onOpenDashboard }) => {
   const { t } = useTranslation();
 
   return (
-    <section id="ecosystem" className="relative w-full py-24 bg-[#070A0F] text-white border-t border-white/10">
+    <section id="ecosystem" className="relative w-full py-24 bg-[#070A0F] text-white border-t border-white/10 overflow-hidden">
       {/* Background Lighting */}
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AEE9]/5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AEE9]/5 rounded-full blur-[150px] pointer-events-none max-w-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

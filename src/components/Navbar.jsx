@@ -24,17 +24,17 @@ const Navbar = ({ onOpenDashboard }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 w-full max-w-full z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#070A0F]/85 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40 py-3.5'
-          : 'bg-transparent py-5'
+          ? 'bg-[#070A0F]/85 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40 py-3 sm:py-3.5'
+          : 'bg-transparent py-3.5 sm:py-5'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between w-full">
         {/* Brand */}
-        <a href="#" className="flex items-center group">
-          <span className="text-xl font-bold tracking-tight text-white group-hover:text-[#69FABD] transition-colors flex items-center gap-1.5">
-            Mintbes <span className="text-lg">🌿</span>
+        <a href="#" className="flex items-center group shrink-0">
+          <span className="text-lg sm:text-xl font-bold tracking-tight text-white group-hover:text-[#69FABD] transition-colors flex items-center gap-1 sm:gap-1.5">
+            Mintbes <span className="text-base sm:text-lg">🌿</span>
           </span>
         </a>
 
@@ -65,10 +65,10 @@ const Navbar = ({ onOpenDashboard }) => {
         </div>
 
         {/* Mobile Hamburger & Language */}
-        <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
+        <div className="flex md:hidden items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={onOpenDashboard}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40"
+            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40 active:scale-95 transition-all"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#69FABD] animate-pulse" />
             <span>MintMax</span>
@@ -76,10 +76,10 @@ const Navbar = ({ onOpenDashboard }) => {
           <LanguageSelector />
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1.5 sm:p-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white"
+            className="p-1.5 sm:p-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white active:scale-95 transition-all"
             aria-label="Toggle navigation menu"
           >
-            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
       </div>

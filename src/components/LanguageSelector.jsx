@@ -11,8 +11,8 @@ const LanguageSelector = () => {
   };
 
   return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border border-white/10 bg-[#0B0F17]/80 backdrop-blur-md text-slate-200 shadow-sm">
-      <Globe className="w-3.5 h-3.5 text-[#00AEE9] shrink-0" />
+    <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all border border-white/10 bg-[#0B0F17]/80 backdrop-blur-md text-slate-200 shadow-sm shrink-0">
+      <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#00AEE9] shrink-0" />
       <button
         onClick={() => changeLanguage('en')}
         className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
