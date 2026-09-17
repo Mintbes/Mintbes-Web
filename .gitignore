@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Raw uncompressed video backups (do not push to GitHub)
+_raw_videos_backup/
+public/videosAI/*.mp4
+!public/videosAI/compressed/*.mp4
+

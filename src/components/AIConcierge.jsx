@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Send, Loader2, Sparkles, MessageSquare, Bot, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const renderMarkdown = (text) => {
@@ -23,7 +23,7 @@ const renderMarkdown = (text) => {
                 href={match[2]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-mintbes-600 hover:text-mintbes-700 underline font-bold"
+                className="text-emerald-400 hover:text-emerald-300 underline font-semibold"
             >
                 {match[1]}
             </a>
@@ -48,7 +48,7 @@ const renderMarkdown = (text) => {
             if (bMatch.index > bLastIndex) {
                 boldParts.push(part.substring(bLastIndex, bMatch.index));
             }
-            boldParts.push(<strong key={bMatch.index}>{bMatch[1]}</strong>);
+            boldParts.push(<strong key={bMatch.index} className="text-white font-bold">{bMatch[1]}</strong>);
             bLastIndex = boldRegex.lastIndex;
         }
 
@@ -62,7 +62,6 @@ const renderMarkdown = (text) => {
 
 const AIConcierge = () => {
     const { t, i18n } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
@@ -91,15 +90,15 @@ const AIConcierge = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, isLoading]);
 
-    const handleSendMessage = async () => {
-        if (!inputMessage.trim() || isLoading) return;
+    const handleSendMessage = async (customText = null) => {
+        const textToSend = (customText || inputMessage).trim();
+        if (!textToSend || isLoading) return;
 
-        const userMessage = inputMessage.trim();
         setInputMessage('');
 
-        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
         setIsLoading(true);
 
         const controller = new AbortController();
@@ -112,7 +111,7 @@ const AIConcierge = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: userMessage,
+                    message: textToSend,
                     lang: i18n.language || 'en'
                 }),
                 signal: controller.signal
@@ -135,10 +134,10 @@ const AIConcierge = () => {
             }]);
         } catch (error) {
             console.error('Error:', error);
-            let displayError = '❌ Sorry, there was an error processing your message. Please try again.';
+            let displayError = '❌ Error al procesar tu consulta. Inténtalo de nuevo en unos momentos.';
 
             if (error.name === 'AbortError') {
-                displayError = '⏳ The request timed out. Harmony network or AI might be busy. Please try again.';
+                displayError = '⏳ La solicitud tardó demasiado. El servidor o la IA están ocupados. Por favor, reintenta.';
             } else if (error.message) {
                 displayError = `❌ ${error.message}`;
             }
@@ -160,139 +159,139 @@ const AIConcierge = () => {
         }
     };
 
+    const quickPills = [
+        t('ai.quickPill1'),
+        t('ai.quickPill2'),
+        t('ai.quickPill3')
+    ];
+
     return (
-        <>
-            {/* Floating Button and Tooltip */}
-            <div className="fixed bottom-6 right-6 z-50 flex items-center gap-4">
-                {/* Floating Tooltip / Message */}
-                <AnimatePresence>
-                    {!isOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            transition={{ delay: 1.5, duration: 0.5 }}
-                            className="hidden md:flex bg-white text-gray-800 px-4 py-2.5 rounded-2xl shadow-xl border border-gray-100 font-medium text-sm whitespace-nowrap items-center gap-2 cursor-pointer relative"
-                            onClick={() => setIsOpen(true)}
-                        >
-                            <span className="text-xl">✨</span> {t('ai.tooltip')}
-                            <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-l-8 border-l-white drop-shadow-md"></div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+        <section id="ai-assistant" className="py-20 bg-slate-900 text-white relative overflow-hidden border-t border-slate-800">
+            {/* Ambient Background Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[130px] pointer-events-none"></div>
 
-                {/* Floating Button with Pulse Effect */}
-                <div className="relative">
-                    {!isOpen && (
-                        <div className="absolute inset-0 bg-mintbes-500 rounded-full animate-ping opacity-60"></div>
-                    )}
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setIsOpen(!isOpen)}
-                        className="relative bg-mintbes-600 text-white p-4 rounded-full shadow-2xl hover:bg-mintbes-700 transition-colors flex items-center justify-center w-14 h-14"
-                        aria-label="Open AI Chat Assistant"
-                    >
-                        {isOpen ? (
-                            <X className="w-6 h-6" />
-                        ) : (
-                            <MessageCircle className="w-6 h-6" />
-                        )}
-                    </motion.button>
+            <div className="container mx-auto px-6 max-w-4xl relative z-10">
+                {/* Header */}
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-500/30 backdrop-blur-md">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{t('ai.badge')}</span>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
+                        {t('ai.title')}
+                    </h2>
+                    <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                        {t('ai.subtitle')}
+                    </p>
                 </div>
-            </div>
 
-            {/* Chat Window */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-10rem)] bg-white rounded-2xl shadow-2xl z-40 flex flex-col overflow-hidden border border-gray-200"
-                    >
-                        {/* Header */}
-                        <div className="bg-gradient-to-r from-mintbes-600 to-mintbes-700 text-white p-4 flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                                <span className="text-2xl">🌿</span>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-lg">{t('ai.headerTitle')}</h3>
-                            </div>
+                {/* Main Integrated Chat Window */}
+                <div className="bg-slate-950/80 backdrop-blur-xl rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+                    {/* Top Bar with Quick Prompt Pills */}
+                    <div className="p-4 md:p-6 border-b border-slate-800/80 bg-slate-950/50">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-3">
+                            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Temas rápidos / Quick topics:</span>
                         </div>
+                        <div className="flex flex-wrap gap-2">
+                            {quickPills.map((pill, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleSendMessage(pill.replace(/^[^\w¿?]+/u, '').trim())}
+                                    disabled={isLoading}
+                                    className="px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700/70 hover:border-emerald-500/60 hover:bg-slate-800/80 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                                >
+                                    {pill}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-                            {messages.map((msg, index) => (
+                    {/* Messages Scroll Area */}
+                    <div className="p-4 md:p-6 space-y-4 min-h-[260px] max-h-[420px] overflow-y-auto">
+                        {messages.map((msg, index) => {
+                            const isUser = msg.role === 'user';
+                            return (
                                 <div
                                     key={index}
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
                                 >
-                                    <div
-                                        className={`max-w-[80%] px-4 py-3 rounded-2xl ${msg.role === 'user'
-                                            ? 'bg-mintbes-600 text-white rounded-br-sm'
-                                            : 'bg-white text-gray-800 rounded-bl-sm shadow-md border border-gray-100'
-                                            }`}
-                                    >
-                                        <div className="text-sm">
-                                            {msg.role === 'assistant' ? (
-                                                <div className="space-y-2">
-                                                    {msg.content.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                                                        <p key={i} className="leading-relaxed text-gray-800">
-                                                            {renderMarkdown(line)}
-                                                        </p>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                                            )}
+                                    {!isUser && (
+                                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                                            <Bot className="w-4 h-4" />
                                         </div>
+                                    )}
+
+                                    <div
+                                        className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                                            isUser
+                                                ? 'bg-emerald-600 text-white rounded-tr-xs shadow-md shadow-emerald-950/40'
+                                                : 'bg-slate-900/90 text-slate-200 rounded-tl-xs border border-slate-800 shadow-sm'
+                                        }`}
+                                    >
+                                        {!isUser ? (
+                                            <div className="space-y-2">
+                                                {msg.content.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                                                    <p key={i}>{renderMarkdown(line)}</p>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                                        )}
                                     </div>
+
+                                    {isUser && (
+                                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
+                                            <User className="w-4 h-4" />
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
+                            );
+                        })}
 
-                            {isLoading && (
-                                <div className="flex justify-start">
-                                    <div className="bg-white text-gray-800 px-4 py-2 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin text-mintbes-600" />
-                                        <p className="text-sm text-gray-500">{t('ai.thinking')}</p>
-                                    </div>
+                        {isLoading && (
+                            <div className="flex items-start gap-3 justify-start">
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center shrink-0">
+                                    <Bot className="w-4 h-4" />
                                 </div>
-                            )}
-
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        {/* Input */}
-                        <div className="p-4 border-t border-gray-200 bg-white">
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={inputMessage}
-                                    onChange={(e) => setInputMessage(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder={t('ai.placeholder')}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-mintbes-500 focus:border-transparent"
-                                    disabled={isLoading}
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    disabled={!inputMessage.trim() || isLoading}
-                                    className="bg-mintbes-600 text-white p-2 rounded-full hover:bg-mintbes-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    aria-label="Send message"
-                                >
-                                    <Send className="w-5 h-5" />
-                                </button>
+                                <div className="bg-slate-900 border border-slate-800 text-slate-400 px-4 py-3 rounded-2xl rounded-tl-xs flex items-center gap-2 text-xs">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                                    <span>{t('ai.thinking')}</span>
+                                </div>
                             </div>
-                            <p className="text-xs text-gray-400 mt-2 text-center">
-                                {t('ai.disclaimer')}
-                            </p>
+                        )}
+
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input Bar */}
+                    <div className="p-3 md:p-4 border-t border-slate-800 bg-slate-950">
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                onKeyDown={handleKeyPress}
+                                placeholder={t('ai.placeholder')}
+                                className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                disabled={isLoading}
+                            />
+                            <button
+                                onClick={() => handleSendMessage()}
+                                disabled={!inputMessage.trim() || isLoading}
+                                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-3 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-md shadow-emerald-500/20 cursor-pointer"
+                                aria-label="Send message"
+                            >
+                                <Send className="w-4 h-4" />
+                            </button>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </>
+                        <p className="text-[11px] text-slate-500 mt-2 text-center">
+                            {t('ai.disclaimer')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
     );
 };
 

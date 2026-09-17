@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import About from './components/About';
-import WhyDelegate from './components/WhyDelegate';
-import StakingInfo from './components/StakingInfo';
-import Gallery from './components/Gallery';
+import VideoShowcase from './components/VideoShowcase';
+import PromptVault from './components/PromptVault';
+import EcosystemBridge from './components/EcosystemBridge';
 import Footer from './components/Footer';
-import AIConcierge from './components/AIConcierge';
 import PrivateGate from './components/dashboard/PrivateGate';
 import MintbesDashboard from './components/dashboard/MintbesDashboard';
 
@@ -19,15 +17,15 @@ class ErrorBoundary extends React.Component {
     return { hasError: true, error };
   }
   componentDidCatch(error, errorInfo) {
-    console.error("Dashboard Error:", error, errorInfo);
+    console.error("Application Error:", error, errorInfo);
   }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center font-sans">
-          <div className="max-w-md bg-slate-900 border border-rose-500/30 p-6 rounded-2xl text-center space-y-4">
+        <div className="min-h-screen bg-[#070A0F] text-white p-8 flex flex-col items-center justify-center font-sans">
+          <div className="max-w-md bg-[#0B0F17] border border-rose-500/30 p-6 rounded-2xl text-center space-y-4 shadow-2xl">
             <h2 className="text-xl font-bold text-rose-400">Error al cargar la aplicación</h2>
-            <p className="text-xs text-slate-400 font-mono text-left bg-slate-950 p-3 rounded-lg overflow-auto max-h-40">
+            <p className="text-xs text-slate-400 font-mono text-left bg-[#070A0F] p-3 rounded-lg overflow-auto max-h-40">
               {this.state.error?.toString()}
             </p>
             <button
@@ -36,7 +34,7 @@ class ErrorBoundary extends React.Component {
                 window.location.hash = '';
                 window.location.reload();
               }}
-              className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-sm"
+              className="px-4 py-2 bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-[#070A0F] font-bold rounded-xl text-sm"
             >
               Reiniciar App
             </button>
@@ -103,7 +101,7 @@ function App() {
     handleBackToPublic();
   };
 
-  // If in dashboard view
+  // If in dashboard view (Archive Diagnostics)
   if (currentView === 'dashboard') {
     return (
       <ErrorBoundary>
@@ -121,24 +119,21 @@ function App() {
     );
   }
 
-  // Public Landing Page
+  // Public Flagship Landing Page
   return (
     <ErrorBoundary>
-      <div className="font-sans antialiased text-gray-900 bg-white min-h-screen flex flex-col">
+      <div className="font-sans antialiased text-slate-100 bg-[#070A0F] selection:bg-[#00AEE9] selection:text-black min-h-screen flex flex-col">
         <Navbar onOpenDashboard={handleOpenDashboard} />
         <main className="flex-grow">
           <Hero />
-          <About />
-          <WhyDelegate />
-          <StakingInfo />
-          <Gallery />
+          <VideoShowcase />
+          <PromptVault />
+          <EcosystemBridge onOpenDashboard={handleOpenDashboard} />
         </main>
         <Footer onOpenDashboard={handleOpenDashboard} />
-        <AIConcierge />
       </div>
     </ErrorBoundary>
   );
 }
 
 export default App;
-

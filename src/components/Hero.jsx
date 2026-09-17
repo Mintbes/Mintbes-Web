@@ -1,90 +1,240 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Play, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Hero = () => {
-    const { t } = useTranslation();
-    const [imageLoaded, setImageLoaded] = useState(false);
+  const { t } = useTranslation();
+  const [showPromptOverlay, setShowPromptOverlay] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const videoRef = useRef(null);
 
-    useEffect(() => {
-        // Preload the hero image
-        const img = new Image();
-        img.src = 'hero-bq.jpg';
-        img.onload = () => setImageLoaded(true);
-    }, []);
+  const samplePrompt = t('hero.samplePromptText');
 
-    return (
-        <section id="hero" className="relative w-full h-screen overflow-hidden flex items-center justify-center text-white">
-            {/* Image Background with loading transition */}
-            <div className="absolute inset-0 z-0">
-                {/* Blurred placeholder that shows while loading */}
-                <div
-                    className={`absolute inset-0 bg-gradient-to-br from-green-900 to-green-950 transition-opacity duration-500 ${imageLoaded ? 'opacity-0' : 'opacity-100'
-                        }`}
-                />
+  const handleCopy = () => {
+    navigator.clipboard.writeText(samplePrompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
-                {/* Actual image */}
-                <img
-                    src="hero-bq.jpg"
-                    alt="Mintbes Harmony Validator"
-                    className={`w-full h-full object-cover transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                        }`}
-                    loading="eager"
-                />
+  const toggleAudio = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
 
-                {/* Overlay for better text readability */}
-                <div className="absolute inset-0 bg-green-950/60 backdrop-blur-[1px]"></div>
-            </div>
+  const tickerItems = t('hero.ticker', { returnObjects: true }) || [
+    "Harmony AI Video Engine",
+    "Native 9:16 Vertical Video",
+    "15s Hyper-Realistic Motion",
+    "Integrated Foley Soundscape",
+    "Temporal Cinematography Control",
+    "Backed by Harmony Ecosystem",
+    "Official Governor Mintbes"
+  ];
 
-            <div className="relative z-10 container mx-auto px-6 text-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="max-w-4xl mx-auto"
+  return (
+    <section className="relative w-full min-h-screen pt-28 pb-12 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
+      {/* Background Ambience & Radial Glows */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#00AEE9]/10 rounded-full blur-[140px]" />
+        <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-[#69FABD]/8 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#151D2C_1px,transparent_1px)] [background-size:28px_28px] opacity-25" />
+      </div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col items-center justify-center text-center">
+        
+        {/* Top Official Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0B0F17]/90 border border-[#00AEE9]/30 text-xs sm:text-sm font-medium text-slate-200 backdrop-blur-md shadow-lg shadow-[#00AEE9]/10 mb-6"
+        >
+          <span className="w-2 h-2 rounded-full bg-[#69FABD] animate-pulse" />
+          <ShieldCheck className="w-4 h-4 text-[#00AEE9]" />
+          <span>{t('hero.badge')}</span>
+        </motion.div>
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.1] mb-6 font-display"
+        >
+          {t('hero.titlePrefix')}{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00AEE9] via-[#69FABD] to-[#00AEE9] animate-gradient">
+            {t('hero.titleHighlight')}
+          </span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="text-base sm:text-lg lg:text-xl text-slate-300 max-w-3xl leading-relaxed mb-8 font-light"
+        >
+          {t('hero.subtitle')}
+        </motion.p>
+
+        {/* Dual Call-to-Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center gap-4 mb-14 w-full sm:w-auto"
+        >
+          <a
+            href="#showcase"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full text-base font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] shadow-xl shadow-[#00AEE9]/25 hover:shadow-[#00AEE9]/45 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+          >
+            <Film className="w-5 h-5 text-[#070A0F]" />
+            <span>{t('hero.primaryCta')}</span>
+            <ArrowRight className="w-5 h-5 text-[#070A0F]" />
+          </a>
+
+          <a
+            href="#prompt-vault"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full text-base font-semibold text-white bg-white/5 hover:bg-white/10 border border-white/15 backdrop-blur-md hover:border-white/30 transition-all duration-300"
+          >
+            <Terminal className="w-4 h-4 text-[#69FABD]" />
+            <span>{t('hero.secondaryCta')}</span>
+          </a>
+        </motion.div>
+
+        {/* 9:16 Video Showcase Centerpiece */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="w-full max-w-5xl mx-auto mb-10 flex justify-center relative"
+        >
+          {/* Center Card: Interactive 9:16 Video Player */}
+          <div className="w-72 sm:w-80 lg:w-[350px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/50 shadow-[0_0_50px_rgba(0,174,233,0.35)] bg-[#0B0F17] relative z-20 group">
+            <video
+              ref={videoRef}
+              src="videosAI/compressed/walking.mp4"
+              poster="hero-bq.jpg"
+              autoPlay
+              loop
+              muted={isMuted}
+              playsInline
+              className="w-full h-full object-cover"
+            />
+
+            {/* Video Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30 pointer-events-none" />
+
+            {/* Top Bar on Video */}
+            <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between z-10">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[11px] font-semibold text-white">
+                <span className="w-2 h-2 rounded-full bg-[#00AEE9] animate-pulse" />
+                <span>Harmony AI Video</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={toggleAudio}
+                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 transition-all cursor-pointer"
+                  title={isMuted ? t('showcase.playAudio') : t('showcase.muteAudio')}
+                  aria-label="Toggle Foley Audio"
                 >
-                    <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight leading-tight">
-                        {t('hero.titlePrefix')}{' '}
-                        <span className="text-mintbes-300">{t('hero.titleHighlight')}</span>
-                    </h1>
-                    <p className="text-xl md:text-2xl mb-8 font-light text-gray-100">
-                        {t('hero.subtitlePrefix')}{' '}
-                        <span className="font-semibold text-white">{t('hero.subtitleHighlight')}</span>{' '}
-                        {t('hero.subtitleSuffix')}
-                    </p>
-
-                    <motion.a
-                        href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="inline-flex items-center px-8 py-4 bg-mintbes-500 hover:bg-mintbes-400 text-white font-semibold rounded-full text-lg transition-all shadow-lg hover:shadow-mintbes-500/50"
-                    >
-                        {t('hero.delegateBtn')}
-                        <ChevronRight className="ml-2 w-5 h-5" />
-                    </motion.a>
-                </motion.div>
+                  {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#69FABD]" />}
+                </button>
+              </div>
             </div>
 
-            {/* Scroll Indicator */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 1 }}
-                className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-            >
-                <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center pt-2">
-                    <motion.div
-                        animate={{ y: [0, 12, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="w-1.5 h-1.5 bg-white rounded-full"
-                    />
+            {/* Bottom Card Controls & Prompt Reveal Toggle */}
+            <div className="absolute bottom-3.5 left-3.5 right-3.5 z-10 space-y-2">
+              <div className="flex items-center justify-between text-left bg-black/60 backdrop-blur-md p-2.5 rounded-2xl border border-white/15">
+                <div>
+                  <h3 className="text-xs font-bold text-white">Walking in Harmony</h3>
+                  <p className="text-[10px] text-slate-300 font-mono">15s Native 9:16 UHD</p>
                 </div>
-            </motion.div>
-        </section>
-    );
+                <button
+                  onClick={() => setShowPromptOverlay(!showPromptOverlay)}
+                  className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#00AEE9]/30 border border-white/25 text-[11px] font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Terminal className="w-3 h-3 text-[#69FABD]" />
+                  <span>{showPromptOverlay ? t('hero.promptToggleHide') : t('hero.promptToggleShow')}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Master Prompt Modal / Overlay on Card */}
+            <AnimatePresence>
+              {showPromptOverlay && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 30 }}
+                  transition={{ duration: 0.25 }}
+                  className="absolute inset-0 bg-[#070A0F]/92 backdrop-blur-xl p-5 z-30 flex flex-col justify-between text-left"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+                      <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#69FABD]">
+                        <Terminal className="w-3.5 h-3.5 text-[#00AEE9]" />
+                        <span>{t('hero.samplePromptTag')}</span>
+                      </div>
+                      <button
+                        onClick={() => setShowPromptOverlay(false)}
+                        className="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-white/10"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="text-[11px] leading-relaxed text-slate-200 font-mono bg-black/50 p-3 rounded-xl border border-white/10 max-h-56 overflow-y-auto">
+                      <p className="text-[#00AEE9] mb-1 font-bold">[Temporal Timeline: 0-15s]</p>
+                      <p className="mb-2">{samplePrompt}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-3 border-t border-white/10">
+                    <button
+                      onClick={handleCopy}
+                      className="w-full py-2 px-3 rounded-xl bg-[#00AEE9]/20 hover:bg-[#00AEE9]/30 border border-[#00AEE9]/40 text-xs font-bold text-[#69FABD] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copied ? t('showcase.promptCopied') : t('showcase.copyPrompt')}</span>
+                    </button>
+
+                    <a
+                      href="#prompt-vault"
+                      onClick={() => setShowPromptOverlay(false)}
+                      className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-xs font-bold text-[#070A0F] flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{t('hero.secondaryCta')}</span>
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+      </div>
+
+      {/* Infinite Marquee Ribbon */}
+      <div className="relative w-full overflow-hidden py-3 bg-[#0B0F17]/80 border-y border-white/10 backdrop-blur-md mt-6">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+          {tickerItems.concat(tickerItems).map((item, idx) => (
+            <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-mono tracking-wider text-slate-300">
+              <span className="text-[#00AEE9]">✦</span>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Hero;

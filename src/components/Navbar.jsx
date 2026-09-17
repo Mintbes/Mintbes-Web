@@ -4,127 +4,118 @@ import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
 const Navbar = ({ onOpenDashboard }) => {
-    const { t } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    const navLinks = [
-        { title: t('nav.active'), href: '#active' },
-        { title: t('nav.arcade'), href: '#mintbes-arcade' },
-        { title: t('nav.staking'), href: '#staking' },
-        { title: t('nav.gallery'), href: '#gallery' },
-    ];
+  const navLinks = [
+    { title: t('nav.showcase'), href: '#showcase' },
+    { title: t('nav.promptVault'), href: '#prompt-vault' },
+    { title: t('nav.ecosystem'), href: '#ecosystem' },
+  ];
 
-    return (
-        <nav
-            className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'
-                }`}
-        >
-            <div className="w-full max-w-7xl mx-auto px-6 flex justify-between items-center relative">
-                {/* Desktop Menu - Centered links */}
-                <div className="hidden md:flex items-center gap-8 justify-center w-full">
-                    {navLinks.map((link, idx) => (
-                        <a
-                            key={idx}
-                            href={link.href}
-                            className={`text-sm font-medium hover:text-mintbes-500 transition-colors ${scrolled ? 'text-gray-600' : 'text-gray-200'
-                                }`}
-                        >
-                            {link.title}
-                        </a>
-                    ))}
-                    <button
-                        onClick={onOpenDashboard}
-                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
-                            scrolled
-                                ? 'border-emerald-600/30 text-emerald-700 hover:bg-emerald-50'
-                                : 'border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/20 backdrop-blur-sm'
-                        }`}
-                        title="Abrir Dashboard Privado del Nodo"
-                    >
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        Node Ops
-                    </button>
-                    <a
-                        href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`px-5 py-2 rounded-full font-medium transition-all ${scrolled
-                            ? 'bg-mintbes-600 text-white hover:bg-mintbes-700'
-                            : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm'
-                            }`}
-                    >
-                        {t('nav.delegateNow')}
-                    </a>
-                </div>
+  return (
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-[#070A0F]/85 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40 py-3.5'
+          : 'bg-transparent py-5'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        {/* Brand */}
+        <a href="#" className="flex items-center group">
+          <span className="text-xl font-bold tracking-tight text-white group-hover:text-[#69FABD] transition-colors flex items-center gap-1.5">
+            Mintbes <span className="text-lg">🌿</span>
+          </span>
+        </a>
 
-                {/* Language Selector - Positioned Top Right */}
-                <div className="hidden md:flex items-center gap-3 absolute right-6">
-                    <LanguageSelector scrolled={scrolled} />
-                </div>
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1 bg-[#0B0F17]/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-inner">
+          {navLinks.map((link, idx) => (
+            <a
+              key={idx}
+              href={link.href}
+              className="px-4 py-1.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-full transition-all"
+            >
+              {link.title}
+            </a>
+          ))}
+        </nav>
 
-                {/* Mobile Header Bar */}
-                <div className="flex md:hidden items-center justify-between w-full">
-                    <button
-                        className="p-2"
-                        onClick={() => setIsOpen(!isOpen)}
-                        aria-label="Toggle navigation menu"
-                    >
-                        {isOpen ? (
-                            <X className={scrolled ? 'text-gray-900' : 'text-white'} />
-                        ) : (
-                            <Menu className={scrolled ? 'text-gray-900' : 'text-white'} />
-                        )}
-                    </button>
-                    <LanguageSelector scrolled={scrolled} />
-                </div>
-            </div>
+        {/* Desktop Action & Language */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={onOpenDashboard}
+            className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-200 hover:text-white bg-[#0B0F17]/80 hover:bg-[#00AEE9]/15 border border-[#00AEE9]/40 hover:border-[#00AEE9]/80 backdrop-blur-md transition-all duration-300 shadow-sm hover:shadow-[0_0_15px_rgba(0,174,233,0.25)] cursor-pointer"
+            title="MintMax Operator Portal"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#69FABD] animate-pulse" />
+            <span className="tracking-wide">MintMax</span>
+          </button>
+          <LanguageSelector />
+        </div>
 
-            {/* Mobile Dropdown */}
-            {
-                isOpen && (
-                    <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-100 py-4 px-6 flex flex-col gap-4">
-                        {navLinks.map((link, idx) => (
-                            <a
-                                key={idx}
-                                href={link.href}
-                                onClick={() => setIsOpen(false)}
-                                className="text-gray-700 hover:text-mintbes-600 font-medium py-2 border-b border-gray-50 last:border-0"
-                            >
-                                {link.title}
-                            </a>
-                        ))}
-                        <button
-                            onClick={() => {
-                                setIsOpen(false);
-                                onOpenDashboard?.();
-                            }}
-                            className="w-full text-left py-2 text-emerald-700 font-semibold flex items-center gap-2 border-b border-gray-50"
-                        >
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            Node Ops (Dashboard Privado)
-                        </button>
-                        <a
-                            href="https://staking.harmony.one/validators/mainnet/one12jell2lqaesqcye4qdp9cx8tzks4pega465r3k"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full text-center bg-mintbes-600 text-white py-3 rounded-lg font-semibold hover:bg-mintbes-700 transition"
-                        >
-                            {t('nav.delegateNow')}
-                        </a>
-                    </div>
-                )
-            }
-        </nav >
-    );
+        {/* Mobile Hamburger & Language */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            onClick={onOpenDashboard}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#69FABD] animate-pulse" />
+            <span>MintMax</span>
+          </button>
+          <LanguageSelector />
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 hover:text-white"
+            aria-label="Toggle navigation menu"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Dropdown */}
+      {isOpen && (
+        <div className="md:hidden bg-[#070A0F]/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="flex flex-col gap-2">
+            {navLinks.map((link, idx) => (
+              <a
+                key={idx}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-3 rounded-xl text-base font-medium text-slate-200 hover:bg-white/5 hover:text-[#69FABD] transition-all"
+              >
+                {link.title}
+              </a>
+            ))}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onOpenDashboard?.();
+              }}
+              className="mt-2 w-full text-left px-4 py-3 rounded-xl text-base font-semibold text-white bg-white/5 border border-white/10 hover:border-[#00AEE9]/40 flex items-center justify-between transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#69FABD] animate-pulse" />
+                MintMax
+              </span>
+              <span className="text-xs font-mono text-slate-400">Portal</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </header>
+  );
 };
 
 export default Navbar;

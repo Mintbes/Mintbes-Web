@@ -1,46 +1,102 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
 
 @theme {
-  --color-mintbes-50: #f0fdf4;
-  --color-mintbes-100: #dcfce7;
-  --color-mintbes-200: #bcf0d5;
-  /* Fixed typo in hex code from original config */
-  --color-mintbes-300: #86efac;
-  --color-mintbes-400: #4ade80;
-  --color-mintbes-500: #22c55e;
-  --color-mintbes-600: #16a34a;
-  --color-mintbes-700: #15803d;
-  --color-mintbes-800: #166534;
-  --color-mintbes-900: #14532d;
-  --color-mintbes-950: #052e16;
-  --color-harmony-blue: #00AEE9;
+  --color-obsidian-950: #070A0F;
+  --color-obsidian-900: #0B0F17;
+  --color-obsidian-850: #0F1420;
+  --color-obsidian-800: #151D2C;
+  --color-obsidian-700: #1E293B;
+
+  --color-harmony-cyan: #00AEE9;
+  --color-harmony-mint: #69FABD;
+  --color-harmony-glow: rgba(0, 174, 233, 0.4);
+
   --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-heading: 'Syne', sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 100px;
+    scroll-padding-top: 90px;
+    background-color: #070A0F;
+    color: #F8FAFC;
+  }
+
+  body {
+    background-color: #070A0F;
+    color: #F8FAFC;
+    overflow-x: hidden;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Cinematic Dark Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #070A0F;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #15803d;
-  /* lush green */
+  background: #1E293B;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #14532d;
+  background: #00AEE9;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(11, 15, 23, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(11, 15, 23, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 174, 233, 0.25);
+  box-shadow: 0 0 25px rgba(0, 174, 233, 0.12);
+}
+
+/* Infinite Marquee Ribbon Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.text-gradient-harmony {
+  background: linear-gradient(135deg, #00AEE9 0%, #69FABD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
 }
