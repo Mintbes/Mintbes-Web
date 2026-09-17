@@ -30,10 +30,10 @@ const SHOWCASE_ITEMS = [
     type: 'video',
     src: 'videosAI/compressed/0rxo1dkv2g.mp4',
     poster: 'videosAI/0rxo1dkv2g_poster.jpg',
-    duration: '15s',
+    duration: '30s',
     engine: 'Harmony AI Video',
     tags: ['4K UHD', '9:16 Vertical', 'Natural Light', 'Foley Audio'],
-    prompt: '0-5s: Handheld iPhone-style vertical POV looking directly at a charming woman walking backward across a historic sun-drenched cobblestone square. 5-10s: Warm Mediterranean golden-hour sun creates soft hair rim-lighting as seaside cafes and passersby pass in the background. 10-15s: Natural radiant smile, spontaneous micro-gestures, lively eyes, authentic lifelike skin tone and gentle handheld stabilization. Sound: ambient coastal chatter, distant laughter, gentle sea breeze, outdoor footsteps on stone.',
+    prompt: '0-10s: Handheld iPhone-style vertical POV looking directly at a charming woman walking backward across a historic sun-drenched cobblestone square. 10-20s: Warm Mediterranean golden-hour sun creates soft hair rim-lighting as seaside cafes and passersby pass in the background. 20-30s: Natural radiant smile, spontaneous micro-gestures, lively eyes, authentic lifelike skin tone and gentle handheld stabilization. Sound: ambient coastal chatter, distant laughter, gentle sea breeze, outdoor footsteps on stone.',
     breakdown: {
       timing05: 'Handheld iPhone-style vertical POV looking directly at a charming woman walking backward across a historic sun-drenched cobblestone square.',
       timing510: 'Warm Mediterranean golden-hour sun creates soft hair rim-lighting as seaside cafes and passersby pass in the background.',
@@ -517,19 +517,19 @@ const VideoShowcase = () => {
                       <div className="space-y-2.5 text-xs font-sans">
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-[#69FABD] font-bold block mb-1">
-                            ⏱ 0–5s Establishing:
+                            {selectedItem.duration === '30s' ? '⏱ 0–10s Establishing:' : '⏱ 0–5s Establishing:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing05}</span>
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-[#00AEE9] font-bold block mb-1">
-                            ⚡ 5–10s Dynamic Motion:
+                            {selectedItem.duration === '30s' ? '⚡ 10–20s Dynamic Motion:' : '⚡ 5–10s Dynamic Motion:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing510}</span>
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-purple-400 font-bold block mb-1">
-                            ✨ 10–15s Climax & Texture:
+                            {selectedItem.duration === '30s' ? '✨ 20–30s Climax & Texture:' : '✨ 10–15s Climax & Texture:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing1015}</span>
                         </div>
