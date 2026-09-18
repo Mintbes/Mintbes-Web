@@ -22,47 +22,101 @@ const HERO_VIDEOS = [
   }
 ];
 
-const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, isPlaying, onTogglePlay, t }) => {
+const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, isHeroInView, t }) => {
   const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
+  const userPausedRef = useRef(false);
 
-  // Watchdog recovery: if video is playing but stalled/buffered without time progression
+  // Resume or pause based on isHeroInView (when user scrolls in or out of view)
   useEffect(() => {
-    if (!isPlaying) return;
+    const vid = videoRef.current;
+    if (!vid) return;
+
+    if (!isHeroInView) {
+      vid.pause();
+      setIsPlaying(false);
+    } else {
+      if (!userPausedRef.current) {
+        vid.muted = isMuted;
+        vid.playsInline = true;
+        const p = vid.play();
+        if (p !== undefined) {
+          p.then(() => {
+            setIsPlaying(true);
+            setIsBuffering(false);
+          }).catch(() => {
+            vid.muted = true;
+            vid.play().then(() => {
+              setIsPlaying(true);
+              setIsBuffering(false);
+            }).catch(() => {});
+          });
+        }
+      }
+    }
+  }, [isHeroInView, isMuted]);
+
+  // Watchdog recovery: if video is supposed to play but stalled/buffered without time progression
+  useEffect(() => {
+    if (!isPlaying || !isHeroInView) return;
     const video = videoRef.current;
     if (!video) return;
 
     let lastTime = video.currentTime;
     const interval = setInterval(() => {
-      if (video.paused) return;
-      if (video.currentTime === lastTime && !video.ended) {
-        // Nudge playback if stalled
+      if (userPausedRef.current) return;
+      if (video.paused || (video.currentTime === lastTime && !video.ended)) {
         video.play().catch(() => {});
       }
       lastTime = video.currentTime;
     }, 2500);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isHeroInView]);
 
   const togglePlay = (e) => {
     e?.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
+
     if (isPlaying) {
+      userPausedRef.current = true;
+      vid.pause();
+      setIsPlaying(false);
       setIsBuffering(false);
-      onTogglePlay(null);
     } else {
-      setIsBuffering(false);
-      onTogglePlay(video.id);
+      userPausedRef.current = false;
+      vid.muted = isMuted;
+      vid.defaultMuted = true;
+      vid.playsInline = true;
+      const p = vid.play();
+      if (p !== undefined) {
+        p.then(() => {
+          setIsPlaying(true);
+          setIsBuffering(false);
+        }).catch((err) => {
+          console.warn("Hero video play error:", err);
+          vid.muted = true;
+          setIsMuted(true);
+          vid.play().then(() => {
+            setIsPlaying(true);
+            setIsBuffering(false);
+          }).catch(() => {});
+        });
+      } else {
+        setIsPlaying(true);
+      }
     }
   };
 
   const toggleAudio = (e) => {
     e?.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
     const nextMuted = !isMuted;
-    if (videoRef.current) {
-      videoRef.current.muted = nextMuted;
-    }
+    vid.muted = nextMuted;
     setIsMuted(nextMuted);
   };
 
@@ -77,37 +131,26 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
         isolation: 'isolate'
       }}
     >
-      {/* Media Layer: Active Hardware Video Decoder only when playing, Poster image when idle */}
-      {isPlaying ? (
-        <video
-          ref={videoRef}
-          src={video.src}
-          poster={video.poster}
-          autoPlay
-          loop
-          muted={isMuted}
-          playsInline
-          webkit-playsinline="true"
-          x5-playsinline="true"
-          preload="auto"
-          onWaiting={() => setIsBuffering(true)}
-          onPlaying={() => setIsBuffering(false)}
-          onCanPlay={() => setIsBuffering(false)}
-          onTimeUpdate={() => {
-            if (isBuffering) setIsBuffering(false);
-          }}
-          onClick={togglePlay}
-          className="w-full h-full object-cover cursor-pointer"
-        />
-      ) : (
-        <img
-          src={video.poster}
-          alt={video.title}
-          loading="lazy"
-          onClick={togglePlay}
-          className="w-full h-full object-cover cursor-pointer"
-        />
-      )}
+      <video
+        ref={videoRef}
+        src={video.src}
+        poster={video.poster}
+        autoPlay
+        loop
+        muted={isMuted}
+        playsInline
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        preload="auto"
+        onWaiting={() => setIsBuffering(true)}
+        onPlaying={() => setIsBuffering(false)}
+        onCanPlay={() => setIsBuffering(false)}
+        onTimeUpdate={() => {
+          if (isBuffering) setIsBuffering(false);
+        }}
+        onClick={togglePlay}
+        className="w-full h-full object-cover cursor-pointer"
+      />
 
       {/* Video Overlay Gradient */}
       <div 
@@ -240,7 +283,6 @@ const Hero = () => {
   const { t } = useTranslation();
   const [activePromptId, setActivePromptId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
-  const [activeVideoId, setActiveVideoId] = useState('walking-in-harmony');
   const [isHeroInView, setIsHeroInView] = useState(true);
   const heroRef = useRef(null);
 
@@ -258,10 +300,6 @@ const Hero = () => {
 
     observer.observe(hero);
     return () => observer.disconnect();
-  }, []);
-
-  const handleTogglePlay = useCallback((id) => {
-    setActiveVideoId((prev) => (prev === id ? null : id));
   }, []);
 
   const handleCopy = (id, promptText) => {
@@ -367,8 +405,7 @@ const Hero = () => {
               setActivePromptId={setActivePromptId}
               copiedId={copiedId}
               onCopy={handleCopy}
-              isPlaying={isHeroInView && activeVideoId === video.id}
-              onTogglePlay={handleTogglePlay}
+              isHeroInView={isHeroInView}
               t={t}
             />
           ))}

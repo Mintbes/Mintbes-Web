@@ -172,6 +172,21 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
   const videoRef = useRef(null);
   const cardRef = useRef(null);
 
+  // Handle playback state sync
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!isPlaying && !video.paused) {
+      video.pause();
+      setIsBuffering(false);
+    } else if (isPlaying && video.paused) {
+      video.muted = isMuted;
+      video.playsInline = true;
+      video.play().catch(() => {});
+    }
+  }, [isPlaying, isMuted]);
+
   // Auto-pause if scrolled far out of view (350px margin)
   useEffect(() => {
     if (!isPlaying) return;
@@ -207,8 +222,8 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
     let lastTime = video.currentTime;
     const interval = setInterval(() => {
-      if (video.paused) return;
-      if (video.currentTime === lastTime && !video.ended) {
+      if (!isPlaying) return;
+      if (video.paused || (video.currentTime === lastTime && !video.ended)) {
         // Nudge playback if stalled
         video.play().catch(() => {});
       }
@@ -220,11 +235,29 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
   const togglePlay = (e) => {
     e?.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
     if (isPlaying) {
+      video.pause();
       setIsBuffering(false);
       onTogglePlay(null);
     } else {
       setIsBuffering(false);
+      video.muted = isMuted;
+      video.defaultMuted = true;
+      video.playsInline = true;
+
+      // Play synchronously within user gesture for instant response on desktop & mobile
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn("Autoplay policy fallback:", err);
+          video.muted = true;
+          setIsMuted(true);
+          video.play().catch(() => {});
+        });
+      }
       onTogglePlay(item.id);
     }
   };
@@ -248,37 +281,26 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         isolation: 'isolate'
       }}
     >
-      {/* Media Layer: Active Hardware Video Decoder only when playing, Poster image when idle */}
-      {isPlaying ? (
-        <video
-          ref={videoRef}
-          src={item.src}
-          poster={item.poster}
-          autoPlay
-          loop
-          muted={isMuted}
-          playsInline
-          webkit-playsinline="true"
-          x5-playsinline="true"
-          preload="auto"
-          onWaiting={() => setIsBuffering(true)}
-          onPlaying={() => setIsBuffering(false)}
-          onCanPlay={() => setIsBuffering(false)}
-          onTimeUpdate={() => {
-            if (isBuffering) setIsBuffering(false);
-          }}
-          onClick={togglePlay}
-          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
-        />
-      ) : (
-        <img
-          src={item.poster}
-          alt={item.title}
-          loading="lazy"
-          onClick={togglePlay}
-          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
-        />
-      )}
+      {/* Video Media Layer */}
+      <video
+        ref={videoRef}
+        src={item.src}
+        poster={item.poster}
+        loop
+        muted={isMuted}
+        playsInline
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        preload={isPlaying ? "auto" : "none"}
+        onWaiting={() => setIsBuffering(true)}
+        onPlaying={() => setIsBuffering(false)}
+        onCanPlay={() => setIsBuffering(false)}
+        onTimeUpdate={() => {
+          if (isBuffering) setIsBuffering(false);
+        }}
+        onClick={togglePlay}
+        className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
+      />
 
       {/* Gradient Overlays */}
       <div 
