@@ -65,26 +65,6 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
-    id: 'mystic-dragon-sanctuary',
-    title: 'Mystic Dragon Sanctuary',
-    workflow: 'Text-to-Video',
-    category: ['scifi', 'motion'],
-    type: 'video',
-    src: 'videosAI/compressed/Harmony1st.mp4',
-    poster: 'videosAI/Harmony1st_poster.jpg',
-    duration: '6s',
-    engine: 'Harmony AI Video',
-    tags: ['Fantasy Realm', 'Mythic Dragons', 'Cascading Waterfalls', 'Volumetric Glow'],
-    prompt: '0-3s: Enchanted mythical mountain sanctuary with cascading azure waterfalls, ancient stone staircases, and glowing bioluminescent cyan dragons perched on twisted forest branches. 3-6s: Shimmering water reflections, crimson foliage, sunbeams piercing through misty emerald canopy with magical atmosphere. Sound: rushing waterfall ambiance, ethereal mystical chimes, distant dragon roar echo, gentle river flow.',
-    breakdown: {
-      timing05: 'Enchanted mythical mountain sanctuary with cascading azure waterfalls, ancient stone staircases, and glowing bioluminescent cyan dragons.',
-      timing510: 'Shimmering water reflections, crimson foliage, sunbeams piercing through misty emerald canopy with magical atmosphere.',
-      timing1015: 'Harmonious water flow and ethereal cyan ambient glow across the mystical cliffs.',
-      cinematography: '35mm fantasy prime lens, volumetric sunbeam shafts, liquid particle reflections, saturated emerald and azure grading.',
-      sound: 'Rushing waterfall ambiance, ethereal mystical chimes, distant dragon roar echo, gentle river flow.'
-    }
-  },
-  {
     id: 'sylvan-elven-archer',
     title: 'Sylvan Elven Archer',
     workflow: 'Text-to-Video',
