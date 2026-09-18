@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Pause, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers } from 'lucide-react';
+import { Sparkles, ArrowRight, Play, Pause, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const HERO_VIDEOS = [
@@ -22,79 +22,47 @@ const HERO_VIDEOS = [
   }
 ];
 
-const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, t }) => {
+const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, isPlaying, onTogglePlay, t }) => {
   const videoRef = useRef(null);
-  const cardRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const wasPlayingRef = useRef(true);
+  const [isBuffering, setIsBuffering] = useState(false);
 
-  // Auto-pause when scrolled out of view to release hardware decoders for Showcase on mobile
+  // Watchdog recovery: if video is playing but stalled/buffered without time progression
   useEffect(() => {
-    const card = cardRef.current;
-    if (!card) return;
+    if (!isPlaying) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const vid = videoRef.current;
-        if (!vid) return;
+    let lastTime = video.currentTime;
+    const interval = setInterval(() => {
+      if (video.paused) return;
+      if (video.currentTime === lastTime && !video.ended) {
+        // Nudge playback if stalled
+        video.play().catch(() => {});
+      }
+      lastTime = video.currentTime;
+    }, 2500);
 
-        if (!entry.isIntersecting) {
-          if (!vid.paused) {
-            wasPlayingRef.current = true;
-            vid.pause();
-            setIsPlaying(false);
-          }
-        } else {
-          if (wasPlayingRef.current) {
-            vid.muted = true;
-            vid.playsInline = true;
-            const p = vid.play();
-            if (p !== undefined) {
-              p.then(() => setIsPlaying(true)).catch(() => {});
-            }
-          }
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
   const togglePlay = (e) => {
     e?.stopPropagation();
-    const vid = videoRef.current;
-    if (!vid) return;
-
     if (isPlaying) {
-      wasPlayingRef.current = false;
-      vid.pause();
-      setIsPlaying(false);
+      setIsBuffering(false);
+      onTogglePlay(null);
     } else {
-      wasPlayingRef.current = true;
-      vid.muted = isMuted;
-      vid.defaultMuted = true;
-      vid.playsInline = true;
-      const p = vid.play();
-      if (p !== undefined) {
-        p.then(() => setIsPlaying(true)).catch((err) => {
-          console.warn("Hero video play error:", err);
-          vid.muted = true;
-          setIsMuted(true);
-          vid.play().then(() => setIsPlaying(true)).catch(() => {});
-        });
-      }
+      setIsBuffering(false);
+      onTogglePlay(video.id);
     }
   };
 
   const toggleAudio = (e) => {
     e?.stopPropagation();
-    const vid = videoRef.current;
-    if (!vid) return;
     const nextMuted = !isMuted;
-    vid.muted = nextMuted;
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted;
+    }
     setIsMuted(nextMuted);
   };
 
@@ -102,28 +70,44 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
 
   return (
     <div
-      ref={cardRef}
-      className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500"
+      className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500 cursor-pointer"
       style={{
         transform: 'translateZ(0)',
         WebkitMaskImage: '-webkit-radial-gradient(white, black)',
         isolation: 'isolate'
       }}
     >
-      <video
-        ref={videoRef}
-        src={video.src}
-        poster={video.poster}
-        autoPlay
-        loop
-        muted={isMuted}
-        playsInline
-        webkit-playsinline="true"
-        x5-playsinline="true"
-        preload="metadata"
-        onClick={togglePlay}
-        className="w-full h-full object-cover cursor-pointer"
-      />
+      {/* Media Layer: Active Hardware Video Decoder only when playing, Poster image when idle */}
+      {isPlaying ? (
+        <video
+          ref={videoRef}
+          src={video.src}
+          poster={video.poster}
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          onWaiting={() => setIsBuffering(true)}
+          onPlaying={() => setIsBuffering(false)}
+          onCanPlay={() => setIsBuffering(false)}
+          onTimeUpdate={() => {
+            if (isBuffering) setIsBuffering(false);
+          }}
+          onClick={togglePlay}
+          className="w-full h-full object-cover cursor-pointer"
+        />
+      ) : (
+        <img
+          src={video.poster}
+          alt={video.title}
+          loading="lazy"
+          onClick={togglePlay}
+          className="w-full h-full object-cover cursor-pointer"
+        />
+      )}
 
       {/* Video Overlay Gradient */}
       <div 
@@ -134,7 +118,11 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
       {/* Top Bar on Video */}
       <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] font-semibold text-white">
-          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
+          {isBuffering ? (
+            <Loader2 className="w-2.5 h-2.5 animate-spin text-[#69FABD]" />
+          ) : (
+            <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
+          )}
           <span>Harmony AI Video</span>
         </div>
 
@@ -145,7 +133,13 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
             title={isPlaying ? "Pausar video" : "Reproducir video"}
             aria-label="Toggle Play/Pause"
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5 text-[#69FABD]" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+            {isBuffering ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#69FABD]" />
+            ) : isPlaying ? (
+              <Pause className="w-3.5 h-3.5 text-[#69FABD]" />
+            ) : (
+              <Play className="w-3.5 h-3.5 ml-0.5" />
+            )}
           </button>
           <button
             onClick={toggleAudio}
@@ -246,6 +240,29 @@ const Hero = () => {
   const { t } = useTranslation();
   const [activePromptId, setActivePromptId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [activeVideoId, setActiveVideoId] = useState('walking-in-harmony');
+  const [isHeroInView, setIsHeroInView] = useState(true);
+  const heroRef = useRef(null);
+
+  // Auto-pause Hero videos when scrolled out of view to release hardware decoders for mobile
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroInView(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleTogglePlay = useCallback((id) => {
+    setActiveVideoId((prev) => (prev === id ? null : id));
+  }, []);
 
   const handleCopy = (id, promptText) => {
     navigator.clipboard.writeText(promptText);
@@ -264,7 +281,7 @@ const Hero = () => {
   ];
 
   return (
-    <section className="relative w-full min-h-screen pt-28 pb-12 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
+    <section ref={heroRef} className="relative w-full min-h-screen pt-28 pb-12 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
       {/* Background Ambience & Radial Glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#00AEE9]/10 rounded-full blur-[140px]" />
@@ -350,6 +367,8 @@ const Hero = () => {
               setActivePromptId={setActivePromptId}
               copiedId={copiedId}
               onCopy={handleCopy}
+              isPlaying={isHeroInView && activeVideoId === video.id}
+              onTogglePlay={handleTogglePlay}
               t={t}
             />
           ))}
