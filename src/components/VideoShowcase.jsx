@@ -177,8 +177,7 @@ const SHOWCASE_ITEMS = [
   }
 ];
 
-const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
-  const [isPlaying, setIsPlaying] = useState(true);
+const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onTogglePlay }) => {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
 
@@ -189,33 +188,36 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
     video.muted = isMuted;
     video.defaultMuted = true;
 
+    if (isPlaying) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [isPlaying, isMuted]);
+
+  // Pause playing video if scrolled out of viewport
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            video.play().then(() => setIsPlaying(true)).catch(() => {});
-          } else {
-            video.pause();
-            setIsPlaying(false);
+          if (!entry.isIntersecting && isPlaying) {
+            onTogglePlay(null);
           }
         });
       },
-      { threshold: 0.25 }
+      { threshold: 0.15 }
     );
 
     observer.observe(video);
     return () => observer.disconnect();
-  }, [isMuted]);
+  }, [isPlaying, onTogglePlay]);
 
   const togglePlay = (e) => {
     e?.stopPropagation();
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-    }
+    onTogglePlay(isPlaying ? null : item.id);
   };
 
   const toggleMute = (e) => {
@@ -234,7 +236,6 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
         ref={videoRef}
         src={item.src}
         poster={item.poster}
-        autoPlay
         loop
         muted={isMuted}
         playsInline
@@ -255,8 +256,8 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
           onClick={togglePlay}
           className="absolute inset-0 flex items-center justify-center pointer-events-auto"
         >
-          <div className="w-12 h-12 rounded-full bg-black/70 backdrop-blur-md border border-[#00AEE9]/50 flex items-center justify-center text-white shadow-2xl animate-in zoom-in-75 duration-200">
-            <Play className="w-5 h-5 text-[#69FABD] ml-0.5" />
+          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-black/65 backdrop-blur-md border border-[#00AEE9]/60 flex items-center justify-center text-white shadow-[0_0_25px_rgba(0,174,233,0.35)] group-hover:scale-110 group-hover:border-[#69FABD] group-hover:shadow-[0_0_30px_rgba(105,250,189,0.4)] transition-all duration-300">
+            <Play className="w-6 h-6 text-[#69FABD] fill-[#69FABD]/20 ml-0.5" />
           </div>
         </div>
       )}
@@ -264,7 +265,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
       {/* Top Badges & Controls */}
       <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-mono text-[#69FABD]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00AEE9] animate-pulse" />
+          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
           <span>{item.duration}</span>
         </div>
 
@@ -272,9 +273,10 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId }) => {
           <button
             onClick={togglePlay}
             className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
-            aria-label="Play/Pause"
+            aria-label={isPlaying ? "Pausar video" : "Reproducir video"}
+            title={isPlaying ? "Pausar video" : "Reproducir video"}
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5 text-[#69FABD]" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
           </button>
           <button
             onClick={toggleMute}
@@ -357,6 +359,7 @@ const VideoShowcase = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedItem, setSelectedItem] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [playingVideoId, setPlayingVideoId] = useState(null);
 
   const categories = [
     { id: 'all', label: t('showcase.filterAll') },
@@ -408,7 +411,10 @@ const VideoShowcase = () => {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setActiveTab(cat.id)}
+              onClick={() => {
+                setActiveTab(cat.id);
+                setPlayingVideoId(null);
+              }}
               className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer ${
                 activeTab === cat.id
                   ? 'bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-[#070A0F] shadow-lg shadow-[#00AEE9]/20 scale-105'
@@ -426,7 +432,12 @@ const VideoShowcase = () => {
             <VideoCard
               key={item.id}
               item={item}
-              onInspect={setSelectedItem}
+              isPlaying={playingVideoId === item.id}
+              onTogglePlay={(id) => setPlayingVideoId(id)}
+              onInspect={(selected) => {
+                setPlayingVideoId(null);
+                setSelectedItem(selected);
+              }}
               onCopyPrompt={handleCopyPrompt}
               copiedId={copiedId}
             />
