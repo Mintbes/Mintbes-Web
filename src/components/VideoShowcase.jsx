@@ -217,7 +217,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0, rootMargin: '120px 0px' }
     );
 
     observer.observe(video);
@@ -248,9 +248,11 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         loop
         muted={isMuted}
         playsInline
+        webkit-playsinline="true"
+        x5-playsinline="true"
         preload="metadata"
         onClick={togglePlay}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
       />
 
       {/* Gradient Overlays */}
@@ -287,19 +289,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
       {/* Bottom Info & Quick Actions */}
       <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1">
-          {item.tags.slice(0, 2).map((tag, idx) => (
-            <span
-              key={idx}
-              className="px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-[9px] font-mono text-slate-300 border border-white/10"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Title & Engine */}
+        {/* Title */}
         <div 
           onClick={() => onInspect(item)}
           className="text-left cursor-pointer"
@@ -307,9 +297,6 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
           <h3 className="text-sm font-bold text-white group-hover:text-[#69FABD] transition-colors line-clamp-1">
             {item.title}
           </h3>
-          <p className="text-[10px] text-slate-400 font-mono">
-            {item.engine}
-          </p>
         </div>
 
         {/* Quick Action Buttons */}
@@ -489,6 +476,14 @@ const VideoShowcase = () => {
                         <Type className="w-3.5 h-3.5 text-[#00AEE9]" />
                         <span>{selectedItem.workflow || 'Text-to-Video'}</span>
                       </div>
+                      {selectedItem.tags?.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10 text-xs font-mono"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
 
                     <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-display mb-2">
