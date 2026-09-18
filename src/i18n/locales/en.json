@@ -48,7 +48,13 @@
     "aspectTag": "9:16 Vertical UHD",
     "ctaCardTitle": "Master the AI Video Formula",
     "ctaCardDesc": "Learn how to compose 15-second cinematic sequences with optical cameras, fluid kinematics, and native foley audio.",
-    "ctaCardBtn": "Explore Prompt Blueprint"
+    "ctaCardBtn": "Explore Prompt Blueprint",
+    "workflowAll": "All Workflows",
+    "workflowT2V": "Text-to-Video",
+    "workflowI2V": "Image-to-Video (Roadmap)",
+    "roadmapTitle": "Roadmap Workflow",
+    "roadmapDesc": "Harmony's official AI video generator currently operates exclusively via text prompts (Text-to-Video). Image and NFT reference workflows are staged here and will activate as soon as the Harmony engine enables image inputs.",
+    "backToT2V": "Explore Active Text-to-Video"
   },
   "promptVault": {
     "badge": "Prompt Engineering Mastery",
@@ -77,7 +83,22 @@
     "templateDesc": "Use this tested structural template directly to achieve award-winning cinematic results in AI video generation:",
     "copyTemplate": "Copy Master Template",
     "templateCopied": "Template Copied to Clipboard!",
-    "launchStudio": "See 9:16 Cinema"
+    "launchStudio": "See 9:16 Cinema",
+    "studioBadge": "Harmony AI Video Studio Console",
+    "studioTitle": "Interactive Prompt Studio",
+    "studioSubtitle": "Design, refine, and assemble cinematic prompts ready for instant generation on Harmony's official platform.",
+    "tabTextToVideo": "Text to Video (Harmony Live)",
+    "tabImageToVideo": "Image to Video (Roadmap)",
+    "tabRefToVideo": "Reference to Video (Roadmap)",
+    "roadmapAlert": "✨ Status: Harmony's official generator currently processes text to video. Image-to-Video and Reference-to-Video workflows are staged and will unlock once Harmony enables image uploads.",
+    "presetLabel": "Showcase Presets:",
+    "customPreset": "Custom / Blank",
+    "opticsDirectives": "Quick Cinematic Directives:",
+    "enhanceBtn": "✦ Optimize with Arri Optics & Foley Sound",
+    "copyBlueprint": "Copy Blueprint",
+    "blueprintCopied": "Copied!",
+    "launchHarmony": "Open Harmony Generator (7.country)",
+    "editorPlaceholder": "Type or refine your cinematic prompt here (0-5s: ..., 5-10s: ..., 10-15s: ..., Sound: ...)..."
   },
   "ecosystem": {
     "badge": "Decentralized Infrastructure",

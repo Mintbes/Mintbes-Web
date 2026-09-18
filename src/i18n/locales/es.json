@@ -48,7 +48,13 @@
     "aspectTag": "9:16 Vertical UHD",
     "ctaCardTitle": "Domina la Fórmula de Video IA",
     "ctaCardDesc": "Aprende a componer secuencias cinemáticas de 15 segundos con ópticas de cine, cinemática fluida y sonido foley acústico.",
-    "ctaCardBtn": "Ver Fórmula de Prompts"
+    "ctaCardBtn": "Ver Fórmula de Prompts",
+    "workflowAll": "Todos los Flujos",
+    "workflowT2V": "Text-to-Video",
+    "workflowI2V": "Image-to-Video (Roadmap)",
+    "roadmapTitle": "Workflow en Hoja de Ruta",
+    "roadmapDesc": "Actualmente el generador oficial de Harmony opera exclusivamente mediante prompts textuales (Text-to-Video). Esta sección integrará la generación a partir de imágenes de referencia y NFTs en cuanto el motor de Harmony lo active.",
+    "backToT2V": "Explorar Text-to-Video Activo"
   },
   "promptVault": {
     "badge": "Ingeniería de Prompts",
@@ -77,7 +83,22 @@
     "templateDesc": "Utiliza esta plantilla estructural para conseguir resultados cinematográficos en tus creaciones de video IA:",
     "copyTemplate": "Copiar Plantilla Maestra",
     "templateCopied": "¡Plantilla Copiada al Portapapeles!",
-    "launchStudio": "Ver Cine 9:16"
+    "launchStudio": "Ver Cine 9:16",
+    "studioBadge": "Harmony AI Video Studio Console",
+    "studioTitle": "Laboratorio Interactivo de Prompts",
+    "studioSubtitle": "Diseña, refina y ensambla prompts cinemáticos listos para generar en la plataforma oficial de Harmony.",
+    "tabTextToVideo": "Text to Video (Harmony Live)",
+    "tabImageToVideo": "Image to Video (Roadmap)",
+    "tabRefToVideo": "Reference to Video (Roadmap)",
+    "roadmapAlert": "✨ Estado: Actualmente el generador oficial de Harmony procesa texto a video. Los flujos Image-to-Video y Reference-to-Video están preparados para activarse en cuanto Harmony lance la subida de imágenes.",
+    "presetLabel": "Presets del Showcase:",
+    "customPreset": "Custom / En Blanco",
+    "opticsDirectives": "Inyectores Cinemáticos Rápidos:",
+    "enhanceBtn": "✦ Optimizar con Óptica Arri y Audio Foley",
+    "copyBlueprint": "Copiar Blueprint",
+    "blueprintCopied": "¡Copiado!",
+    "launchHarmony": "Abrir Generador Harmony (7.country)",
+    "editorPlaceholder": "Escribe o edita tu prompt cinemático aquí (0-5s: ..., 5-10s: ..., 10-15s: ..., Sound: ...)..."
   },
   "ecosystem": {
     "badge": "Infraestructura Descentralizada",
