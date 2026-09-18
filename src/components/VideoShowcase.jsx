@@ -11,7 +11,7 @@ const SHOWCASE_ITEMS = [
     category: ['photorealism', 'fashion'],
     type: 'video',
     src: 'videosAI/compressed/walking.mp4',
-    poster: 'hero-bq.jpg',
+    poster: 'videosAI/walking_poster.jpg',
     duration: '15s',
     engine: 'Harmony AI Video',
     tags: ['4K UHD', '9:16 Vertical', 'Foley Audio', 'Kodak 500T'],
@@ -65,23 +65,23 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
-    id: 'quantum-core-genesis',
-    title: 'Quantum Core Genesis',
+    id: 'mystic-dragon-sanctuary',
+    title: 'Mystic Dragon Sanctuary',
     workflow: 'Text-to-Video',
     category: ['scifi', 'motion'],
     type: 'video',
     src: 'videosAI/compressed/Harmony1st.mp4',
-    poster: 'flower.jpg',
-    duration: '15s',
+    poster: 'videosAI/Harmony1st_poster.jpg',
+    duration: '6s',
     engine: 'Harmony AI Video',
-    tags: ['Quantum Dynamics', 'Fluid Particles', 'Volumetric Glow'],
-    prompt: '0-5s: Ultra macro push into an oscillating quantum core pulsing with emerald and electric cyan light rings. 5-10s: Particle acceleration creates a vortex of refracted hyper-dimensional geometric arcs. 10-15s: Sudden gravitational stabilization, energy lens flare, chromatic aberration, 8k raytraced specular reflection. Sound: low sub-bass hum ascending in frequency, electrical arcing crackle, crystalline chime resonance.',
+    tags: ['Fantasy Realm', 'Mythic Dragons', 'Cascading Waterfalls', 'Volumetric Glow'],
+    prompt: '0-3s: Enchanted mythical mountain sanctuary with cascading azure waterfalls, ancient stone staircases, and glowing bioluminescent cyan dragons perched on twisted forest branches. 3-6s: Shimmering water reflections, crimson foliage, sunbeams piercing through misty emerald canopy with magical atmosphere. Sound: rushing waterfall ambiance, ethereal mystical chimes, distant dragon roar echo, gentle river flow.',
     breakdown: {
-      timing05: 'Ultra macro push into an oscillating quantum core pulsing with emerald and electric cyan light rings.',
-      timing510: 'Particle acceleration creates a vortex of refracted hyper-dimensional geometric arcs.',
-      timing1015: 'Sudden gravitational stabilization, energy lens flare, chromatic aberration, 8k raytraced specular reflection.',
-      cinematography: 'Macro probe lens 24mm T14, high refractive index dispersion, volumetric emission particles.',
-      sound: 'Low sub-bass hum ascending in frequency, electrical arcing crackle, crystalline chime resonance.'
+      timing05: 'Enchanted mythical mountain sanctuary with cascading azure waterfalls, ancient stone staircases, and glowing bioluminescent cyan dragons.',
+      timing510: 'Shimmering water reflections, crimson foliage, sunbeams piercing through misty emerald canopy with magical atmosphere.',
+      timing1015: 'Harmonious water flow and ethereal cyan ambient glow across the mystical cliffs.',
+      cinematography: '35mm fantasy prime lens, volumetric sunbeam shafts, liquid particle reflections, saturated emerald and azure grading.',
+      sound: 'Rushing waterfall ambiance, ethereal mystical chimes, distant dragon roar echo, gentle river flow.'
     }
   },
   {
