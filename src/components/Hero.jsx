@@ -133,7 +133,7 @@ const Hero = () => {
   ];
 
   return (
-    <section ref={heroRef} className="relative w-full min-h-screen pt-24 sm:pt-28 pb-0 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
+    <section ref={heroRef} className="relative w-full min-h-screen pt-32 sm:pt-36 pb-0 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
       {/* Background Ambience & Radial Glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#00AEE9]/10 rounded-full blur-[140px]" />
