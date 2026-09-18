@@ -223,7 +223,7 @@ const Hero = () => {
       </div>
 
       {/* Infinite Marquee Ribbon */}
-      <div className="relative w-full overflow-hidden py-3.5 bg-[#0B0F17]/80 border-y border-white/10 backdrop-blur-md mt-14 sm:mt-16">
+      <div className="relative w-full overflow-hidden py-3.5 bg-[#0B0F17]/80 border-y border-white/10 backdrop-blur-md mt-20 sm:mt-24">
         <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
           {tickerItems.concat(tickerItems).map((item, idx) => (
             <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-mono tracking-wider text-slate-300">
