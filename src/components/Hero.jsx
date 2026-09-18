@@ -133,7 +133,7 @@ const Hero = () => {
   ];
 
   return (
-    <section ref={heroRef} className="relative w-full min-h-screen pt-28 pb-12 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
+    <section ref={heroRef} className="relative w-full min-h-screen pt-24 sm:pt-28 pb-0 flex flex-col justify-between overflow-hidden bg-[#070A0F]">
       {/* Background Ambience & Radial Glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#00AEE9]/10 rounded-full blur-[140px]" />
@@ -209,7 +209,7 @@ const Hero = () => {
           initial={{ opacity: 0, scale: 0.94, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-5xl mx-auto mb-10 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 relative"
+          className="w-full max-w-5xl mx-auto mb-0 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 relative"
         >
           {HERO_VIDEOS.map((video) => (
             <HeroVideoCard
@@ -223,7 +223,7 @@ const Hero = () => {
       </div>
 
       {/* Infinite Marquee Ribbon */}
-      <div className="relative w-full overflow-hidden py-3 bg-[#0B0F17]/80 border-y border-white/10 backdrop-blur-md mt-6">
+      <div className="relative w-full overflow-hidden py-3 bg-[#0B0F17]/80 border-y border-white/10 backdrop-blur-md mt-10 sm:mt-11">
         <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
           {tickerItems.concat(tickerItems).map((item, idx) => (
             <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-mono tracking-wider text-slate-300">
