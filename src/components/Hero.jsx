@@ -1,129 +1,82 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Pause, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, ShieldCheck, Film, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const HERO_VIDEOS = [
   {
     id: 'walking-in-harmony',
-    title: 'Walking in Harmony',
-    subtitle: '15s Native 9:16 UHD',
     src: 'videosAI/compressed/walking.mp4',
-    poster: 'videosAI/walking_poster.jpg',
-    prompt: '0-5s: Medium-full vertical shot of an enigmatic figure walking calmly down a rainy neon-lit street in Neo-Kyoto. 5-10s: Slow gimbal dolly back as puddles reflect prismatic cyan and emerald holographic billboards. 10-15s: Subtle head turn toward camera, soft natural lens flare, Kodak Vision3 color grading, photorealistic micro-textures on damp jacket. Sound: rhythmic footsteps on wet asphalt, distant muffled synth drone, gentle rain patter on nylon jacket.'
+    poster: 'videosAI/walking_poster.jpg'
   },
   {
     id: 'sylvan-elven-archer',
-    title: 'Sylvan Elven Archer',
-    subtitle: '15s Native 9:16 UHD',
     src: 'videosAI/compressed/obkqvw1fhq.mp4',
-    poster: 'videosAI/obkqvw1fhq_poster.jpg',
-    prompt: '0-5s: Extreme cinematic close-up of a silver-haired elven archer with sharp piercing green eyes, drawing a recurve bow in an enchanted sun-dappled forest. 5-10s: Micro-focus on her fingers gripping the bowstring and arrow nock, tension building with photorealistic skin micro-textures, freckles, and soft wind rustling fine white hair strands. 10-15s: Smooth release of the arrow, subtle camera recoil, intense focused stare, shallow depth of field with soft bokeh background. Sound: creaking bowstring wood tension, soft forest breeze, sharp whoosh on arrow release, distant bird call.'
+    poster: 'videosAI/obkqvw1fhq_poster.jpg'
   }
 ];
 
-const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, isHeroInView, t }) => {
+const HeroVideoCard = ({ video, isHeroInView }) => {
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isBuffering, setIsBuffering] = useState(false);
-  const userPausedRef = useRef(false);
 
-  // Resume or pause based on isHeroInView (when user scrolls in or out of view)
+  // Auto-play immediately on mount and handle pause/resume when scrolled in/out of view
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
-    if (!isHeroInView) {
-      vid.pause();
-      setIsPlaying(false);
+    vid.muted = true;
+    vid.defaultMuted = true;
+    vid.playsInline = true;
+
+    if (isHeroInView) {
+      const p = vid.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          vid.muted = true;
+          vid.play().catch(() => {});
+        });
+      }
     } else {
-      if (!userPausedRef.current) {
-        vid.muted = isMuted;
-        vid.playsInline = true;
-        const p = vid.play();
-        if (p !== undefined) {
-          p.then(() => {
-            setIsPlaying(true);
-            setIsBuffering(false);
-          }).catch(() => {
-            vid.muted = true;
-            vid.play().then(() => {
-              setIsPlaying(true);
-              setIsBuffering(false);
-            }).catch(() => {});
-          });
-        }
-      }
+      vid.pause();
     }
-  }, [isHeroInView, isMuted]);
+  }, [isHeroInView]);
 
-  // Watchdog recovery: if video is supposed to play but stalled/buffered without time progression
+  // Watchdog recovery: ensures continuous smooth playback without stalls
   useEffect(() => {
-    if (!isPlaying || !isHeroInView) return;
-    const video = videoRef.current;
-    if (!video) return;
+    if (!isHeroInView) return;
+    const vid = videoRef.current;
+    if (!vid) return;
 
-    let lastTime = video.currentTime;
+    let lastTime = vid.currentTime;
     const interval = setInterval(() => {
-      if (userPausedRef.current) return;
-      if (video.paused || (video.currentTime === lastTime && !video.ended)) {
-        video.play().catch(() => {});
+      if (!isHeroInView) return;
+      if (vid.paused || (vid.currentTime === lastTime && !vid.ended)) {
+        vid.muted = true;
+        vid.play().catch(() => {});
       }
-      lastTime = video.currentTime;
-    }, 2500);
+      lastTime = vid.currentTime;
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [isPlaying, isHeroInView]);
+  }, [isHeroInView]);
 
   const togglePlay = (e) => {
     e?.stopPropagation();
     const vid = videoRef.current;
     if (!vid) return;
 
-    if (isPlaying) {
-      userPausedRef.current = true;
-      vid.pause();
-      setIsPlaying(false);
-      setIsBuffering(false);
-    } else {
-      userPausedRef.current = false;
-      vid.muted = isMuted;
-      vid.defaultMuted = true;
+    if (vid.paused) {
+      vid.muted = true;
       vid.playsInline = true;
-      const p = vid.play();
-      if (p !== undefined) {
-        p.then(() => {
-          setIsPlaying(true);
-          setIsBuffering(false);
-        }).catch((err) => {
-          console.warn("Hero video play error:", err);
-          vid.muted = true;
-          setIsMuted(true);
-          vid.play().then(() => {
-            setIsPlaying(true);
-            setIsBuffering(false);
-          }).catch(() => {});
-        });
-      } else {
-        setIsPlaying(true);
-      }
+      vid.play().catch(() => {});
+    } else {
+      vid.pause();
     }
   };
 
-  const toggleAudio = (e) => {
-    e?.stopPropagation();
-    const vid = videoRef.current;
-    if (!vid) return;
-    const nextMuted = !isMuted;
-    vid.muted = nextMuted;
-    setIsMuted(nextMuted);
-  };
-
-  const isPromptOpen = activePromptId === video.id;
-
   return (
     <div
+      onClick={togglePlay}
       className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500 cursor-pointer"
       style={{
         transform: 'translateZ(0)',
@@ -137,152 +90,19 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
         poster={video.poster}
         autoPlay
         loop
-        muted={isMuted}
+        muted
         playsInline
         webkit-playsinline="true"
         x5-playsinline="true"
         preload="auto"
-        onWaiting={() => setIsBuffering(true)}
-        onPlaying={() => setIsBuffering(false)}
-        onCanPlay={() => setIsBuffering(false)}
-        onTimeUpdate={() => {
-          if (isBuffering) setIsBuffering(false);
-        }}
-        onClick={togglePlay}
-        className="w-full h-full object-cover cursor-pointer"
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
       />
-
-      {/* Video Overlay Gradient */}
-      <div 
-        onClick={togglePlay}
-        className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30 cursor-pointer pointer-events-auto" 
-      />
-
-      {/* Top Bar on Video */}
-      <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] font-semibold text-white">
-          {isBuffering ? (
-            <Loader2 className="w-2.5 h-2.5 animate-spin text-[#69FABD]" />
-          ) : (
-            <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
-          )}
-          <span>Harmony AI Video</span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={togglePlay}
-            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
-            title={isPlaying ? "Pausar video" : "Reproducir video"}
-            aria-label="Toggle Play/Pause"
-          >
-            {isBuffering ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#69FABD]" />
-            ) : isPlaying ? (
-              <Pause className="w-3.5 h-3.5 text-[#69FABD]" />
-            ) : (
-              <Play className="w-3.5 h-3.5 ml-0.5" />
-            )}
-          </button>
-          <button
-            onClick={toggleAudio}
-            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
-            title={isMuted ? t('showcase.playAudio') : t('showcase.muteAudio')}
-            aria-label="Toggle Foley Audio"
-          >
-            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#69FABD]" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Card Controls & Prompt Reveal Toggle */}
-      <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
-        <div className="flex items-center justify-between text-left bg-black/65 backdrop-blur-md p-2.5 rounded-2xl border border-white/15">
-          <div className="pr-2 truncate">
-            <h3 className="text-xs font-bold text-white truncate">{video.title}</h3>
-            <p className="text-[10px] text-slate-300 font-mono">{video.subtitle}</p>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setActivePromptId(isPromptOpen ? null : video.id);
-            }}
-            className="shrink-0 px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#00AEE9]/30 border border-white/25 text-[11px] font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
-          >
-            <Terminal className="w-3 h-3 text-[#69FABD]" />
-            <span>{isPromptOpen ? t('hero.promptToggleHide') : t('hero.promptToggleShow')}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Master Prompt Modal / Overlay on Card */}
-      <AnimatePresence>
-        {isPromptOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.25 }}
-            className="absolute inset-0 bg-[#070A0F]/95 backdrop-blur-xl p-4 sm:p-5 z-30 flex flex-col justify-between text-left"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
-                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#69FABD]">
-                  <Terminal className="w-3.5 h-3.5 text-[#00AEE9]" />
-                  <span>{t('hero.samplePromptTag')}</span>
-                </div>
-                <button
-                  onClick={() => setActivePromptId(null)}
-                  className="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-white/10 cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="text-[11px] leading-relaxed text-slate-200 font-mono bg-black/50 p-3 rounded-xl border border-white/10 max-h-52 overflow-y-auto">
-                <p className="text-[#00AEE9] mb-1 font-bold">[Timeline: 0-15s UHD]</p>
-                <p className="mb-2 select-all">{video.prompt}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-3 border-t border-white/10">
-              <button
-                onClick={() => onCopy(video.id, video.prompt)}
-                className="w-full py-2 px-3 rounded-xl bg-[#00AEE9]/20 hover:bg-[#00AEE9]/30 border border-[#00AEE9]/40 text-xs font-bold text-[#69FABD] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-              >
-                {copiedId === video.id ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{t('showcase.promptCopied')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{t('showcase.copyPrompt')}</span>
-                  </>
-                )}
-              </button>
-
-              <a
-                href="#prompt-vault"
-                onClick={() => setActivePromptId(null)}
-                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-xs font-bold text-[#070A0F] flex items-center justify-center gap-1.5 transition-all text-center"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{t('hero.secondaryCta')}</span>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
 const Hero = () => {
   const { t } = useTranslation();
-  const [activePromptId, setActivePromptId] = useState(null);
-  const [copiedId, setCopiedId] = useState(null);
   const [isHeroInView, setIsHeroInView] = useState(true);
   const heroRef = useRef(null);
 
@@ -301,12 +121,6 @@ const Hero = () => {
     observer.observe(hero);
     return () => observer.disconnect();
   }, []);
-
-  const handleCopy = (id, promptText) => {
-    navigator.clipboard.writeText(promptText);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
-  };
 
   const tickerItems = t('hero.ticker', { returnObjects: true }) || [
     "Harmony AI Video Engine",
@@ -401,12 +215,7 @@ const Hero = () => {
             <HeroVideoCard
               key={video.id}
               video={video}
-              activePromptId={activePromptId}
-              setActivePromptId={setActivePromptId}
-              copiedId={copiedId}
-              onCopy={handleCopy}
               isHeroInView={isHeroInView}
-              t={t}
             />
           ))}
         </motion.div>
