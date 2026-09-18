@@ -24,8 +24,44 @@ const HERO_VIDEOS = [
 
 const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, t }) => {
   const videoRef = useRef(null);
+  const cardRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const wasPlayingRef = useRef(true);
+
+  // Auto-pause when scrolled out of view to release hardware decoders for Showcase on mobile
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const vid = videoRef.current;
+        if (!vid) return;
+
+        if (!entry.isIntersecting) {
+          if (!vid.paused) {
+            wasPlayingRef.current = true;
+            vid.pause();
+            setIsPlaying(false);
+          }
+        } else {
+          if (wasPlayingRef.current) {
+            vid.muted = true;
+            vid.playsInline = true;
+            const p = vid.play();
+            if (p !== undefined) {
+              p.then(() => setIsPlaying(true)).catch(() => {});
+            }
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
 
   const togglePlay = (e) => {
     e?.stopPropagation();
@@ -33,9 +69,11 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
     if (!vid) return;
 
     if (isPlaying) {
+      wasPlayingRef.current = false;
       vid.pause();
       setIsPlaying(false);
     } else {
+      wasPlayingRef.current = true;
       vid.muted = isMuted;
       vid.defaultMuted = true;
       vid.playsInline = true;
@@ -64,6 +102,7 @@ const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onC
 
   return (
     <div
+      ref={cardRef}
       className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500"
       style={{
         transform: 'translateZ(0)',

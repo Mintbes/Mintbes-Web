@@ -170,36 +170,23 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
   const [isMuted, setIsMuted] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
   const videoRef = useRef(null);
-  const isPlayingRef = useRef(isPlaying);
-  isPlayingRef.current = isPlaying;
+  const cardRef = useRef(null);
 
-  // Pause if another card starts playing
+  // Auto-pause if scrolled far out of view (350px margin)
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (!isPlaying && !video.paused) {
-      video.pause();
-      setIsBuffering(false);
-    }
-  }, [isPlaying]);
-
-  // Robust mobile observer: only pause when scrolled 350px away from viewport
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    if (!isPlaying) return;
+    const card = cardRef.current;
+    if (!card) return;
 
     let initialCheckDone = false;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // Ignore the first callback on mount to avoid false-positive pause
           if (!initialCheckDone) {
             initialCheckDone = true;
             return;
           }
-          if (!entry.isIntersecting && isPlayingRef.current) {
-            video.pause();
+          if (!entry.isIntersecting) {
             setIsBuffering(false);
             onTogglePlay(null);
           }
@@ -208,51 +195,52 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
       { threshold: 0, rootMargin: '350px 0px 350px 0px' }
     );
 
-    observer.observe(video);
+    observer.observe(card);
     return () => observer.disconnect();
-  }, [onTogglePlay]);
+  }, [isPlaying, onTogglePlay]);
 
-  // Direct synchronous gesture call for iOS Safari / Chrome Mobile
-  const togglePlay = (e) => {
-    e?.stopPropagation();
+  // Watchdog recovery: if video is playing but stalled/buffered without time progression
+  useEffect(() => {
+    if (!isPlaying) return;
     const video = videoRef.current;
     if (!video) return;
 
+    let lastTime = video.currentTime;
+    const interval = setInterval(() => {
+      if (video.paused) return;
+      if (video.currentTime === lastTime && !video.ended) {
+        // Nudge playback if stalled
+        video.play().catch(() => {});
+      }
+      lastTime = video.currentTime;
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  const togglePlay = (e) => {
+    e?.stopPropagation();
     if (isPlaying) {
-      video.pause();
       setIsBuffering(false);
       onTogglePlay(null);
     } else {
-      video.muted = isMuted;
-      video.defaultMuted = true;
-      video.playsInline = true;
-
-      // Play synchronously within user touch gesture to prevent iOS/Android autoplay policy blocks
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          // If browser policy restricted unmuted playback, fallback to muted play
-          console.warn("Autoplay/play policy fallback:", err);
-          video.muted = true;
-          setIsMuted(true);
-          video.play().catch(() => {});
-        });
-      }
+      setIsBuffering(false);
       onTogglePlay(item.id);
     }
   };
 
   const toggleMute = (e) => {
     e?.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
     const nextMuted = !isMuted;
-    video.muted = nextMuted;
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted;
+    }
     setIsMuted(nextMuted);
   };
 
   return (
     <div
+      ref={cardRef}
       className="group relative flex flex-col aspect-[9/16] rounded-3xl overflow-hidden bg-[#0B0F17] border border-white/10 hover:border-[#00AEE9]/50 shadow-xl hover:shadow-[0_0_30px_rgba(0,174,233,0.25)] transition-all duration-500 cursor-pointer w-full max-w-[320px] sm:max-w-none mx-auto select-none"
       style={{
         transform: 'translateZ(0)',
@@ -260,31 +248,42 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         isolation: 'isolate'
       }}
     >
-      {/* Video Media Layer */}
-      <video
-        ref={videoRef}
-        src={item.src}
-        poster={item.poster}
-        loop
-        muted={isMuted}
-        playsInline
-        webkit-playsinline="true"
-        x5-playsinline="true"
-        preload="metadata"
-        onWaiting={() => setIsBuffering(true)}
-        onPlaying={() => setIsBuffering(false)}
-        onCanPlay={() => setIsBuffering(false)}
-        onTimeUpdate={() => {
-          if (isBuffering) setIsBuffering(false);
-        }}
-        onClick={togglePlay}
-        className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
-      />
+      {/* Media Layer: Active Hardware Video Decoder only when playing, Poster image when idle */}
+      {isPlaying ? (
+        <video
+          ref={videoRef}
+          src={item.src}
+          poster={item.poster}
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          preload="auto"
+          onWaiting={() => setIsBuffering(true)}
+          onPlaying={() => setIsBuffering(false)}
+          onCanPlay={() => setIsBuffering(false)}
+          onTimeUpdate={() => {
+            if (isBuffering) setIsBuffering(false);
+          }}
+          onClick={togglePlay}
+          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
+        />
+      ) : (
+        <img
+          src={item.poster}
+          alt={item.title}
+          loading="lazy"
+          onClick={togglePlay}
+          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
+        />
+      )}
 
       {/* Gradient Overlays */}
       <div 
         onClick={togglePlay}
-        className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/40" 
+        className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/40 pointer-events-auto" 
       />
 
       {/* Top Badges & Controls */}
