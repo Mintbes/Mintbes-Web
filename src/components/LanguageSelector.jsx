@@ -7,6 +7,8 @@ const LanguageSelector = () => {
   const currentLang = i18n.language ? i18n.language.substring(0, 2).toLowerCase() : 'en';
 
   const changeLanguage = (lng) => {
+    localStorage.setItem('mintbes_user_lang_manual', lng);
+    localStorage.setItem('i18nextLng', lng);
     i18n.changeLanguage(lng);
   };
 
