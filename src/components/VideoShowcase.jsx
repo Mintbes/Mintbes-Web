@@ -259,18 +259,6 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/40" 
       />
 
-      {/* Center Play Icon when Paused */}
-      {!isPlaying && (
-        <div 
-          onClick={togglePlay}
-          className="absolute inset-0 flex items-center justify-center pointer-events-auto"
-        >
-          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-black/65 backdrop-blur-md border border-[#00AEE9]/60 flex items-center justify-center text-white shadow-[0_0_25px_rgba(0,174,233,0.35)] group-hover:scale-110 group-hover:border-[#69FABD] group-hover:shadow-[0_0_30px_rgba(105,250,189,0.4)] transition-all duration-300">
-            <Play className="w-6 h-6 text-[#69FABD] fill-[#69FABD]/20 ml-0.5" />
-          </div>
-        </div>
-      )}
-
       {/* Top Badges & Controls */}
       <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-mono text-[#69FABD]">
