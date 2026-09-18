@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -270,10 +270,13 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         playsInline
         webkit-playsinline="true"
         x5-playsinline="true"
-        preload={isPlaying ? "auto" : "metadata"}
+        preload="metadata"
         onWaiting={() => setIsBuffering(true)}
         onPlaying={() => setIsBuffering(false)}
         onCanPlay={() => setIsBuffering(false)}
+        onTimeUpdate={() => {
+          if (isBuffering) setIsBuffering(false);
+        }}
         onClick={togglePlay}
         className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 pointer-events-auto"
       />
@@ -396,6 +399,10 @@ const VideoShowcase = () => {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const handleTogglePlay = useCallback((id) => {
+    setPlayingVideoId(id);
+  }, []);
+
   return (
     <section id="showcase" className="relative w-full py-24 bg-[#070A0F] text-white overflow-hidden">
       {/* Background Lighting */}
@@ -450,7 +457,7 @@ const VideoShowcase = () => {
               key={item.id}
               item={item}
               isPlaying={playingVideoId === item.id}
-              onTogglePlay={(id) => setPlayingVideoId(id)}
+              onTogglePlay={handleTogglePlay}
               onInspect={(selected) => {
                 setPlayingVideoId(null);
                 setSelectedItem(selected);
