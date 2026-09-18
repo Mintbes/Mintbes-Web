@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Clock, ExternalLink } from 'lucide-react';
+import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const SHOWCASE_ITEMS = [
@@ -365,17 +365,10 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
 const VideoShowcase = () => {
   const { t } = useTranslation();
-  const [workflowFilter, setWorkflowFilter] = useState('all'); // 'all', 'Text-to-Video', 'Image-to-Video'
   const [activeTab, setActiveTab] = useState('all');
   const [selectedItem, setSelectedItem] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [playingVideoId, setPlayingVideoId] = useState(null);
-
-  const workflowTabs = [
-    { id: 'all', label: t('showcase.workflowAll') || 'Todos los Flujos' },
-    { id: 'Text-to-Video', label: t('showcase.workflowT2V') || 'Text-to-Video', count: SHOWCASE_ITEMS.length, isLive: true },
-    { id: 'Image-to-Video', label: t('showcase.workflowI2V') || 'Image-to-Video (Roadmap)', isRoadmap: true },
-  ];
 
   const categories = [
     { id: 'all', label: t('showcase.filterAll') },
@@ -385,11 +378,9 @@ const VideoShowcase = () => {
     { id: 'motion', label: t('showcase.filterMotion') },
   ].filter(cat => cat.id === 'all' || SHOWCASE_ITEMS.some(item => item.category.includes(cat.id)));
 
-  const filteredItems = SHOWCASE_ITEMS.filter((item) => {
-    const matchesCategory = activeTab === 'all' || item.category.includes(activeTab);
-    const matchesWorkflow = workflowFilter === 'all' || item.workflow === workflowFilter;
-    return matchesCategory && matchesWorkflow;
-  });
+  const filteredItems = activeTab === 'all'
+    ? SHOWCASE_ITEMS
+    : SHOWCASE_ITEMS.filter((item) => item.category.includes(activeTab));
 
   const handleCopyPrompt = (id, prompt) => {
     navigator.clipboard.writeText(prompt);
@@ -424,118 +415,43 @@ const VideoShowcase = () => {
           </p>
         </div>
 
-        {/* Workflow Filter Pills (Point 1: Clasificación por Workflow) */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-6">
-          <div className="text-xs font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline-block">
-            Workflow:
-          </div>
-          {workflowTabs.map((wf) => {
-            const isSelected = workflowFilter === wf.id;
-            return (
-              <button
-                key={wf.id}
-                onClick={() => {
-                  setWorkflowFilter(wf.id);
-                  setPlayingVideoId(null);
-                }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                  isSelected
-                    ? 'bg-white/15 text-white border border-[#00AEE9]/60 shadow-[0_0_20px_rgba(0,174,233,0.25)] scale-102'
-                    : 'bg-[#0B0F17]/90 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white'
-                }`}
-              >
-                <span>{wf.label}</span>
-                {wf.isLive && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-[#69FABD]/20 text-[#69FABD] border border-[#69FABD]/30">
-                    Live ({wf.count})
-                  </span>
-                )}
-                {wf.isRoadmap && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    Próx.
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Category Filter Tabs */}
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-12 scrollbar-none">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => {
+                setActiveTab(cat.id);
+                setPlayingVideoId(null);
+              }}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer ${
+                activeTab === cat.id
+                  ? 'bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-[#070A0F] shadow-lg shadow-[#00AEE9]/20 scale-105'
+                  : 'bg-[#0B0F17]/80 text-slate-300 border border-white/10 hover:border-white/20 hover:text-white'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
-        {/* Category Filter Tabs (visible when not in roadmap-only tab) */}
-        {workflowFilter !== 'Image-to-Video' && (
-          <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-12 scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveTab(cat.id);
-                  setPlayingVideoId(null);
-                }}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer ${
-                  activeTab === cat.id
-                    ? 'bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-[#070A0F] shadow-lg shadow-[#00AEE9]/20 scale-105'
-                    : 'bg-[#0B0F17]/80 text-slate-300 border border-white/10 hover:border-white/20 hover:text-white'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Conditional Content: Roadmap View or 9:16 Bento Grid */}
-        {workflowFilter === 'Image-to-Video' ? (
-          <div className="max-w-2xl mx-auto my-12 p-8 rounded-3xl bg-[#0B0F17]/90 border border-[#00AEE9]/30 text-center shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#00AEE9]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="w-14 h-14 rounded-2xl bg-[#00AEE9]/15 border border-[#00AEE9]/30 flex items-center justify-center text-[#00AEE9] mx-auto mb-5 shadow-lg">
-              <Sparkles className="w-7 h-7 text-[#69FABD]" />
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-xs font-mono text-purple-300 mb-3">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Evolución en Preparación</span>
-            </div>
-            <h3 className="text-2xl font-bold text-white font-display mb-3">
-              {t('showcase.roadmapTitle')}
-            </h3>
-            <p className="text-sm text-slate-300 leading-relaxed mb-6">
-              {t('showcase.roadmapDesc')}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => setWorkflowFilter('all')}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-[#070A0F] font-bold text-xs sm:text-sm hover:opacity-95 transition-all cursor-pointer shadow-lg shadow-[#00AEE9]/20"
-              >
-                {t('showcase.backToT2V')}
-              </button>
-              <a
-                href="https://7.country/gov/t/BSxVEbuYuMKARGxM0oGUjfjWiyd7_Vsn"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs sm:text-sm border border-white/15 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Abrir Generador Harmony (7.country)</span>
-                <ExternalLink className="w-3.5 h-3.5 text-[#69FABD]" />
-              </a>
-            </div>
-          </div>
-        ) : (
-          /* 9:16 Bento Grid - Curated Native Videos */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 max-w-7xl mx-auto mb-14">
-            {filteredItems.map((item) => (
-              <VideoCard
-                key={item.id}
-                item={item}
-                isPlaying={playingVideoId === item.id}
-                onTogglePlay={(id) => setPlayingVideoId(id)}
-                onInspect={(selected) => {
-                  setPlayingVideoId(null);
-                  setSelectedItem(selected);
-                }}
-                onCopyPrompt={handleCopyPrompt}
-                copiedId={copiedId}
-              />
-            ))}
-          </div>
-        )}
+        {/* 9:16 Bento Grid - Curated Native Videos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 max-w-7xl mx-auto mb-14">
+          {filteredItems.map((item) => (
+            <VideoCard
+              key={item.id}
+              item={item}
+              isPlaying={playingVideoId === item.id}
+              onTogglePlay={(id) => setPlayingVideoId(id)}
+              onInspect={(selected) => {
+                setPlayingVideoId(null);
+                setSelectedItem(selected);
+              }}
+              onCopyPrompt={handleCopyPrompt}
+              copiedId={copiedId}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Lightbox Modal for Prompt Breakdown */}
