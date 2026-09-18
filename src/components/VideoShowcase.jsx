@@ -425,7 +425,7 @@ const VideoShowcase = () => {
   }, []);
 
   return (
-    <section id="showcase" className="relative w-full py-24 bg-[#070A0F] text-white overflow-hidden">
+    <section id="showcase" className="relative w-full pt-16 sm:pt-20 pb-10 sm:pb-12 bg-[#070A0F] text-white overflow-hidden">
       {/* Background Lighting */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#00AEE9]/5 rounded-full blur-[160px] pointer-events-none max-w-full" />
       <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
@@ -452,7 +452,7 @@ const VideoShowcase = () => {
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-12 scrollbar-none">
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -472,7 +472,7 @@ const VideoShowcase = () => {
         </div>
 
         {/* 9:16 Bento Grid - Curated Native Videos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 max-w-7xl mx-auto mb-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 max-w-7xl mx-auto mb-0">
           {filteredItems.map((item) => (
             <VideoCard
               key={item.id}

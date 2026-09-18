@@ -16,7 +16,7 @@ const PromptVault = () => {
   ];
 
   return (
-    <section id="prompt-vault" className="relative w-full py-24 bg-[#0B0F17] text-white border-t border-white/10 overflow-hidden">
+    <section id="prompt-vault" className="relative w-full pt-10 sm:pt-12 pb-20 sm:pb-24 bg-[#0B0F17] text-white border-t border-white/10 overflow-hidden">
       {/* Glow Effects */}
       <div className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-[#00AEE9]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
       <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-[#69FABD]/5 rounded-full blur-[140px] pointer-events-none max-w-full" />
@@ -24,7 +24,7 @@ const PromptVault = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#070A0F] border border-[#00AEE9]/30 text-xs font-mono text-[#69FABD] mb-4 shadow-sm">
             <Terminal className="w-3.5 h-3.5 text-[#00AEE9]" />
             <span>{t('promptVault.badge')}</span>
