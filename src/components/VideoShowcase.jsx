@@ -273,15 +273,9 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
       {/* Top Badges & Controls */}
       <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
-        <div className="flex items-center gap-1.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-mono text-[#69FABD]">
-            <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
-            <span>{item.duration}</span>
-          </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-[#00AEE9]/30 text-[9px] font-mono text-cyan-300">
-            <Type className="w-2.5 h-2.5 text-[#00AEE9]" />
-            <span>{item.workflow || 'Text-to-Video'}</span>
-          </span>
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] font-mono text-[#69FABD]">
+          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
+          <span>{item.duration}</span>
         </div>
 
         <div className="flex items-center gap-1.5">
