@@ -3,62 +3,215 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Play, Pause, Volume2, VolumeX, Copy, Check, Terminal, ShieldCheck, Film, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const Hero = () => {
-  const { t } = useTranslation();
-  const [showPromptOverlay, setShowPromptOverlay] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [copied, setCopied] = useState(false);
+const HERO_VIDEOS = [
+  {
+    id: 'walking-in-harmony',
+    title: 'Walking in Harmony',
+    subtitle: '15s Native 9:16 UHD',
+    src: 'videosAI/compressed/walking.mp4',
+    poster: 'videosAI/walking_poster.jpg',
+    prompt: '0-5s: Medium-full vertical shot of an enigmatic figure walking calmly down a rainy neon-lit street in Neo-Kyoto. 5-10s: Slow gimbal dolly back as puddles reflect prismatic cyan and emerald holographic billboards. 10-15s: Subtle head turn toward camera, soft natural lens flare, Kodak Vision3 color grading, photorealistic micro-textures on damp jacket. Sound: rhythmic footsteps on wet asphalt, distant muffled synth drone, gentle rain patter on nylon jacket.'
+  },
+  {
+    id: 'sylvan-elven-archer',
+    title: 'Sylvan Elven Archer',
+    subtitle: '15s Native 9:16 UHD',
+    src: 'videosAI/compressed/obkqvw1fhq.mp4',
+    poster: 'videosAI/obkqvw1fhq_poster.jpg',
+    prompt: '0-5s: Extreme cinematic close-up of a silver-haired elven archer with sharp piercing green eyes, drawing a recurve bow in an enchanted sun-dappled forest. 5-10s: Micro-focus on her fingers gripping the bowstring and arrow nock, tension building with photorealistic skin micro-textures, freckles, and soft wind rustling fine white hair strands. 10-15s: Smooth release of the arrow, subtle camera recoil, intense focused stare, shallow depth of field with soft bokeh background. Sound: creaking bowstring wood tension, soft forest breeze, sharp whoosh on arrow release, distant bird call.'
+  }
+];
+
+const HeroVideoCard = ({ video, activePromptId, setActivePromptId, copiedId, onCopy, t }) => {
   const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
 
-  const samplePrompt = t('hero.samplePromptText');
+  const togglePlay = (e) => {
+    e?.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = isMuted;
-    video.defaultMuted = true;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            video.play().then(() => setIsPlaying(true)).catch(() => {});
-          } else {
-            video.pause();
-            setIsPlaying(false);
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, [isMuted]);
-
-  const togglePlay = () => {
-    if (!videoRef.current) return;
     if (isPlaying) {
-      videoRef.current.pause();
+      vid.pause();
       setIsPlaying(false);
     } else {
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      vid.muted = isMuted;
+      vid.defaultMuted = true;
+      vid.playsInline = true;
+      const p = vid.play();
+      if (p !== undefined) {
+        p.then(() => setIsPlaying(true)).catch((err) => {
+          console.warn("Hero video play error:", err);
+          vid.muted = true;
+          setIsMuted(true);
+          vid.play().then(() => setIsPlaying(true)).catch(() => {});
+        });
+      }
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(samplePrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  const toggleAudio = (e) => {
+    e?.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
+    const nextMuted = !isMuted;
+    vid.muted = nextMuted;
+    setIsMuted(nextMuted);
   };
 
-  const toggleAudio = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
-    }
+  const isPromptOpen = activePromptId === video.id;
+
+  return (
+    <div
+      className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500"
+      style={{
+        transform: 'translateZ(0)',
+        WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+        isolation: 'isolate'
+      }}
+    >
+      <video
+        ref={videoRef}
+        src={video.src}
+        poster={video.poster}
+        autoPlay
+        loop
+        muted={isMuted}
+        playsInline
+        webkit-playsinline="true"
+        x5-playsinline="true"
+        preload="metadata"
+        onClick={togglePlay}
+        className="w-full h-full object-cover cursor-pointer"
+      />
+
+      {/* Video Overlay Gradient */}
+      <div 
+        onClick={togglePlay}
+        className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30 cursor-pointer pointer-events-auto" 
+      />
+
+      {/* Top Bar on Video */}
+      <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] font-semibold text-white">
+          <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#69FABD] animate-ping' : 'bg-[#00AEE9]'}`} />
+          <span>Harmony AI Video</span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={togglePlay}
+            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
+            title={isPlaying ? "Pausar video" : "Reproducir video"}
+            aria-label="Toggle Play/Pause"
+          >
+            {isPlaying ? <Pause className="w-3.5 h-3.5 text-[#69FABD]" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+          </button>
+          <button
+            onClick={toggleAudio}
+            className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
+            title={isMuted ? t('showcase.playAudio') : t('showcase.muteAudio')}
+            aria-label="Toggle Foley Audio"
+          >
+            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#69FABD]" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Card Controls & Prompt Reveal Toggle */}
+      <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
+        <div className="flex items-center justify-between text-left bg-black/65 backdrop-blur-md p-2.5 rounded-2xl border border-white/15">
+          <div className="pr-2 truncate">
+            <h3 className="text-xs font-bold text-white truncate">{video.title}</h3>
+            <p className="text-[10px] text-slate-300 font-mono">{video.subtitle}</p>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActivePromptId(isPromptOpen ? null : video.id);
+            }}
+            className="shrink-0 px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#00AEE9]/30 border border-white/25 text-[11px] font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
+          >
+            <Terminal className="w-3 h-3 text-[#69FABD]" />
+            <span>{isPromptOpen ? t('hero.promptToggleHide') : t('hero.promptToggleShow')}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Master Prompt Modal / Overlay on Card */}
+      <AnimatePresence>
+        {isPromptOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 bg-[#070A0F]/95 backdrop-blur-xl p-4 sm:p-5 z-30 flex flex-col justify-between text-left"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#69FABD]">
+                  <Terminal className="w-3.5 h-3.5 text-[#00AEE9]" />
+                  <span>{t('hero.samplePromptTag')}</span>
+                </div>
+                <button
+                  onClick={() => setActivePromptId(null)}
+                  className="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-white/10 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="text-[11px] leading-relaxed text-slate-200 font-mono bg-black/50 p-3 rounded-xl border border-white/10 max-h-52 overflow-y-auto">
+                <p className="text-[#00AEE9] mb-1 font-bold">[Timeline: 0-15s UHD]</p>
+                <p className="mb-2 select-all">{video.prompt}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-white/10">
+              <button
+                onClick={() => onCopy(video.id, video.prompt)}
+                className="w-full py-2 px-3 rounded-xl bg-[#00AEE9]/20 hover:bg-[#00AEE9]/30 border border-[#00AEE9]/40 text-xs font-bold text-[#69FABD] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                {copiedId === video.id ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{t('showcase.promptCopied')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{t('showcase.copyPrompt')}</span>
+                  </>
+                )}
+              </button>
+
+              <a
+                href="#prompt-vault"
+                onClick={() => setActivePromptId(null)}
+                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-xs font-bold text-[#070A0F] flex items-center justify-center gap-1.5 transition-all text-center"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{t('hero.secondaryCta')}</span>
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const Hero = () => {
+  const { t } = useTranslation();
+  const [activePromptId, setActivePromptId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopy = (id, promptText) => {
+    navigator.clipboard.writeText(promptText);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
   const tickerItems = t('hero.ticker', { returnObjects: true }) || [
@@ -143,151 +296,24 @@ const Hero = () => {
           </a>
         </motion.div>
 
-        {/* 9:16 Video Showcase Centerpiece */}
+        {/* 9:16 Video Showcase Centerpiece - Dual Showcase */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-5xl mx-auto mb-10 flex justify-center relative"
+          className="w-full max-w-5xl mx-auto mb-10 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 relative"
         >
-          {/* Center Card: Interactive 9:16 Video Player */}
-          <div className="w-[84vw] max-w-[320px] sm:w-80 lg:w-[350px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/50 shadow-[0_0_50px_rgba(0,174,233,0.35)] bg-[#0B0F17] relative z-20 group cursor-pointer select-none">
-            <video
-              ref={videoRef}
-              src="videosAI/compressed/walking.mp4"
-              poster="hero-bq.jpg"
-              autoPlay
-              loop
-              muted={isMuted}
-              playsInline
-              preload="metadata"
-              onClick={togglePlay}
-              className="w-full h-full object-cover"
+          {HERO_VIDEOS.map((video) => (
+            <HeroVideoCard
+              key={video.id}
+              video={video}
+              activePromptId={activePromptId}
+              setActivePromptId={setActivePromptId}
+              copiedId={copiedId}
+              onCopy={handleCopy}
+              t={t}
             />
-
-            {/* Video Overlay Gradient */}
-            <div 
-              onClick={togglePlay}
-              className="absolute inset-0 bg-gradient-to-t from-[#070A0F] via-transparent to-black/30" 
-            />
-
-            {/* Center Play Icon when Paused */}
-            {!isPlaying && (
-              <div 
-                onClick={togglePlay}
-                className="absolute inset-0 flex items-center justify-center pointer-events-auto"
-              >
-                <div className="w-14 h-14 rounded-full bg-black/70 backdrop-blur-md border border-[#00AEE9]/50 flex items-center justify-center text-white shadow-2xl animate-in zoom-in-75 duration-200">
-                  <Play className="w-6 h-6 text-[#69FABD] ml-0.5" />
-                </div>
-              </div>
-            )}
-
-            {/* Top Bar on Video */}
-            <div className="absolute top-3 left-3 right-3 sm:top-3.5 sm:left-3.5 sm:right-3.5 flex items-center justify-between z-10 pointer-events-auto">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[10px] sm:text-[11px] font-semibold text-white">
-                <span className="w-2 h-2 rounded-full bg-[#00AEE9] animate-pulse" />
-                <span>Harmony AI Video</span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePlay();
-                  }}
-                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                  title={isPlaying ? "Pausar video" : "Reproducir video"}
-                  aria-label="Toggle Play/Pause"
-                >
-                  {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleAudio();
-                  }}
-                  className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                  title={isMuted ? t('showcase.playAudio') : t('showcase.muteAudio')}
-                  aria-label="Toggle Foley Audio"
-                >
-                  {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#69FABD]" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Card Controls & Prompt Reveal Toggle */}
-            <div className="absolute bottom-3 left-3 right-3 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 space-y-2 pointer-events-auto">
-              <div className="flex items-center justify-between text-left bg-black/60 backdrop-blur-md p-2.5 rounded-2xl border border-white/15">
-                <div>
-                  <h3 className="text-xs font-bold text-white">Walking in Harmony</h3>
-                  <p className="text-[10px] text-slate-300 font-mono">15s Native 9:16 UHD</p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPromptOverlay(!showPromptOverlay);
-                  }}
-                  className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-[#00AEE9]/30 border border-white/25 text-[11px] font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
-                >
-                  <Terminal className="w-3 h-3 text-[#69FABD]" />
-                  <span>{showPromptOverlay ? t('hero.promptToggleHide') : t('hero.promptToggleShow')}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Master Prompt Modal / Overlay on Card */}
-            <AnimatePresence>
-              {showPromptOverlay && (
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 30 }}
-                  transition={{ duration: 0.25 }}
-                  className="absolute inset-0 bg-[#070A0F]/92 backdrop-blur-xl p-5 z-30 flex flex-col justify-between text-left"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
-                      <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#69FABD]">
-                        <Terminal className="w-3.5 h-3.5 text-[#00AEE9]" />
-                        <span>{t('hero.samplePromptTag')}</span>
-                      </div>
-                      <button
-                        onClick={() => setShowPromptOverlay(false)}
-                        className="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-white/10"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="text-[11px] leading-relaxed text-slate-200 font-mono bg-black/50 p-3 rounded-xl border border-white/10 max-h-56 overflow-y-auto">
-                      <p className="text-[#00AEE9] mb-1 font-bold">[Temporal Timeline: 0-15s]</p>
-                      <p className="mb-2">{samplePrompt}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-3 border-t border-white/10">
-                    <button
-                      onClick={handleCopy}
-                      className="w-full py-2 px-3 rounded-xl bg-[#00AEE9]/20 hover:bg-[#00AEE9]/30 border border-[#00AEE9]/40 text-xs font-bold text-[#69FABD] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? t('showcase.promptCopied') : t('showcase.copyPrompt')}</span>
-                    </button>
-
-                    <a
-                      href="#prompt-vault"
-                      onClick={() => setShowPromptOverlay(false)}
-                      className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#00AEE9] to-[#69FABD] text-xs font-bold text-[#070A0F] flex items-center justify-center gap-1.5 transition-all"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{t('hero.secondaryCta')}</span>
-                    </a>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          ))}
         </motion.div>
 
       </div>
