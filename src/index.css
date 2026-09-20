@@ -113,3 +113,12 @@
 .preserve-3d {
   transform-style: preserve-3d;
 }
+
+/* Ensure 9:16 vertical videos maintain full aspect ratio without cropping when maximized in fullscreen */
+video:fullscreen,
+video:-webkit-full-screen,
+video:-moz-full-screen,
+video:-ms-fullscreen {
+  object-fit: contain !important;
+  background-color: #000000 !important;
+}

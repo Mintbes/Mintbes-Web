@@ -520,7 +520,7 @@ const VideoShowcase = () => {
                       muted
                       playsInline
                       controls
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain bg-black"
                     />
                   </div>
                 </div>
