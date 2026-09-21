@@ -203,6 +203,26 @@ const SHOWCASE_ITEMS = [
       cinematography: 'Arri Alexa 65 35mm Anamorphic, high-contrast chiaroscuro lighting from lightning and fiery battlefield braziers, atmospheric smoke and particle embers, intense slow-motion dramatic push-in.',
       sound: 'Guttural warrior roar, thunderous lightning crash, heavy iron chain rattles, crackling battlefield flames.'
     }
+  },
+  {
+    id: 'asado-argentino-pampa',
+    title: 'Asado Argentino Pampa Fire',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion'],
+    type: 'video',
+    src: 'videosAI/compressed/asado_argentino_30s_cut.mp4',
+    poster: 'videosAI/asado_argentino_poster.jpg',
+    duration: '30s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Pampa Asado', 'Tomahawk Grill', 'Foley Audio'],
+    prompt: '0-10s: Extreme close-up of a rustic outdoor Argentine asado grill during golden hour sunset on the open Pampa grasslands. Tongs gently arrange succulent artisanal chorizos over glowing red-hot coals as a chef bastes a thick, bone-in tomahawk ribeye steak using a fresh rosemary sprig dripping with green chimichurri herb oil. 10-20s: Dramatic slow-motion macro as rendered juices drip into the embers, flaring up amber flames and aromatic white smoke curls across the sizzling charred meat. The asador lifts a grilled rack of ribs with exposed bones directly from the iron grate. 20-30s: On a weathered wooden cutting board sprinkled with coarse flaky sea salt crystals, a hammered chef knife cleanly carves tender medium-rare pink slices. Metal tongs lift a steaming, glistening steak slice toward the setting sun as savory juices run across the wood. Sound: intense grill sizzle, popping charcoal embers, slicing knife against cutting board, metal tong clicks, gentle evening grassland breeze.',
+    breakdown: {
+      timing05: 'Extreme close-up of a rustic outdoor Argentine asado grill during golden hour sunset on the open Pampa grasslands with chorizos and tomahawk ribeye.',
+      timing510: 'A chef bastes the sizzling steak with a fresh rosemary sprig dripping with chimichurri herb oil as fat sizzles, lifting a rack of ribs from the fire.',
+      timing1015: 'On a rustic cutting board sprinkled with flaky sea salt, a hammered knife slices tender pink meat, and tongs lift a steaming juicy slice against the setting sun.',
+      cinematography: '50mm T1.4 macro cine lens, natural low-angle golden-hour sunset backlighting, glowing coal embers, tactile meat textures and glistening fat reflections.',
+      sound: 'Intense grill sizzle, popping charcoal embers, slicing knife against cutting board, metal tong clicks, gentle evening grassland breeze.'
+    }
   }
 ];
 
