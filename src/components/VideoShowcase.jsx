@@ -183,6 +183,26 @@ const SHOWCASE_ITEMS = [
       cinematography: 'Arri Alexa Mini LF 40mm T1.8, warm underground torchlight and brazier fire embers, high-speed combat shutter, tactile wood and metal debris physics.',
       sound: 'Heavy metallic clashing impact, splintering wooden shield fracture, guttural dwarven roar, crackling dungeon braziers.'
     }
+  },
+  {
+    id: 'spartan-war-cry',
+    title: 'Spartan War Cry',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion', 'scifi'],
+    type: 'video',
+    src: 'videosAI/compressed/g67f9pprdg.mp4',
+    poster: 'videosAI/g67f9pprdg_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Spartan Fury', 'Battlefield Thunder', 'Foley Audio'],
+    prompt: '0-5s: Medium shot of a fierce, heavily muscled Spartan warrior standing on a smoldering ancient battlefield amidst burning debris and battlefield smoke, ash-white skin marked with crimson war paint, lion-crested golden pauldron, and heavy iron chains wrapping around his arms holding curved runic blades. 5-10s: Menacing thunderclouds gather overhead as a crack of lightning illuminates his chiseled physique and determined scowl, preparing his weapons as embers swirl around him. 10-15s: With primal fury, he raises both glowing runic curved blades high toward the tempestuous sky, roaring an earth-shattering battle cry as lightning strikes in the stormy backdrop with photorealistic muscle tension and rain mist. Sound: guttural warrior roar, thunderous lightning crash, heavy iron chain rattles, crackling battlefield flames.',
+    breakdown: {
+      timing05: 'Medium shot of a fierce, heavily muscled Spartan warrior standing on a smoldering ancient battlefield amidst burning debris and battlefield smoke, ash-white skin marked with crimson war paint, lion-crested golden pauldron, and heavy iron chains wrapping around his arms holding curved runic blades.',
+      timing510: 'Menacing thunderclouds gather overhead as a crack of lightning illuminates his chiseled physique and determined scowl, preparing his weapons as embers swirl around him.',
+      timing1015: 'With primal fury, he raises both glowing runic curved blades high toward the tempestuous sky, roaring an earth-shattering battle cry as lightning strikes in the stormy backdrop with photorealistic muscle tension and rain mist.',
+      cinematography: 'Arri Alexa 65 35mm Anamorphic, high-contrast chiaroscuro lighting from lightning and fiery battlefield braziers, atmospheric smoke and particle embers, intense slow-motion dramatic push-in.',
+      sound: 'Guttural warrior roar, thunderous lightning crash, heavy iron chain rattles, crackling battlefield flames.'
+    }
   }
 ];
 
