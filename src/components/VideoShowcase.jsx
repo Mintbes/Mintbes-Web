@@ -125,6 +125,26 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
+    id: 'kyoto-twilight-reverie',
+    title: 'Kyoto Twilight Reverie',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'fashion'],
+    type: 'video',
+    src: 'videosAI/compressed/g0vkuwx06o.mp4',
+    poster: 'videosAI/g0vkuwx06o_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Kyoto Twilight', 'Silk Kimono', 'Foley Audio'],
+    prompt: '0-5s: Medium close-up of a graceful young woman in traditional Japanese geisha attire standing in a historic Gion Kyoto street at night, dressed in an ornate navy blue silk kimono with gold floral embroidery and golden kanzashi hair ornaments. 5-10s: Ambient warm glowing paper lanterns illuminate the twilight background as she gently turns toward the camera, her delicate porcelain complexion and refined gaze radiating quiet composure. 10-15s: She gracefully raises an intricately painted Japanese folding fan adorned with cherry blossoms up to her lips, offering a subtle enigmatic smile as warm bokeh glimmers behind her. Sound: soft traditional shamisen notes, distant gentle festival murmurs, subtle rustle of silk fabric, calm evening breeze.',
+    breakdown: {
+      timing05: 'Medium close-up of a graceful young woman in traditional Japanese geisha attire standing in a historic Gion Kyoto street at night, dressed in an ornate navy blue silk kimono with gold floral embroidery and golden kanzashi hair ornaments.',
+      timing510: 'Ambient warm glowing paper lanterns illuminate the twilight background as she gently turns toward the camera, her delicate porcelain complexion and refined gaze radiating quiet composure.',
+      timing1015: 'She gracefully raises an intricately painted Japanese folding fan adorned with cherry blossoms up to her lips, offering a subtle enigmatic smile as warm bokeh glimmers behind her.',
+      cinematography: 'Cooke Anamorphic 50mm T1.8, warm tungsten paper lantern illumination, soft circular background bokeh, shallow depth of field, rich silk embroidery micro-textures.',
+      sound: 'Soft traditional shamisen notes, distant gentle festival murmurs, subtle rustle of silk fabric, calm evening breeze.'
+    }
+  },
+  {
     id: 'autumn-couture-creator',
     title: 'Autumn Couture Creator',
     workflow: 'Text-to-Video',
