@@ -54,7 +54,9 @@
     "workflowI2V": "Image-to-Video (Roadmap)",
     "roadmapTitle": "Workflow en Hoja de Ruta",
     "roadmapDesc": "Actualmente el generador oficial de Harmony opera exclusivamente mediante prompts textuales (Text-to-Video). Esta sección integrará la generación a partir de imágenes de referencia y NFTs en cuanto el motor de Harmony lo active.",
-    "backToT2V": "Explorar Text-to-Video Activo"
+    "backToT2V": "Explorar Text-to-Video Activo",
+    "youtubeChannel": "Canal Oficial YouTube Shorts (@mintbes6411)",
+    "watchOnYoutube": "Ver en YouTube Shorts"
   },
   "promptVault": {
     "badge": "Ingeniería de Prompts",
@@ -144,6 +146,7 @@
     "ecosystem": "Ecosistema y Enlaces",
     "officialAnnouncement": "Aviso Oficial de Transición",
     "xProfile": "Seguir a @MintbuilderES en X",
+    "youtubeChannel": "Canal de YouTube @mintbes6411",
     "launchStudio": "AI Video Showcase",
     "copyright": "2026 Mintbes. Gobernador Oficial de Harmony. Todos los derechos reservados.",
     "designedFor": "Pioneros de la Revolución de Video IA de Harmony."

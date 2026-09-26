@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Youtube } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 
@@ -53,6 +53,17 @@ const Navbar = ({ onOpenDashboard }) => {
 
         {/* Desktop Action & Language */}
         <div className="hidden md:flex items-center gap-3">
+          <a
+            href="https://www.youtube.com/@mintbes6411"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-[#0B0F17]/80 hover:bg-red-600/15 border border-white/10 hover:border-red-500/40 backdrop-blur-md transition-all duration-300 group cursor-pointer"
+            title="Canal YouTube Shorts @mintbes6411"
+            aria-label="Mintbes YouTube"
+          >
+            <Youtube className="w-3.5 h-3.5 text-red-500 group-hover:scale-110 transition-transform" />
+            <span className="tracking-wide">YouTube</span>
+          </a>
           <button
             onClick={onOpenDashboard}
             className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-200 hover:text-white bg-[#0B0F17]/80 hover:bg-[#00AEE9]/15 border border-[#00AEE9]/40 hover:border-[#00AEE9]/80 backdrop-blur-md transition-all duration-300 shadow-sm hover:shadow-[0_0_15px_rgba(0,174,233,0.25)] cursor-pointer"
@@ -66,6 +77,16 @@ const Navbar = ({ onOpenDashboard }) => {
 
         {/* Mobile Hamburger & Language */}
         <div className="flex md:hidden items-center gap-1.5 sm:gap-2 shrink-0">
+          <a
+            href="https://www.youtube.com/@mintbes6411"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 sm:p-2 rounded-xl bg-white/5 border border-white/10 text-red-500 hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
+            title="YouTube Shorts"
+            aria-label="Mintbes YouTube"
+          >
+            <Youtube className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+          </a>
           <button
             onClick={onOpenDashboard}
             className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold text-slate-200 bg-[#0B0F17]/80 border border-[#00AEE9]/40 active:scale-95 transition-all"
@@ -111,6 +132,16 @@ const Navbar = ({ onOpenDashboard }) => {
               </span>
               <span className="text-xs font-mono text-slate-400">Portal</span>
             </button>
+
+            <a
+              href="https://www.youtube.com/@mintbes6411"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-white bg-red-600/15 border border-red-500/30 flex items-center justify-center gap-2 transition-all hover:bg-red-600/25"
+            >
+              <Youtube className="w-4 h-4 text-red-500" />
+              <span>Canal YouTube Shorts (@mintbes6411)</span>
+            </a>
           </div>
         </div>
       )}

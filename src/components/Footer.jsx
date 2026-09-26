@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Copyright, ShieldCheck, Sparkles, Film, Terminal, Layers } from 'lucide-react';
+import { ExternalLink, Copyright, ShieldCheck, Sparkles, Film, Terminal, Layers, Youtube } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -47,9 +47,20 @@ const Footer = ({ onOpenDashboard }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-full bg-[#0B0F17] border border-white/10 text-slate-300 hover:text-white hover:border-[#00AEE9]/40 hover:bg-[#00AEE9]/15 transition-all"
-              aria-label="Mintbes Twitter"
+              aria-label={t('footer.xProfile') || "Mintbes Twitter"}
+              title="Mintbes en X (@MintbuilderES)"
             >
               <XIcon className="w-4 h-4" />
+            </a>
+            <a
+              href="https://www.youtube.com/@mintbes6411"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-full bg-[#0B0F17] border border-white/10 text-slate-300 hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/10 transition-all group"
+              aria-label={t('footer.youtubeChannel') || "Mintbes YouTube Shorts"}
+              title="Canal de YouTube @mintbes6411"
+            >
+              <Youtube className="w-4 h-4 text-slate-300 group-hover:text-red-500 transition-colors" />
             </a>
             <a
               href="#showcase"

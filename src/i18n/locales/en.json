@@ -54,7 +54,9 @@
     "workflowI2V": "Image-to-Video (Roadmap)",
     "roadmapTitle": "Roadmap Workflow",
     "roadmapDesc": "Harmony's official AI video generator currently operates exclusively via text prompts (Text-to-Video). Image and NFT reference workflows are staged here and will activate as soon as the Harmony engine enables image inputs.",
-    "backToT2V": "Explore Active Text-to-Video"
+    "backToT2V": "Explore Active Text-to-Video",
+    "youtubeChannel": "Official YouTube Shorts Channel (@mintbes6411)",
+    "watchOnYoutube": "Watch on YouTube Shorts"
   },
   "promptVault": {
     "badge": "Prompt Engineering Mastery",
@@ -144,6 +146,7 @@
     "ecosystem": "Ecosystem & Links",
     "officialAnnouncement": "Official Transition Notice",
     "xProfile": "Follow @MintbuilderES on X",
+    "youtubeChannel": "YouTube Channel @mintbes6411",
     "launchStudio": "AI Video Showcase",
     "copyright": "2026 Mintbes. Official Harmony Governor. All rights reserved.",
     "designedFor": "Pioneering Harmony's AI Video Revolution."
