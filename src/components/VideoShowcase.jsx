@@ -223,6 +223,26 @@ const SHOWCASE_ITEMS = [
       cinematography: '50mm T1.4 macro cine lens, natural low-angle golden-hour sunset backlighting, glowing coal embers, tactile meat textures and glistening fat reflections.',
       sound: 'Intense grill sizzle, popping charcoal embers, slicing knife against cutting board, metal tong clicks, gentle evening grassland breeze.'
     }
+  },
+  {
+    id: 'victorian-sorcerer-saga',
+    title: 'Victorian Sorcerer & The Shadow Beast',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'scifi', 'motion'],
+    type: 'video',
+    src: 'videosAI/compressed/mago_londres_saga_45s_cut.mp4',
+    poster: 'videosAI/mago_londres_saga_poster.jpg',
+    duration: '45s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Victorian London', 'Arcane Portal', 'Foley Audio'],
+    prompt: '0-15s Victorian London Alley & Arcane Incantation: Twilight mist cloaks a cobblestone street beneath flickering gas lamps. A distinguished sorcerer in an embroidered navy frock coat walks forward, stops, and raises his hands, speaking with clear lip sync: “In one unbroken gesture...” as cyan magical energy gathers between his palms. 15-30s Spinning Runic Portal & Dimensional Step: From behind, he raises both hands conjuring a massive spinning circular portal of glowing ancient glyphs; a dramatic close-up reveals his piercing gaze before he steps into the vortex and dissolves into pure light. 30-45s Arrival of the Shadow Chimera: The alley falls silent, then a sleek, terrifying quadrupedal shadow beast with glossy black hide and glowing blue eyes creeps from the dark doorway, prowling heavily across wet cobblestones and exhaling vapor under the lantern before lunging forward. Sound: spoken English dialogue, humming arcane energy, portal whoosh, heavy creature footfalls and guttural breathing.',
+    breakdown: {
+      timing05: 'A distinguished sorcerer walks down a foggy Victorian cobblestone alley beneath gas lamps and chants “In one unbroken gesture...” as arcane cyan sparks gather between his hands.',
+      timing510: 'He raises both arms to conjure a massive spinning runic portal of glowing ancient glyphs, turns dramatically, and steps through the vortex dissolving into light.',
+      timing1015: 'A sleek, menacing quadrupedal shadow beast with glossy dark hide and luminous eyes stalks from the doorway across wet cobblestones, breathing mist under the gas lamp.',
+      cinematography: 'Arri Alexa 65 35mm Anamorphic, Victorian gaslight and volumetric fog, glowing cyan arcane lighting, slow cinematic push-in and creature reveal.',
+      sound: 'Spoken English dialogue line, high-frequency arcane portal resonance, heavy creature footsteps, deep guttural breathing and damp street acoustics.'
+    }
   }
 ];
 
@@ -644,19 +664,19 @@ const VideoShowcase = () => {
                       <div className="space-y-2.5 text-xs font-sans">
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-[#69FABD] font-bold block mb-1">
-                            {selectedItem.duration === '30s' ? '⏱ 0–10s Establishing:' : '⏱ 0–5s Establishing:'}
+                            {selectedItem.duration === '45s' ? '⏱ 0–15s Establishing:' : selectedItem.duration === '30s' ? '⏱ 0–10s Establishing:' : '⏱ 0–5s Establishing:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing05}</span>
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-[#00AEE9] font-bold block mb-1">
-                            {selectedItem.duration === '30s' ? '⚡ 10–20s Dynamic Motion:' : '⚡ 5–10s Dynamic Motion:'}
+                            {selectedItem.duration === '45s' ? '⚡ 15–30s Dynamic Motion:' : selectedItem.duration === '30s' ? '⚡ 10–20s Dynamic Motion:' : '⚡ 5–10s Dynamic Motion:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing510}</span>
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                           <span className="font-mono text-purple-400 font-bold block mb-1">
-                            {selectedItem.duration === '30s' ? '✨ 20–30s Climax & Texture:' : '✨ 10–15s Climax & Texture:'}
+                            {selectedItem.duration === '45s' ? '✨ 30–45s Climax & Texture:' : selectedItem.duration === '30s' ? '✨ 20–30s Climax & Texture:' : '✨ 10–15s Climax & Texture:'}
                           </span>
                           <span className="text-slate-300">{selectedItem.breakdown.timing1015}</span>
                         </div>
