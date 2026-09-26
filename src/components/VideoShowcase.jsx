@@ -14,6 +14,7 @@ const SHOWCASE_ITEMS = [
     poster: 'videosAI/walking_poster.jpg',
     duration: '15s',
     engine: 'Harmony AI Video',
+    youtubeUrl: 'https://www.youtube.com/shorts/Xa-gZE_wAno',
     tags: ['4K UHD', '9:16 Vertical', 'Foley Audio', 'Kodak 500T'],
     prompt: '0-5s: Medium-full vertical shot of an enigmatic figure walking calmly down a rainy neon-lit street in Neo-Kyoto. 5-10s: Slow gimbal dolly back as puddles reflect prismatic cyan and emerald holographic billboards. 10-15s: Subtle head turn toward camera, soft natural lens flare, Kodak Vision3 color grading, photorealistic micro-textures on damp jacket. Sound: rhythmic footsteps on wet asphalt, distant muffled synth drone, gentle rain patter.',
     breakdown: {
@@ -715,7 +716,7 @@ const VideoShowcase = () => {
                     </a>
 
                     <a
-                      href="https://www.youtube.com/@mintbes6411/shorts"
+                      href={selectedItem.youtubeUrl || "https://www.youtube.com/@mintbes6411/shorts"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all cursor-pointer group"
