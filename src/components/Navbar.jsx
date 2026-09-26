@@ -54,7 +54,7 @@ const Navbar = ({ onOpenDashboard }) => {
         {/* Desktop Action & Language */}
         <div className="hidden md:flex items-center gap-3">
           <a
-            href="https://www.youtube.com/@mintbes6411"
+            href="https://www.youtube.com/@mintbes6411/shorts"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-[#0B0F17]/80 hover:bg-red-600/15 border border-white/10 hover:border-red-500/40 backdrop-blur-md transition-all duration-300 group cursor-pointer"
@@ -78,7 +78,7 @@ const Navbar = ({ onOpenDashboard }) => {
         {/* Mobile Hamburger & Language */}
         <div className="flex md:hidden items-center gap-1.5 sm:gap-2 shrink-0">
           <a
-            href="https://www.youtube.com/@mintbes6411"
+            href="https://www.youtube.com/@mintbes6411/shorts"
             target="_blank"
             rel="noopener noreferrer"
             className="p-1.5 sm:p-2 rounded-xl bg-white/5 border border-white/10 text-red-500 hover:text-red-400 active:scale-95 transition-all flex items-center justify-center"
@@ -134,7 +134,7 @@ const Navbar = ({ onOpenDashboard }) => {
             </button>
 
             <a
-              href="https://www.youtube.com/@mintbes6411"
+              href="https://www.youtube.com/@mintbes6411/shorts"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-white bg-red-600/15 border border-red-500/30 flex items-center justify-center gap-2 transition-all hover:bg-red-600/25"

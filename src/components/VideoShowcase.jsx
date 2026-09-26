@@ -532,7 +532,7 @@ const VideoShowcase = () => {
 
           <div className="flex items-center justify-center">
             <a
-              href="https://www.youtube.com/@mintbes6411"
+              href="https://www.youtube.com/@mintbes6411/shorts"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/15 hover:bg-red-600/25 border border-red-500/30 hover:border-red-500/60 text-xs sm:text-sm font-semibold text-white transition-all shadow-sm group"
@@ -715,7 +715,7 @@ const VideoShowcase = () => {
                     </a>
 
                     <a
-                      href="https://www.youtube.com/@mintbes6411"
+                      href="https://www.youtube.com/@mintbes6411/shorts"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all cursor-pointer group"

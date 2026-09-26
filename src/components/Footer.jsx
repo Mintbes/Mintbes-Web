@@ -53,12 +53,12 @@ const Footer = ({ onOpenDashboard }) => {
               <XIcon className="w-4 h-4" />
             </a>
             <a
-              href="https://www.youtube.com/@mintbes6411"
+              href="https://www.youtube.com/@mintbes6411/shorts"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 rounded-full bg-[#0B0F17] border border-white/10 text-slate-300 hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/10 transition-all group"
               aria-label={t('footer.youtubeChannel') || "Mintbes YouTube Shorts"}
-              title="Canal de YouTube @mintbes6411"
+              title="Canal YouTube Shorts @mintbes6411"
             >
               <Youtube className="w-4 h-4 text-slate-300 group-hover:text-red-500 transition-colors" />
             </a>
