@@ -46,6 +46,26 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
+    id: 'whispering-oak-leaf',
+    title: 'The Whispering Oak Leaf',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion', 'macro'],
+    type: 'video',
+    src: 'videosAI/compressed/ihkdirskjg.mp4',
+    poster: 'videosAI/ihkdirskjg_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Macro Optics', 'Forest Sunbeams', 'Foley Audio'],
+    prompt: '0-5s: Extreme macro vertical shot of a vibrant green oak leaf with visible translucent veins and hanging acorns, gently swaying on a sun-dappled forest branch. 5-10s: The leaf slowly detaches and floats weightlessly in slow motion, drifting gently down through golden volumetric sunbeams and dancing forest dust motes. 10-15s: The leaf settles softly upon a bed of lush emerald moss and clovers on the ancient forest floor, shallow depth of field, warm morning rim lighting. Sound: gentle forest canopy breeze, soft leafy rustle, distant birdsong, delicate thud on moss.',
+    breakdown: {
+      timing05: 'Extreme macro vertical shot of a vibrant green oak leaf with visible translucent veins and hanging acorns, gently swaying on a sun-dappled forest branch.',
+      timing510: 'The leaf slowly detaches and floats weightlessly in slow motion, drifting gently down through golden volumetric sunbeams and dancing forest dust motes.',
+      timing1015: 'The leaf settles softly upon a bed of lush emerald moss and clovers on the ancient forest floor, shallow depth of field, warm morning rim lighting.',
+      cinematography: '100mm Macro f/2.8 anamorphic equivalent, volumetric forest god rays, creamy natural bokeh, Arri Alexa Mini LF, natural morning sunlight grading.',
+      sound: 'Gentle forest canopy breeze, soft leafy rustle, distant birdsong, delicate thud on moss.'
+    }
+  },
+  {
     id: 'mediterranean-golden-hour',
     title: 'Mediterranean Golden Hour',
     category: ['photorealism', 'fashion'],
@@ -509,6 +529,7 @@ const VideoShowcase = () => {
     { id: 'scifi', label: t('showcase.filterScifi') },
     { id: 'fashion', label: t('showcase.filterFashion') },
     { id: 'motion', label: t('showcase.filterMotion') },
+    { id: 'macro', label: t('showcase.filterMacro') },
   ].filter(cat => cat.id === 'all' || SHOWCASE_ITEMS.some(item => item.category.includes(cat.id)));
 
   const filteredItems = activeTab === 'all'
