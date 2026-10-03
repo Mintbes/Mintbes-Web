@@ -578,7 +578,7 @@ const VideoShowcase = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/15 hover:bg-red-600/25 border border-red-500/30 hover:border-red-500/60 text-xs sm:text-sm font-semibold text-white transition-all shadow-sm group"
-              title="Canal YouTube Shorts @mintbes6411"
+              title="Canal YouTube Shorts"
             >
               <Youtube className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
               <span>{t('showcase.youtubeChannel')}</span>

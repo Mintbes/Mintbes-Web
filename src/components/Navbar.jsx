@@ -58,7 +58,7 @@ const Navbar = ({ onOpenDashboard }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-[#0B0F17]/80 hover:bg-red-600/15 border border-white/10 hover:border-red-500/40 backdrop-blur-md transition-all duration-300 group cursor-pointer"
-            title="Canal YouTube Shorts @mintbes6411"
+            title="Canal YouTube Shorts"
             aria-label="Mintbes YouTube"
           >
             <Youtube className="w-3.5 h-3.5 text-red-500 group-hover:scale-110 transition-transform" />
@@ -140,7 +140,7 @@ const Navbar = ({ onOpenDashboard }) => {
               className="mt-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-white bg-red-600/15 border border-red-500/30 flex items-center justify-center gap-2 transition-all hover:bg-red-600/25"
             >
               <Youtube className="w-4 h-4 text-red-500" />
-              <span>Canal YouTube Shorts (@mintbes6411)</span>
+              <span>Canal YouTube Shorts</span>
             </a>
           </div>
         </div>

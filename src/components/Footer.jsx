@@ -58,7 +58,7 @@ const Footer = ({ onOpenDashboard }) => {
               rel="noopener noreferrer"
               className="p-2.5 rounded-full bg-[#0B0F17] border border-white/10 text-slate-300 hover:text-red-500 hover:border-red-500/40 hover:bg-red-500/10 transition-all group"
               aria-label={t('footer.youtubeChannel') || "Mintbes YouTube Shorts"}
-              title="Canal YouTube Shorts @mintbes6411"
+              title="Canal YouTube Shorts"
             >
               <Youtube className="w-4 h-4 text-slate-300 group-hover:text-red-500 transition-colors" />
             </a>
