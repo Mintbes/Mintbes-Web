@@ -26,6 +26,26 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
+    id: 'velvet-vanity-rouge',
+    title: 'Velvet Vanity & Rouge',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'fashion'],
+    type: 'video',
+    src: 'videosAI/compressed/1iochg33kk.mp4',
+    poster: 'videosAI/1iochg33kk_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Haute Couture', 'Baroque Mirror', 'Foley Audio'],
+    prompt: '0-5s: Over-the-shoulder medium shot of an elegant brunette woman in a black velvet evening gown and gold earrings, gazing into an ornate gilt Baroque vanity mirror with warm sconce lighting. 5-10s: She raises a vintage golden tube of rich crimson lipstick to her lips, carefully applying it with poised elegance, red manicured nails, soft reflection bokeh. 10-15s: She gently pulls the lipstick away, offering a subtle radiant and enigmatic smile into the mirror, admiring the finished look as warm vintage sconce lighting highlights her porcelain skin. Sound: delicate metallic lipstick click, soft textile rustle of black velvet, quiet vanity room ambience.',
+    breakdown: {
+      timing05: 'Over-the-shoulder medium shot of an elegant brunette woman in a black velvet evening gown and gold earrings, gazing into an ornate gilt Baroque vanity mirror with warm sconce lighting.',
+      timing510: 'She raises a vintage golden tube of rich crimson lipstick to her lips, carefully applying it with poised elegance, red manicured nails, soft reflection bokeh.',
+      timing1015: 'She gently pulls the lipstick away, offering a subtle radiant and enigmatic smile into the mirror, admiring the finished look as warm vintage sconce lighting highlights her porcelain skin.',
+      cinematography: '85mm T1.4 portrait prime, soft directional warm sconce illumination, gilt gold mirror frame reflections, creamy background bokeh, Kodak Vision3 250D color grading.',
+      sound: 'Delicate metallic lipstick click, soft textile rustle of black velvet, quiet vanity room ambience.'
+    }
+  },
+  {
     id: 'mediterranean-golden-hour',
     title: 'Mediterranean Golden Hour',
     category: ['photorealism', 'fashion'],
