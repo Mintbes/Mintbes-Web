@@ -5,14 +5,19 @@ import { useTranslation } from 'react-i18next';
 
 const HERO_VIDEOS = [
   {
+    id: 'andalusian-flamenco-passion',
+    src: '/videosAI/compressed/yomhud8cjw.mp4',
+    poster: '/videosAI/yomhud8cjw_poster.jpg'
+  },
+  {
     id: 'walking-in-harmony',
-    src: 'videosAI/compressed/walking.mp4',
-    poster: 'videosAI/walking_poster.jpg'
+    src: '/videosAI/compressed/walking.mp4',
+    poster: '/videosAI/walking_poster.jpg'
   },
   {
     id: 'sylvan-elven-archer',
-    src: 'videosAI/compressed/obkqvw1fhq.mp4',
-    poster: 'videosAI/obkqvw1fhq_poster.jpg'
+    src: '/videosAI/compressed/obkqvw1fhq.mp4',
+    poster: '/videosAI/obkqvw1fhq_poster.jpg'
   }
 ];
 
@@ -77,7 +82,7 @@ const HeroVideoCard = ({ video, isHeroInView }) => {
   return (
     <div
       onClick={togglePlay}
-      className="w-[84vw] max-w-[280px] sm:w-[270px] lg:w-[310px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500 cursor-pointer"
+      className="w-[84vw] max-w-[280px] sm:w-[250px] md:w-[230px] lg:w-[280px] xl:w-[300px] aspect-[9/16] rounded-3xl overflow-hidden border-2 border-[#00AEE9]/40 hover:border-[#69FABD]/60 shadow-[0_0_40px_rgba(0,174,233,0.25)] hover:shadow-[0_0_50px_rgba(105,250,189,0.3)] bg-[#0B0F17] relative z-20 group select-none transition-all duration-500 cursor-pointer"
       style={{
         transform: 'translateZ(0)',
         WebkitMaskImage: '-webkit-radial-gradient(white, black)',
@@ -86,8 +91,8 @@ const HeroVideoCard = ({ video, isHeroInView }) => {
     >
       <video
         ref={videoRef}
-        src={video.src}
-        poster={video.poster}
+        src={video.src.startsWith('/') ? video.src : `/${video.src}`}
+        poster={video.poster.startsWith('/') ? video.poster : `/${video.poster}`}
         autoPlay
         loop
         muted
@@ -204,12 +209,12 @@ const Hero = () => {
           </a>
         </motion.div>
 
-        {/* 9:16 Video Showcase Centerpiece - Dual Showcase */}
+        {/* 9:16 Video Showcase Centerpiece - Featured Trio */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="w-full max-w-5xl mx-auto mb-0 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 relative"
+          className="w-full max-w-6xl mx-auto mb-0 flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-6 lg:gap-8 relative"
         >
           {HERO_VIDEOS.map((video) => (
             <HeroVideoCard

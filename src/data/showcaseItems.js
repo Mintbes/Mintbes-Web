@@ -1,5 +1,25 @@
 export const SHOWCASE_ITEMS = [
   {
+    id: 'andalusian-flamenco-passion',
+    title: 'Andalusian Flamenco Passion',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion', 'fashion'],
+    type: 'video',
+    src: '/videosAI/compressed/yomhud8cjw.mp4',
+    poster: '/videosAI/yomhud8cjw_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Spanish Flamenco', 'Andalusian Patio', 'Foley Audio'],
+    prompt: '0-5s: Medium-full vertical shot of an impassioned Spanish flamenco bailaora in an exquisite crimson ruffled dress and black lace mantón de Manila in an authentic Andalusian courtyard at twilight. 5-10s: Dynamic circular camera orbit as she performs intricate braceo arm sweeps and dramatic turns on rain-kissed cobblestones, warm iron lantern light catching her slicked dark hair and red carnation. 10-15s: Powerful zapateado footwork heel stamps causing crisp water splashes beneath warm glowing archways, culminating in a fierce, statuesque flamenco pose. Sound: vibrant Spanish nylon-string guitar rasgueados, rhythmic palmas hand claps, resonant wooden heel zapateado strikes on wet stone.',
+    breakdown: {
+      timing05: 'Medium-full vertical shot of an impassioned Spanish flamenco bailaora in an exquisite crimson ruffled dress and black lace mantón de Manila in an authentic Andalusian courtyard at twilight.',
+      timing510: 'Dynamic circular camera orbit as she performs intricate braceo arm sweeps and dramatic turns on rain-kissed cobblestones under warm iron lantern light.',
+      timing1015: 'Powerful zapateado footwork heel stamps causing crisp water splashes beneath warm glowing archways, culminating in a statuesque flamenco pose.',
+      cinematography: 'Arri Alexa Mini LF 35mm T1.8, low-angle twilight courtyard lighting, warm lantern rim illumination, volumetric mist, high-speed shutter capturing water droplet physics and ruffled dress dynamics.',
+      sound: 'Vibrant nylon-string flamenco guitar rasgueados, rhythmic palmas hand claps, resonant wooden heel zapateado strikes on damp stones.'
+    }
+  },
+  {
     id: 'walking-in-harmony',
     title: 'Walking in Harmony',
     workflow: 'Text-to-Video',
