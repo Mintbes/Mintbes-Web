@@ -3,7 +3,7 @@
 
 const STORAGE_KEY = 'mintmax_analytics_events';
 const SESSION_KEY = 'mintmax_session_id';
-const SEED_KEY = 'mintmax_seed_initialized_v2';
+const SEED_KEY = 'mintmax_seed_initialized_v5';
 
 // Detect Device & Environment
 function detectDevice() {
@@ -90,12 +90,13 @@ function getSessionId() {
   }
 }
 
-// Read events from storage
+// Read events from storage (always sorted newest first)
 export function getStoredEvents() {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const list = raw ? JSON.parse(raw) : [];
+    return list.sort((a, b) => b.timestamp - a.timestamp);
   } catch (err) {
     console.warn('MintMax Analytics read error:', err);
     return [];
@@ -124,11 +125,12 @@ export function logEvent(eventType, eventData = {}) {
     };
 
     const events = getStoredEvents();
-    events.push(event);
+    // Newest event at the front
+    events.unshift(event);
 
     // Keep max 2500 events locally to maintain fast load times
     if (events.length > 2500) {
-      events.splice(0, events.length - 2500);
+      events.length = 2500;
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -206,8 +208,13 @@ export function ensureSeedData() {
   if (typeof window === 'undefined') return;
   try {
     const hasSeed = localStorage.getItem(SEED_KEY);
-    const existing = getStoredEvents();
-    if (hasSeed && existing.length > 100) return;
+    if (hasSeed) return;
+
+    // Reset old seed versions to replace inverted timestamps
+    localStorage.removeItem('mintmax_seed_initialized_v2');
+    localStorage.removeItem('mintmax_seed_initialized_v3');
+    localStorage.removeItem('mintmax_seed_initialized_v4');
+    localStorage.removeItem(STORAGE_KEY);
 
     const seeded = [];
     const now = Date.now();
@@ -265,11 +272,23 @@ export function ensureSeedData() {
       return list[0];
     }
 
-    // Generate ~1400 organic interactions over the last 30 days
+    // Generate ~1400 organic interactions over the last 30 days with natural real-time distribution
     for (let i = 0; i < 1400; i++) {
-      // Skew distribution toward recent days
-      const daysAgo = Math.pow(Math.random(), 1.7) * 30;
-      const ts = now - Math.floor(daysAgo * dayMs) - Math.floor(Math.random() * dayMs * 0.5);
+      let ts;
+      if (i < 35) {
+        // Past 5 minutes to 2 hours (just now, hace unos minutos, hace 1h)
+        ts = now - Math.floor(Math.random() * 2 * 3600 * 1000);
+      } else if (i < 130) {
+        // Earlier today (hace 3h, hace 7h, hace 14h)
+        ts = now - Math.floor((2 + Math.random() * 22) * 3600 * 1000);
+      } else if (i < 280) {
+        // Yesterday (hace 1d)
+        ts = now - Math.floor((24 + Math.random() * 24) * 3600 * 1000);
+      } else {
+        // Past 2 to 29 days (hace 2d, hace 4d, hace 10d...)
+        const daysAgo = 2 + Math.pow(Math.random(), 1.4) * 27;
+        ts = now - Math.floor(daysAgo * dayMs);
+      }
 
       const dev = pickWeighted(devices);
       const ch = pickWeighted(channels);
@@ -319,12 +338,11 @@ export function ensureSeedData() {
       });
     }
 
-    // Sort chronologically
-    seeded.sort((a, b) => a.timestamp - b.timestamp);
+    // Sort descending (newest events first!)
+    seeded.sort((a, b) => b.timestamp - a.timestamp);
 
-    // Merge with any real events currently stored
-    const merged = seeded.concat(existing);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    // Save seeded events (already sorted descending newest first)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
     localStorage.setItem(SEED_KEY, 'true');
   } catch (err) {
     console.warn('Seed data creation error:', err);

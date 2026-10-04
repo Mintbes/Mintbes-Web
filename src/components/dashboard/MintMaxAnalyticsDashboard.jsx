@@ -50,7 +50,7 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter events based on selected time range
+  // Filter events based on selected time range (always newest first)
   const filteredEvents = useMemo(() => {
     const now = Date.now();
     let cutoff = 0;
@@ -59,7 +59,9 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     else if (timeRange === '30d') cutoff = now - 30 * 24 * 60 * 60 * 1000;
     else cutoff = 0;
 
-    return events.filter((e) => e.timestamp >= cutoff);
+    return [...events]
+      .filter((e) => e.timestamp >= cutoff)
+      .sort((a, b) => b.timestamp - a.timestamp);
   }, [events, timeRange]);
 
   // Aggregate Key Metrics
@@ -467,7 +469,7 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     return `hace ${Math.floor(diff / 86400)}d`;
   };
 
-  // Filtered raw events stream
+  // Filtered raw events stream (always showing most recent events at top)
   const displayedEvents = useMemo(() => {
     return filteredEvents
       .filter((ev) => {
@@ -482,7 +484,8 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
         }
         return true;
       })
-      .slice(0, 100); // limit to 100 for fast rendering
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 100);
   }, [filteredEvents, eventFilterType, eventSearchQuery]);
 
   return (
