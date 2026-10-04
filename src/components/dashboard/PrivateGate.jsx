@@ -76,7 +76,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
               MINTMAX INTELLIGENCE
             </span>
             <h1 className="text-[17px] font-bold text-[#edf5f4] tracking-tight">
-              Web Analytics Platform
+              Web Intelligence Platform
             </h1>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
             className="w-full bg-[#131b25] hover:bg-[#1a2530] text-[#1fdfb6] border border-[#1fdfb66b] hover:border-[#1fdfb6] font-semibold py-2.5 px-4 rounded-lg text-xs tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>Acceder a MintMax Analytics</span>
+            <span>Acceder a MintMax Intelligence</span>
           </button>
         </form>
       </motion.div>
