@@ -3,7 +3,7 @@
 
 const STORAGE_KEY = 'mintmax_analytics_events';
 const SESSION_KEY = 'mintmax_session_id';
-const SEED_KEY = 'mintmax_seed_initialized_v6';
+const SEED_KEY = 'mintmax_seed_initialized_v7';
 
 // Detect Device & Environment
 function detectDevice() {
@@ -215,6 +215,7 @@ export function ensureSeedData() {
     localStorage.removeItem('mintmax_seed_initialized_v3');
     localStorage.removeItem('mintmax_seed_initialized_v4');
     localStorage.removeItem('mintmax_seed_initialized_v5');
+    localStorage.removeItem('mintmax_seed_initialized_v6');
     localStorage.removeItem(STORAGE_KEY);
 
     const seeded = [];

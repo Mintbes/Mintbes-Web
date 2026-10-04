@@ -145,9 +145,14 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     const formatDuration = (sec) => {
       // Clamp between 35s and 8m (realistic average time for browsing short-form videos)
       const clamped = Math.max(35, Math.min(sec || 165, 480));
-      const m = Math.floor(clamped / 60);
+      const d = Math.floor(clamped / 86400);
+      const h = Math.floor((clamped % 86400) / 3600);
+      const m = Math.floor((clamped % 3600) / 60);
       const s = clamped % 60;
-      return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+
+      if (d > 0) return `${d}d ${h}h`;
+      if (h > 0) return `${h}h ${m}m`;
+      return `${m} min ${s < 10 ? '0' : ''}${s} s`;
     };
 
     // Video conversion rates
@@ -514,14 +519,21 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     return String.fromCodePoint(...codePoints);
   };
 
-  // Helper to format relative time
+  // Helper to format relative time - Días y Horas
   const getRelativeTime = (ts) => {
     const diff = Math.floor((Date.now() - ts) / 1000);
-    if (diff < 5) return 'justo ahora';
-    if (diff < 60) return `hace ${diff}s`;
-    if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
-    if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
-    return `hace ${Math.floor(diff / 86400)}d`;
+    if (diff < 60) return 'justo ahora';
+    if (diff < 3600) {
+      const min = Math.floor(diff / 60);
+      return `hace ${min} min`;
+    }
+    const hours = Math.floor(diff / 3600);
+    if (diff < 86400) {
+      return `hace ${hours}h`;
+    }
+    const days = Math.floor(diff / 86400);
+    const remHours = Math.floor((diff % 86400) / 3600);
+    return remHours > 0 ? `hace ${days}d ${remHours}h` : `hace ${days}d`;
   };
 
   // Filtered raw events stream (always showing most recent events at top)
@@ -600,13 +612,12 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
               <span className="hidden sm:inline text-emerald-300/80">activos ahora</span>
             </div>
 
-            {/* Time Range Switcher */}
+            {/* Time Range Switcher - Días y Horas */}
             <div className="flex items-center bg-[#070A0F] p-1 rounded-xl border border-white/10 text-xs font-medium">
               {[
-                { id: '24h', label: '24h' },
-                { id: '7d', label: '7d' },
-                { id: '30d', label: '30d' },
-                { id: 'all', label: 'Todo' }
+                { id: '24h', label: '24 Horas' },
+                { id: '7d', label: '7 Días' },
+                { id: '30d', label: '30 Días' }
               ].map((range) => (
                 <button
                   key={range.id}
@@ -792,8 +803,8 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
           {/* Card 6: Tiempo & Retención */}
           <div className="p-4 rounded-2xl bg-[#0B0F17] border border-white/10 hover:border-blue-400/40 transition-all shadow-lg flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-[11px] font-medium uppercase tracking-wider">Tiempo Medio</span>
-              <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <span className="text-[11px] font-medium uppercase tracking-wider">Tiempo Medio Sesión</span>
+              <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center" title="Duración media de permanencia por visitante en la web">
                 <Clock className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -801,8 +812,9 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
               <div className="text-2xl font-black text-white tracking-tight">
                 {stats.avgDuration}
               </div>
-              <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                Rebote: {stats.bounceRate}%
+              <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center justify-between">
+                <span>Por usuario</span>
+                <span>Rebote: {stats.bounceRate}%</span>
               </div>
             </div>
           </div>
