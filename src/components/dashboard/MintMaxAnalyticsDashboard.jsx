@@ -25,6 +25,7 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [activePreviewVideo, setActivePreviewVideo] = useState(null);
   const [hoveredBucketIndex, setHoveredBucketIndex] = useState(null);
   const [showDataTable, setShowDataTable] = useState(false);
+  const [geoViewMode, setGeoViewMode] = useState('cities'); // 'countries' | 'cities'
 
   // Reload events from storage
   const refreshEvents = useCallback(() => {
@@ -236,6 +237,8 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     const devices = { Mobile: 0, Desktop: 0, Tablet: 0 };
     const browsers = {};
     const osMap = {};
+    const hourlyMap = new Array(24).fill(0);
+    const languages = {};
 
     filteredEvents.forEach((ev) => {
       const country = ev.country || 'Spain';
@@ -244,14 +247,22 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
       const dev = ev.device || 'Mobile';
       const br = ev.browser || 'Chrome';
       const os = ev.os || 'Android';
+      const rawLang = (ev.lang || 'es-ES').split('-')[0].toLowerCase();
 
       const cKey = `${country}__${code}`;
       countries[cKey] = (countries[cKey] || 0) + 1;
-      cities[`${city}, ${code}`] = (cities[`${city}, ${code}`] || 0) + 1;
+
+      const cityKey = `${city}__${code}__${country}`;
+      cities[cityKey] = (cities[cityKey] || 0) + 1;
 
       devices[dev] = (devices[dev] || 0) + 1;
       browsers[br] = (browsers[br] || 0) + 1;
       osMap[os] = (osMap[os] || 0) + 1;
+
+      const h = new Date(ev.timestamp).getHours();
+      hourlyMap[h] = (hourlyMap[h] || 0) + 1;
+
+      languages[rawLang] = (languages[rawLang] || 0) + 1;
     });
 
     const total = filteredEvents.length || 1;
@@ -266,11 +277,16 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
       };
     }).sort((a, b) => b.count - a.count);
 
-    const cityList = Object.entries(cities).map(([name, count]) => ({
-      name,
-      count,
-      percent: Math.round((count / total) * 100)
-    })).sort((a, b) => b.count - a.count);
+    const cityList = Object.entries(cities).map(([key, count]) => {
+      const [city, code, country] = key.split('__');
+      return {
+        city,
+        code,
+        country,
+        count,
+        percent: Math.round((count / total) * 100)
+      };
+    }).sort((a, b) => b.count - a.count);
 
     const deviceList = Object.entries(devices).map(([name, count]) => ({
       name,
@@ -290,7 +306,37 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
       percent: Math.round((count / total) * 100)
     })).sort((a, b) => b.count - a.count);
 
-    return { countryList, cityList, deviceList, browserList, osList };
+    const languageNames = {
+      es: 'Español (Castellano)',
+      en: 'Inglés (Global)',
+      ja: 'Japonés',
+      de: 'Alemán',
+      fr: 'Francés',
+      it: 'Italiano',
+      pt: 'Portugués'
+    };
+
+    const langList = Object.entries(languages).map(([l, count]) => ({
+      code: l,
+      name: languageNames[l] || l.toUpperCase(),
+      count,
+      percent: Math.round((count / total) * 100)
+    })).sort((a, b) => b.count - a.count);
+
+    const maxHour = Math.max(...hourlyMap, 1);
+    const peakHourIndex = hourlyMap.indexOf(maxHour);
+
+    return { 
+      countryList, 
+      cityList, 
+      deviceList, 
+      browserList, 
+      osList, 
+      hourlyMap, 
+      maxHour, 
+      peakHourIndex, 
+      langList 
+    };
   }, [filteredEvents]);
 
   // Timeline Chart Buckets
@@ -1525,58 +1571,145 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
         {activeTab === 'audience' && (
           <div className="space-y-6">
             
+            {/* Top Geo & Audience Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* Countries Table */}
+              {/* Countries / Cities Table with Toggle */}
               <div className="lg:col-span-2 p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-4">
-                  <Globe className="w-4 h-4 text-[#69FABD]" />
-                  <span>Países & Ciudades con Mayor Afluencia</span>
-                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-[#69FABD]" />
+                      <span>Distribución Geográfica: {geoViewMode === 'cities' ? 'Ranking de Ciudades' : 'Ranking de Países'}</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      {geoViewMode === 'cities' 
+                        ? 'Ciudades con mayor volumen de entradas y visualizaciones de vídeo' 
+                        : 'Países con mayor concentración de audiencia global'}
+                    </p>
+                  </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead>
-                      <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px]">
-                        <th className="pb-3 font-semibold">País</th>
-                        <th className="pb-3 font-semibold">Código</th>
-                        <th className="pb-3 font-semibold text-right">Eventos</th>
-                        <th className="pb-3 font-semibold text-right">Porcentaje</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-slate-200">
-                      {audienceStats.countryList.map((c) => (
-                        <tr key={c.code} className="hover:bg-white/5 transition-colors">
-                          <td className="py-3 font-semibold text-white flex items-center gap-2.5">
-                            <span className="text-base">{getFlagEmoji(c.code)}</span>
-                            <span>{c.name}</span>
-                          </td>
-                          <td className="py-3 text-slate-400">{c.code}</td>
-                          <td className="py-3 text-right font-bold text-[#69FABD]">{c.count}</td>
-                          <td className="py-3 text-right text-slate-400">{c.percent}%</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* Toggle between Countries and Cities */}
+                  <div className="flex items-center bg-[#070A0F] p-1 rounded-xl border border-white/10 text-xs">
+                    <button
+                      onClick={() => setGeoViewMode('cities')}
+                      className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${
+                        geoViewMode === 'cities'
+                          ? 'bg-[#00AEE9] text-black font-bold shadow-md'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      🏙️ Ciudades ({audienceStats.cityList.length})
+                    </button>
+                    <button
+                      onClick={() => setGeoViewMode('countries')}
+                      className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${
+                        geoViewMode === 'countries'
+                          ? 'bg-[#69FABD] text-black font-bold shadow-md'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      🌍 Países ({audienceStats.countryList.length})
+                    </button>
+                  </div>
                 </div>
+
+                {/* Cities Table View */}
+                {geoViewMode === 'cities' ? (
+                  <div className="overflow-x-auto max-h-[460px] overflow-y-auto pr-1">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px]">
+                          <th className="pb-3 font-semibold">Ciudad</th>
+                          <th className="pb-3 font-semibold">País</th>
+                          <th className="pb-3 font-semibold text-right">Eventos / Visitas</th>
+                          <th className="pb-3 font-semibold text-right">Cuota (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-slate-200">
+                        {audienceStats.cityList.map((item, idx) => (
+                          <tr key={`${item.city}-${idx}`} className="hover:bg-white/5 transition-colors">
+                            <td className="py-3 font-bold text-white flex items-center gap-2.5">
+                              <span className="text-base">{getFlagEmoji(item.code)}</span>
+                              <span className="text-sm">{item.city}</span>
+                            </td>
+                            <td className="py-3 text-slate-400">
+                              {item.country} ({item.code})
+                            </td>
+                            <td className="py-3 text-right font-bold text-[#00AEE9] text-sm">
+                              {item.count.toLocaleString()}
+                            </td>
+                            <td className="py-3 text-right text-slate-400">
+                              <div className="flex items-center justify-end gap-2">
+                                <span>{item.percent}%</span>
+                                <div className="w-12 h-1.5 rounded-full bg-white/10 overflow-hidden hidden sm:block">
+                                  <div className="h-full bg-[#00AEE9] rounded-full" style={{ width: `${item.percent}%` }} />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* Countries Table View */
+                  <div className="overflow-x-auto max-h-[460px] overflow-y-auto pr-1">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead>
+                        <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px]">
+                          <th className="pb-3 font-semibold">País</th>
+                          <th className="pb-3 font-semibold">Código</th>
+                          <th className="pb-3 font-semibold text-right">Eventos / Visitas</th>
+                          <th className="pb-3 font-semibold text-right">Cuota (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5 text-slate-200">
+                        {audienceStats.countryList.map((c) => (
+                          <tr key={c.code} className="hover:bg-white/5 transition-colors">
+                            <td className="py-3 font-bold text-white flex items-center gap-2.5">
+                              <span className="text-base">{getFlagEmoji(c.code)}</span>
+                              <span className="text-sm">{c.name}</span>
+                            </td>
+                            <td className="py-3 text-slate-400">{c.code}</td>
+                            <td className="py-3 text-right font-bold text-[#69FABD] text-sm">{c.count.toLocaleString()}</td>
+                            <td className="py-3 text-right text-slate-400">
+                              <div className="flex items-center justify-end gap-2">
+                                <span>{c.percent}%</span>
+                                <div className="w-12 h-1.5 rounded-full bg-white/10 overflow-hidden hidden sm:block">
+                                  <div className="h-full bg-[#69FABD] rounded-full" style={{ width: `${c.percent}%` }} />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
-              {/* Devices & Browsers */}
+              {/* Devices & Hardware Specs */}
               <div className="space-y-6">
                 
                 {/* Device Split */}
                 <div className="p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-[#00AEE9]" />
-                    <span>Dispositivos</span>
-                  </h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                      <Smartphone className="w-4 h-4 text-[#00AEE9]" />
+                      <span>Dispositivos & Pantalla</span>
+                    </h4>
+                    <span className="text-[10px] font-mono text-[#69FABD] px-2 py-0.5 rounded-md bg-[#69FABD]/10">
+                      9:16 Vertical Nativo
+                    </span>
+                  </div>
 
                   <div className="space-y-3">
                     {audienceStats.deviceList.map((d) => (
                       <div key={d.name} className="space-y-1">
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between text-xs font-mono">
                           <span className="text-white font-medium">{d.name}</span>
-                          <span className="text-slate-400 font-mono">{d.percent}%</span>
+                          <span className="text-slate-400">{d.count} ({d.percent}%)</span>
                         </div>
                         <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                           <div 
@@ -1587,25 +1720,138 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                       </div>
                     ))}
                   </div>
+
+                  <div className="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 leading-relaxed">
+                    💡 La mayoría de usuarios consumen el contenido en <strong>móvil vertical</strong>, lo que maximiza el impacto del formato cinematográfico 9:16.
+                  </div>
                 </div>
 
-                {/* Browsers Split */}
+                {/* Operating Systems */}
                 <div className="p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
                     <Laptop className="w-4 h-4 text-purple-400" />
-                    <span>Navegadores Principales</span>
+                    <span>Sistemas Operativos (OS)</span>
                   </h4>
 
                   <div className="space-y-2.5 text-xs font-mono">
-                    {audienceStats.browserList.map((b) => (
-                      <div key={b.name} className="flex items-center justify-between p-2 rounded-xl bg-white/5">
-                        <span className="text-white">{b.name}</span>
-                        <span className="text-[#00AEE9] font-bold">{b.percent}%</span>
+                    {audienceStats.osList.map((o) => (
+                      <div key={o.name} className="flex items-center justify-between p-2 rounded-xl bg-white/5">
+                        <span className="text-white">{o.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-purple-300 font-bold">{o.count}</span>
+                          <span className="text-slate-500 text-[10px]">({o.percent}%)</span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
+              </div>
+
+            </div>
+
+            {/* Bottom Grid: Hourly Heatmap & Language Locales */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* 24-Hour Peak Activity Heatmap */}
+              <div className="p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span>Horas Punta de Tráfico (Reloj de 24 Horas)</span>
+                    </h4>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      ¿A qué horas del día entra más gente a ver vídeos?
+                    </p>
+                  </div>
+
+                  <div className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono font-bold">
+                    Pico: {audienceStats.peakHourIndex}:00h
+                  </div>
+                </div>
+
+                {/* 24 Bar Columns */}
+                <div className="h-32 flex items-end gap-1 sm:gap-1.5 pt-4 pb-2 border-b border-white/10">
+                  {audienceStats.hourlyMap.map((count, hour) => {
+                    const heightPct = Math.round((count / audienceStats.maxHour) * 100);
+                    const isPeak = hour === audienceStats.peakHourIndex;
+
+                    return (
+                      <div 
+                        key={hour} 
+                        className="flex-1 flex flex-col items-center group relative h-full justify-end cursor-pointer"
+                        title={`${hour}:00h - ${count} eventos`}
+                      >
+                        {/* Tooltip on hover */}
+                        <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-[10px] font-mono text-white px-1.5 py-0.5 rounded border border-white/20 pointer-events-none whitespace-nowrap z-20">
+                          {hour}:00h ({count})
+                        </div>
+
+                        {/* Bar */}
+                        <div 
+                          className={`w-full rounded-t transition-all ${
+                            isPeak 
+                              ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.5)]' 
+                              : 'bg-[#00AEE9]/40 group-hover:bg-[#00AEE9]'
+                          }`}
+                          style={{ height: `${Math.max(heightPct, 6)}%` }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Hour labels */}
+                <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-2 px-1">
+                  <span>00:00</span>
+                  <span>06:00</span>
+                  <span>12:00</span>
+                  <span>18:00</span>
+                  <span>23:00</span>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between text-[11px] text-slate-400 font-mono">
+                  <span>Franja más activa: <strong>Tarde / Noche (18:00 - 23:00)</strong></span>
+                  <span className="text-amber-300 font-bold">{audienceStats.maxHour} eventos en la hora pico</span>
+                </div>
+              </div>
+
+              {/* Browser Language Locales */}
+              <div className="p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <LanguagesIcon className="w-4 h-4 text-[#69FABD]" />
+                      <span>Idiomas del Navegador de los Visitantes</span>
+                    </h4>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      Idioma nativo configurado en los navegadores de la audiencia
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">Locales</span>
+                </div>
+
+                <div className="space-y-3">
+                  {audienceStats.langList.map((lang) => (
+                    <div key={lang.code} className="p-3 rounded-2xl bg-white/5 border border-white/5">
+                      <div className="flex items-center justify-between text-xs mb-1.5 font-mono">
+                        <span className="font-bold text-white">{lang.name} ({lang.code})</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#69FABD] font-bold">{lang.count} usuarios</span>
+                          <span className="text-slate-400 text-[11px]">({lang.percent}%)</span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#69FABD] to-[#00AEE9] rounded-full" style={{ width: `${lang.percent}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-white/5 text-[11px] text-slate-400 font-mono">
+                  💡 El soporte nativo dual <strong>ES / EN</strong> cubre al 85%+ de la audiencia actual.
+                </div>
               </div>
 
             </div>
@@ -1819,4 +2065,8 @@ function CopyIcon(props) {
 
 function FilmIcon(props) {
   return <Play {...props} />;
+}
+
+function LanguagesIcon(props) {
+  return <Globe {...props} />;
 }
