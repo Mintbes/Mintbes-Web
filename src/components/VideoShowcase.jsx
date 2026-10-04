@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2, Youtube, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -536,10 +537,59 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
   );
 };
 
+export const findVideoByIdOrAlias = (query) => {
+  if (!query) return null;
+  const clean = String(query).trim().toLowerCase().replace(/\/$/, '');
+  if (!clean) return null;
+
+  return (
+    SHOWCASE_ITEMS.find((item) => {
+      const id = item.id.toLowerCase();
+      const src = (item.src || '').toLowerCase();
+      const titleSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const titleClean = item.title.toLowerCase();
+
+      return (
+        id === clean ||
+        id.replace(/-/g, '') === clean.replace(/-/g, '') ||
+        src.includes(clean) ||
+        titleSlug === clean ||
+        titleSlug.replace(/-/g, '') === clean.replace(/-/g, '') ||
+        titleClean === clean
+      );
+    }) || null
+  );
+};
+
+export const getInitialVideoFromUrl = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    let v = searchParams.get('video') || searchParams.get('v');
+
+    if (!v && window.location.hash) {
+      const hashStr = window.location.hash.replace(/^#/, '');
+      if (hashStr.startsWith('video=')) {
+        v = hashStr.replace('video=', '');
+      } else if (hashStr.includes('?')) {
+        const hashParams = new URLSearchParams(hashStr.split('?')[1]);
+        v = hashParams.get('video') || hashParams.get('v');
+      }
+    }
+
+    if (v) {
+      return findVideoByIdOrAlias(v);
+    }
+  } catch (err) {
+    console.warn('Initial video parse error:', err);
+  }
+  return null;
+};
+
 const VideoShowcase = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('all');
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(getInitialVideoFromUrl);
   const [copiedId, setCopiedId] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [playingVideoId, setPlayingVideoId] = useState(null);
@@ -564,33 +614,52 @@ const VideoShowcase = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('video');
       url.searchParams.delete('v');
-      window.history.replaceState({}, '', url.pathname + (url.hash || ''));
+      const cleanPath = url.pathname + (url.hash && !url.hash.includes('video=') ? url.hash : '');
+      window.history.replaceState({}, '', cleanPath || '/');
     } catch {
       // Fallback
     }
   }, []);
 
-  // Deep-link support: auto-open modal if URL contains ?video=ID or ?v=ID
+  // Synchronize with URL changes (back / forward or external hash/query changes)
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const videoId = params.get('video') || params.get('v');
-      if (videoId) {
-        const found = SHOWCASE_ITEMS.find((item) => item.id === videoId);
-        if (found) {
-          setSelectedItem(found);
-          setTimeout(() => {
-            const el = document.getElementById('showcase');
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth' });
-            }
-          }, 350);
-        }
+    const syncFromUrl = () => {
+      const item = getInitialVideoFromUrl();
+      if (item) {
+        setSelectedItem(item);
       }
-    } catch (e) {
-      console.warn('URL parsing error', e);
+    };
+
+    window.addEventListener('popstate', syncFromUrl);
+    window.addEventListener('hashchange', syncFromUrl);
+
+    // Initial scroll check: if opened via permalink, ensure showcase section is in view when modal closes
+    const initialItem = getInitialVideoFromUrl();
+    if (initialItem) {
+      setSelectedItem(initialItem);
+      const el = document.getElementById('showcase');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
     }
+
+    return () => {
+      window.removeEventListener('popstate', syncFromUrl);
+      window.removeEventListener('hashchange', syncFromUrl);
+    };
   }, []);
+
+  // Prevent background scroll while modal lightbox is active
+  useEffect(() => {
+    if (selectedItem) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedItem]);
 
   const handleShareVideo = async () => {
     if (!selectedItem) return;
@@ -720,13 +789,14 @@ const VideoShowcase = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal for Prompt Breakdown */}
-      <AnimatePresence>
-        {selectedItem && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl"
-            onClick={closeModal}
-          >
+      {/* Lightbox Modal for Prompt Breakdown mounted into document.body */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedItem && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl"
+              onClick={closeModal}
+            >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -914,7 +984,9 @@ const VideoShowcase = () => {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </section>
   );
 };
