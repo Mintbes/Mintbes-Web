@@ -56,7 +56,9 @@
     "roadmapDesc": "Harmony's official AI video generator currently operates exclusively via text prompts (Text-to-Video). Image and NFT reference workflows are staged here and will activate as soon as the Harmony engine enables image inputs.",
     "backToT2V": "Explore Active Text-to-Video",
     "youtubeChannel": "Official YouTube Shorts Channel",
-    "watchOnYoutube": "Watch on YouTube Shorts"
+    "watchOnYoutube": "Watch on YouTube Shorts",
+    "shareVideo": "Share Video",
+    "videoLinkCopied": "Link Copied!"
   },
   "promptVault": {
     "badge": "Prompt Engineering Mastery",

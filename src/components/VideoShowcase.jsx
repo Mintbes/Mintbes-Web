@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2, Youtube } from 'lucide-react';
+import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2, Youtube, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const SHOWCASE_ITEMS = [
@@ -521,7 +521,85 @@ const VideoShowcase = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedItem, setSelectedItem] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [playingVideoId, setPlayingVideoId] = useState(null);
+
+  const openModal = useCallback((item) => {
+    setPlayingVideoId(null);
+    setSelectedItem(item);
+    setCopiedLink(false);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('video', item.id);
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      // Fallback
+    }
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setSelectedItem(null);
+    setCopiedLink(false);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('video');
+      url.searchParams.delete('v');
+      window.history.replaceState({}, '', url.pathname + (url.hash || ''));
+    } catch {
+      // Fallback
+    }
+  }, []);
+
+  // Deep-link support: auto-open modal if URL contains ?video=ID or ?v=ID
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const videoId = params.get('video') || params.get('v');
+      if (videoId) {
+        const found = SHOWCASE_ITEMS.find((item) => item.id === videoId);
+        if (found) {
+          setSelectedItem(found);
+          setTimeout(() => {
+            const el = document.getElementById('showcase');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 350);
+        }
+      }
+    } catch (e) {
+      console.warn('URL parsing error', e);
+    }
+  }, []);
+
+  const handleShareVideo = async () => {
+    if (!selectedItem) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?video=${selectedItem.id}`;
+    const shareData = {
+      title: `${selectedItem.title} — Mintbes 🌿`,
+      text: `${selectedItem.title} (9:16 AI Cinema) en m.country`,
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2500);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link', err);
+    }
+  };
 
   const categories = [
     { id: 'all', label: t('showcase.filterAll') },
@@ -614,10 +692,7 @@ const VideoShowcase = () => {
               item={item}
               isPlaying={playingVideoId === item.id}
               onTogglePlay={handleTogglePlay}
-              onInspect={(selected) => {
-                setPlayingVideoId(null);
-                setSelectedItem(selected);
-              }}
+              onInspect={openModal}
               onCopyPrompt={handleCopyPrompt}
               copiedId={copiedId}
             />
@@ -628,21 +703,39 @@ const VideoShowcase = () => {
       {/* Lightbox Modal for Prompt Breakdown */}
       <AnimatePresence>
         {selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl"
+            onClick={closeModal}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#0B0F17] border border-[#00AEE9]/30 rounded-3xl p-4 sm:p-8 shadow-2xl text-left"
             >
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer z-10"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {/* Top Controls: Share & Close */}
+              <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 z-10">
+                <button
+                  onClick={handleShareVideo}
+                  className={`p-2 rounded-full transition-all cursor-pointer ${
+                    copiedLink
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                      : 'bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white'
+                  }`}
+                  title={copiedLink ? t('showcase.videoLinkCopied') : t('showcase.shareVideo')}
+                  aria-label="Share video link"
+                >
+                  {copiedLink ? <Check className="w-5 h-5 text-emerald-400" /> : <Share2 className="w-5 h-5 text-[#00AEE9]" />}
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 pt-4 sm:pt-0">
                 {/* Visual Left Preview (9:16) */}
@@ -749,12 +842,34 @@ const VideoShowcase = () => {
                   <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
                     <a
                       href="#prompt-vault"
-                      onClick={() => setSelectedItem(null)}
+                      onClick={closeModal}
                       className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-xs sm:text-sm font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] shadow-lg shadow-[#00AEE9]/20"
                     >
                       <Sparkles className="w-4 h-4" />
                       <span>{t('showcase.ctaCardBtn')}</span>
                     </a>
+
+                    <button
+                      onClick={handleShareVideo}
+                      className={`inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                        copiedLink
+                          ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/20'
+                          : 'text-slate-200 bg-white/10 hover:bg-white/15 border border-white/15 hover:border-white/30'
+                      }`}
+                      title={t('showcase.shareVideo')}
+                    >
+                      {copiedLink ? (
+                        <>
+                          <Check className="w-4 h-4 text-emerald-400" />
+                          <span>{t('showcase.videoLinkCopied')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-4 h-4 text-[#00AEE9]" />
+                          <span>{t('showcase.shareVideo')}</span>
+                        </>
+                      )}
+                    </button>
 
                     <a
                       href={selectedItem.youtubeUrl || "https://www.youtube.com/@mintbes6411/shorts"}
@@ -768,7 +883,7 @@ const VideoShowcase = () => {
                     </a>
 
                     <button
-                      onClick={() => setSelectedItem(null)}
+                      onClick={closeModal}
                       className="px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-colors cursor-pointer"
                     >
                       {t('showcase.closeModal')}
