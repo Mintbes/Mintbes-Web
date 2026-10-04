@@ -89,6 +89,8 @@ export default async function handler(req, res) {
     const origin = host.includes('localhost') ? `http://${host}` : 'https://www.mintbes.country';
     const posterPath = (video.poster || '').replace(/^\//, '');
     const posterUrl = `${origin}/${posterPath}`;
+    const ogImagePath = posterPath.replace(/_poster\.jpg$/i, '_og.jpg');
+    const ogImageUrl = `${origin}/${ogImagePath}`;
     const canonicalUrl = `${origin}/v/${encodeURIComponent(video.id)}`;
 
     const pageTitle = `${video.title} — Mintbes 🌿 AI Video`;
@@ -101,28 +103,28 @@ export default async function handler(req, res) {
     // 2. Standard Meta Description
     html = updateMeta(html, 'name', 'description', summaryDesc);
 
-    // 3. Open Graph Tags (Clean Image Preview - No intrusive video embeds)
+    // 3. Open Graph Tags (1200x630 Landscape Card)
     html = updateMeta(html, 'property', 'og:type', 'website');
     html = updateMeta(html, 'property', 'og:site_name', 'Mintbes');
     html = updateMeta(html, 'property', 'og:url', canonicalUrl);
     html = updateMeta(html, 'property', 'og:title', pageTitle);
     html = updateMeta(html, 'property', 'og:description', summaryDesc);
-    html = updateMeta(html, 'property', 'og:image', posterUrl);
-    html = updateMeta(html, 'property', 'og:image:secure_url', posterUrl);
+    html = updateMeta(html, 'property', 'og:image', ogImageUrl);
+    html = updateMeta(html, 'property', 'og:image:secure_url', ogImageUrl);
     html = updateMeta(html, 'property', 'og:image:type', 'image/jpeg');
-    html = updateMeta(html, 'property', 'og:image:width', '720');
-    html = updateMeta(html, 'property', 'og:image:height', '1280');
+    html = updateMeta(html, 'property', 'og:image:width', '1200');
+    html = updateMeta(html, 'property', 'og:image:height', '630');
     html = updateMeta(html, 'property', 'og:image:alt', video.title);
 
     // Strip any video meta tags so Telegram/WhatsApp/Discord don't render an autoplay video player
     html = html.replace(/<meta\s+[^>]*?property=["']og:video[^"']*["'][^>]*?>/gi, '');
 
-    // 4. Twitter / X Cards
+    // 4. Twitter / X Cards (1200x630 Summary Large Image)
     html = updateMeta(html, 'name', 'twitter:card', 'summary_large_image');
     html = updateMeta(html, 'name', 'twitter:url', canonicalUrl);
     html = updateMeta(html, 'name', 'twitter:title', pageTitle);
     html = updateMeta(html, 'name', 'twitter:description', summaryDesc);
-    html = updateMeta(html, 'name', 'twitter:image', posterUrl);
+    html = updateMeta(html, 'name', 'twitter:image', ogImageUrl);
     html = updateMeta(html, 'name', 'twitter:image:alt', video.title);
     html = updateMeta(html, 'name', 'twitter:site', '@MintbuilderES');
     html = updateMeta(html, 'name', 'twitter:creator', '@MintbuilderES');

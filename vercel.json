@@ -15,8 +15,8 @@
           "value": "(?<slug>[^&]+)"
         }
       ],
-      "destination": "/v/:slug",
-      "permanent": false
+      "destination": "https://www.mintbes.country/v/:slug",
+      "permanent": true
     },
     {
       "source": "/",
@@ -27,8 +27,8 @@
           "value": "(?<slug>[^&]+)"
         }
       ],
-      "destination": "/v/:slug",
-      "permanent": false
+      "destination": "https://www.mintbes.country/v/:slug",
+      "permanent": true
     }
   ],
   "rewrites": [
