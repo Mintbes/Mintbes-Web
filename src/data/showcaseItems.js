@@ -344,7 +344,7 @@ export const getInitialVideoFromUrl = () => {
 
     if (!v && window.location.pathname) {
       const pathParts = window.location.pathname.split('/').filter(Boolean);
-      if (pathParts[0] === 'v' && pathParts[1]) {
+      if ((pathParts[0] === 'v' || pathParts[0] === 'video') && pathParts[1]) {
         v = decodeURIComponent(pathParts[1]);
       }
     }

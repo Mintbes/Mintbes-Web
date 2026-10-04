@@ -263,8 +263,12 @@ const VideoShowcase = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('video');
       url.searchParams.delete('v');
-      const cleanPath = url.pathname + (url.hash && !url.hash.includes('video=') ? url.hash : '');
-      window.history.replaceState({}, '', cleanPath || '/');
+      let cleanPath = url.pathname;
+      if (cleanPath.startsWith('/v/') || cleanPath.startsWith('/video/')) {
+        cleanPath = '/';
+      }
+      const targetUrl = (cleanPath === '/' ? '' : cleanPath) + (url.hash && !url.hash.includes('video=') ? url.hash : '/#showcase');
+      window.history.replaceState({}, '', targetUrl || '/');
     } catch {
       // Fallback
     }
@@ -315,7 +319,7 @@ const VideoShowcase = () => {
     const origin = (typeof window !== 'undefined' && window.location.origin && window.location.origin.includes('mintbes.country'))
       ? window.location.origin
       : 'https://mintbes.country';
-    const shareUrl = `${origin}/?video=${selectedItem.id}`;
+    const shareUrl = `${origin}/v/${selectedItem.id}`;
     const shareData = {
       title: `${selectedItem.title} — Mintbes 🌿`,
       text: `${selectedItem.title} (9:16 AI Cinema) — mintbes.country`,

@@ -91,7 +91,7 @@ export default async function handler(req, res) {
     const posterUrl = `${origin}/${posterPath}`;
     const videoPath = (video.src || '').replace(/^\//, '');
     const videoUrl = `${origin}/${videoPath}`;
-    const canonicalUrl = `${origin}/?video=${encodeURIComponent(video.id)}`;
+    const canonicalUrl = `${origin}/v/${encodeURIComponent(video.id)}`;
 
     const pageTitle = `${video.title} — Mintbes 🌿 AI Video`;
     const cleanPrompt = (video.prompt || '').replace(/\s+/g, ' ').trim();
