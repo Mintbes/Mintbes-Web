@@ -1,0 +1,54 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "dist/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "video"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "v"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    {
+      "source": "/index.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "video"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    {
+      "source": "/index.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "v"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    {
+      "source": "/v/:id",
+      "destination": "/api/og?video=:id"
+    }
+  ]
+}
