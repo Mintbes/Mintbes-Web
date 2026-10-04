@@ -89,8 +89,6 @@ export default async function handler(req, res) {
     const origin = host.includes('localhost') ? `http://${host}` : 'https://www.mintbes.country';
     const posterPath = (video.poster || '').replace(/^\//, '');
     const posterUrl = `${origin}/${posterPath}`;
-    const videoPath = (video.src || '').replace(/^\//, '');
-    const videoUrl = `${origin}/${videoPath}`;
     const canonicalUrl = `${origin}/v/${encodeURIComponent(video.id)}`;
 
     const pageTitle = `${video.title} — Mintbes 🌿 AI Video`;
@@ -103,8 +101,8 @@ export default async function handler(req, res) {
     // 2. Standard Meta Description
     html = updateMeta(html, 'name', 'description', summaryDesc);
 
-    // 3. Open Graph Tags
-    html = updateMeta(html, 'property', 'og:type', 'video.other');
+    // 3. Open Graph Tags (Clean Image Preview - No intrusive video embeds)
+    html = updateMeta(html, 'property', 'og:type', 'website');
     html = updateMeta(html, 'property', 'og:site_name', 'Mintbes');
     html = updateMeta(html, 'property', 'og:url', canonicalUrl);
     html = updateMeta(html, 'property', 'og:title', pageTitle);
@@ -115,11 +113,9 @@ export default async function handler(req, res) {
     html = updateMeta(html, 'property', 'og:image:width', '720');
     html = updateMeta(html, 'property', 'og:image:height', '1280');
     html = updateMeta(html, 'property', 'og:image:alt', video.title);
-    html = updateMeta(html, 'property', 'og:video', videoUrl);
-    html = updateMeta(html, 'property', 'og:video:secure_url', videoUrl);
-    html = updateMeta(html, 'property', 'og:video:type', 'video/mp4');
-    html = updateMeta(html, 'property', 'og:video:width', '720');
-    html = updateMeta(html, 'property', 'og:video:height', '1280');
+
+    // Strip any video meta tags so Telegram/WhatsApp/Discord don't render an autoplay video player
+    html = html.replace(/<meta\s+[^>]*?property=["']og:video[^"']*["'][^>]*?>/gi, '');
 
     // 4. Twitter / X Cards
     html = updateMeta(html, 'name', 'twitter:card', 'summary_large_image');
