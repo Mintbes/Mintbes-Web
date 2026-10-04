@@ -33,6 +33,14 @@
   ],
   "rewrites": [
     {
+      "source": "/v/videosAI/:path*",
+      "destination": "/videosAI/:path*"
+    },
+    {
+      "source": "/v/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
       "source": "/v/:id",
       "destination": "/api/og?video=:id"
     },

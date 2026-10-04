@@ -5,6 +5,12 @@ import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, 
 import { useTranslation } from 'react-i18next';
 import { SHOWCASE_ITEMS, findVideoByIdOrAlias, getInitialVideoFromUrl } from '../data/showcaseItems';
 
+export const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return url.startsWith('/') ? url : `/${url}`;
+};
+
 const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onTogglePlay }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -123,8 +129,8 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
       {/* Video Media Layer */}
       <video
         ref={videoRef}
-        src={item.src}
-        poster={item.poster}
+        src={resolveMediaUrl(item.src)}
+        poster={resolveMediaUrl(item.poster)}
         loop
         muted={isMuted}
         playsInline
@@ -488,12 +494,14 @@ const VideoShowcase = () => {
                 <div className="md:col-span-5 flex flex-col items-center">
                   <div className="w-full max-w-[220px] sm:max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
                     <video
-                      src={selectedItem.src}
+                      src={resolveMediaUrl(selectedItem.src)}
+                      poster={resolveMediaUrl(selectedItem.poster)}
                       autoPlay
                       loop
                       muted
                       playsInline
                       controls
+                      preload="auto"
                       className="w-full h-full object-contain bg-black"
                     />
                   </div>
