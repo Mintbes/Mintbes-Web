@@ -23,6 +23,8 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [selectedEventModal, setSelectedEventModal] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(Date.now());
   const [activePreviewVideo, setActivePreviewVideo] = useState(null);
+  const [hoveredBucketIndex, setHoveredBucketIndex] = useState(null);
+  const [showDataTable, setShowDataTable] = useState(false);
 
   // Reload events from storage
   const refreshEvents = useCallback(() => {
@@ -341,6 +343,43 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
 
     return { buckets, maxVal };
   }, [filteredEvents, timeRange, chartMetric]);
+
+  // Summary calculations for chart numbers
+  const chartTotals = useMemo(() => {
+    const buckets = timelineData.buckets;
+    let sumA = 0;
+    let sumB = 0;
+    let peakIndex = 0;
+    let peakValue = 0;
+
+    buckets.forEach((b, idx) => {
+      const valA = chartMetric === 'traffic' ? b.traffic : b.engagement;
+      const valB = chartMetric === 'traffic' ? b.plays : b.prompts;
+      sumA += valA;
+      sumB += valB;
+
+      if (valA > peakValue) {
+        peakValue = valA;
+        peakIndex = idx;
+      }
+    });
+
+    const avgA = buckets.length > 0 ? Math.round(sumA / buckets.length) : 0;
+    const avgB = buckets.length > 0 ? Math.round(sumB / buckets.length) : 0;
+    const latestB = buckets[buckets.length - 1];
+
+    return {
+      sumA,
+      sumB,
+      avgA,
+      avgB,
+      peakValue,
+      peakIndex,
+      peakLabel: buckets[peakIndex]?.label || '',
+      latestValueA: chartMetric === 'traffic' ? latestB?.traffic || 0 : latestB?.engagement || 0,
+      latestValueB: chartMetric === 'traffic' ? latestB?.plays || 0 : latestB?.prompts || 0,
+    };
+  }, [timelineData, chartMetric]);
 
   // Click Actions Ranking
   const clickActions = useMemo(() => {
@@ -716,16 +755,18 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             
-            {/* Timeline Interactive Area Chart */}
+            {/* Timeline Interactive Area Chart with Numbers & Scale */}
             <div className="p-6 rounded-3xl bg-[#0B0F17] border border-white/10 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              
+              {/* Header & Metric Switcher */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <Activity className="w-4 h-4 text-[#00AEE9]" />
                     <span>Evolución Temporal del Tráfico y Engagement</span>
                   </h3>
                   <p className="text-xs text-slate-400 font-mono mt-0.5">
-                    Volumen de entradas vs interacciones directas con el contenido
+                    Volumen exacto de entradas vs interacciones directas con el contenido
                   </p>
                 </div>
 
@@ -753,112 +794,337 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                 </div>
               </div>
 
-              {/* Responsive SVG Chart */}
-              <div className="h-64 sm:h-72 w-full relative">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 1000 240" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00AEE9" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#00AEE9" stopOpacity="0.0" />
-                    </linearGradient>
-                    <linearGradient id="mintGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#69FABD" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#69FABD" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
+              {/* 4 Primary Numerical Metric Cards for this Chart Period */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className="p-3.5 rounded-2xl bg-[#070A0F] border border-[#00AEE9]/40 shadow-inner">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono mb-1">
+                    <span>{chartMetric === 'traffic' ? 'Total Vistas / Tráfico' : 'Interacciones Totales'}</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00AEE9]" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-[#00AEE9] font-mono tracking-tight">
+                    {chartTotals.sumA.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono mt-1">
+                    En el período ({timeRange})
+                  </div>
+                </div>
 
-                  {/* Horizontal Grid Lines */}
-                  {[0, 60, 120, 180].map((y) => (
-                    <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
-                  ))}
+                <div className="p-3.5 rounded-2xl bg-[#070A0F] border border-[#69FABD]/40 shadow-inner">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono mb-1">
+                    <span>{chartMetric === 'traffic' ? 'Total Plays Vídeo' : 'Total Prompts Copiados'}</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#69FABD]" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-[#69FABD] font-mono tracking-tight">
+                    {chartTotals.sumB.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-[#69FABD]/80 font-mono mt-1">
+                    Conversión: {chartTotals.sumA > 0 ? Math.round((chartTotals.sumB / chartTotals.sumA) * 100) : 0}%
+                  </div>
+                </div>
 
-                  {/* Generate Area Paths */}
-                  {(() => {
-                    const buckets = timelineData.buckets;
-                    if (buckets.length < 2) return null;
-                    const max = Math.max(timelineData.maxVal, 1);
-                    const stepX = 1000 / (buckets.length - 1);
+                <div className="p-3.5 rounded-2xl bg-[#070A0F] border border-white/10">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono mb-1">
+                    <span>Pico Más Alto</span>
+                    <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-white font-mono flex items-baseline gap-1.5 tracking-tight">
+                    <span>{chartTotals.peakValue}</span>
+                    <span className="text-xs text-slate-400 font-normal">/ {timeRange === '24h' ? 'hora' : 'día'}</span>
+                  </div>
+                  <div className="text-[10px] text-amber-300 font-mono mt-1">
+                    Fecha del pico: {chartTotals.peakLabel}
+                  </div>
+                </div>
 
-                    // Series A: Traffic or Engagement
-                    const pointsA = buckets.map((b, idx) => {
-                      const val = chartMetric === 'traffic' ? b.traffic : b.engagement;
-                      const y = 220 - (val / max) * 200;
-                      return `${idx * stepX},${y}`;
-                    });
-
-                    // Series B: Plays or Prompts
-                    const pointsB = buckets.map((b, idx) => {
-                      const val = chartMetric === 'traffic' ? b.plays : b.prompts;
-                      const y = 220 - (val / max) * 200;
-                      return `${idx * stepX},${y}`;
-                    });
-
-                    const areaPathA = `M 0,220 L ${pointsA.join(' L ')} L 1000,220 Z`;
-                    const linePathA = `M ${pointsA.join(' L ')}`;
-
-                    const areaPathB = `M 0,220 L ${pointsB.join(' L ')} L 1000,220 Z`;
-                    const linePathB = `M ${pointsB.join(' L ')}`;
-
-                    return (
-                      <>
-                        <path d={areaPathA} fill="url(#cyanGrad)" />
-                        <path d={linePathA} fill="none" stroke="#00AEE9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-
-                        <path d={areaPathB} fill="url(#mintGrad)" />
-                        <path d={linePathB} fill="none" stroke="#69FABD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-
-                        {/* Interactive Data Dots */}
-                        {buckets.map((b, idx) => {
-                          const valA = chartMetric === 'traffic' ? b.traffic : b.engagement;
-                          const yA = 220 - (valA / max) * 200;
-                          return (
-                            <circle
-                              key={`dot-${idx}`}
-                              cx={idx * stepX}
-                              cy={yA}
-                              r="3.5"
-                              fill="#070A0F"
-                              stroke="#00AEE9"
-                              strokeWidth="2"
-                              className="hover:r-6 transition-all"
-                            />
-                          );
-                        })}
-                      </>
-                    );
-                  })()}
-                </svg>
-
-                {/* X Axis Labels */}
-                <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono mt-3 px-1">
-                  {timelineData.buckets.filter((_, i) => i % Math.ceil(timelineData.buckets.length / 8) === 0).map((b, i) => (
-                    <span key={i}>{b.label}</span>
-                  ))}
-                  <span>Ahora</span>
+                <div className="p-3.5 rounded-2xl bg-[#070A0F] border border-white/10">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono mb-1">
+                    <span>Media / {timeRange === '24h' ? 'Hora' : 'Día'}</span>
+                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-purple-300 font-mono flex items-baseline gap-1.5 tracking-tight">
+                    <span>{chartTotals.avgA}</span>
+                    <span className="text-xs text-slate-400 font-normal">eventos</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono mt-1">
+                    Media plays: {chartTotals.avgB} / {timeRange === '24h' ? 'hora' : 'día'}
+                  </div>
                 </div>
               </div>
 
-              {/* Legend & Summary */}
+              {/* Chart with Left Y-Axis Scale Numbers */}
+              <div className="flex gap-2 sm:gap-3 w-full">
+                
+                {/* Y-Axis Reference Scale Numbers */}
+                <div className="flex flex-col justify-between h-64 sm:h-72 text-right pr-2 text-[10px] sm:text-xs font-mono text-slate-400 select-none shrink-0 w-8 sm:w-11 pb-8 pt-1 border-r border-white/10">
+                  <span className="font-bold text-white">{timelineData.maxVal}</span>
+                  <span>{Math.round(timelineData.maxVal * 0.75)}</span>
+                  <span>{Math.round(timelineData.maxVal * 0.50)}</span>
+                  <span>{Math.round(timelineData.maxVal * 0.25)}</span>
+                  <span>0</span>
+                </div>
+
+                {/* SVG Area Chart Container */}
+                <div className="flex-1 min-w-0 relative h-64 sm:h-72">
+                  <svg 
+                    className="w-full h-full overflow-visible" 
+                    viewBox="0 0 1000 240" 
+                    preserveAspectRatio="none"
+                    onMouseLeave={() => setHoveredBucketIndex(null)}
+                  >
+                    <defs>
+                      <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#00AEE9" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#00AEE9" stopOpacity="0.0" />
+                      </linearGradient>
+                      <linearGradient id="mintGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#69FABD" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#69FABD" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Horizontal Reference Grid Lines (Aligned with Y-Axis numbers) */}
+                    {[20, 70, 120, 170, 220].map((y) => (
+                      <line key={y} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(255,255,255,0.08)" strokeDasharray="4 4" />
+                    ))}
+
+                    {(() => {
+                      const buckets = timelineData.buckets;
+                      if (buckets.length < 2) return null;
+                      const max = Math.max(timelineData.maxVal, 1);
+                      const stepX = 1000 / (buckets.length - 1);
+
+                      // Series A: Traffic or Engagement
+                      const pointsA = buckets.map((b, idx) => {
+                        const val = chartMetric === 'traffic' ? b.traffic : b.engagement;
+                        const y = 220 - (val / max) * 200;
+                        return { x: idx * stepX, y, val };
+                      });
+
+                      // Series B: Plays or Prompts
+                      const pointsB = buckets.map((b, idx) => {
+                        const val = chartMetric === 'traffic' ? b.plays : b.prompts;
+                        const y = 220 - (val / max) * 200;
+                        return { x: idx * stepX, y, val };
+                      });
+
+                      const areaPathA = `M 0,220 L ${pointsA.map(p => `${p.x},${p.y}`).join(' L ')} L 1000,220 Z`;
+                      const linePathA = `M ${pointsA.map(p => `${p.x},${p.y}`).join(' L ')}`;
+
+                      const areaPathB = `M 0,220 L ${pointsB.map(p => `${p.x},${p.y}`).join(' L ')} L 1000,220 Z`;
+                      const linePathB = `M ${pointsB.map(p => `${p.x},${p.y}`).join(' L ')}`;
+
+                      const peakPt = pointsA[chartTotals.peakIndex] || pointsA[0];
+                      const latestPt = pointsA[pointsA.length - 1];
+
+                      return (
+                        <>
+                          <path d={areaPathA} fill="url(#cyanGrad)" />
+                          <path d={linePathA} fill="none" stroke="#00AEE9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                          <path d={areaPathB} fill="url(#mintGrad)" />
+                          <path d={linePathB} fill="none" stroke="#69FABD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+                          {/* Hover Vertical Guide Line */}
+                          {hoveredBucketIndex !== null && (
+                            <line
+                              x1={hoveredBucketIndex * stepX}
+                              y1="10"
+                              x2={hoveredBucketIndex * stepX}
+                              y2="225"
+                              stroke="#00AEE9"
+                              strokeWidth="1.5"
+                              strokeDasharray="3 3"
+                            />
+                          )}
+
+                          {/* Permanent Number Badge on Peak Point */}
+                          {peakPt && (
+                            <g transform={`translate(${peakPt.x}, ${Math.max(peakPt.y - 12, 14)})`}>
+                              <rect x="-24" y="-14" width="48" height="16" rx="8" fill="#00AEE9" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))" />
+                              <text x="0" y="-3" textAnchor="middle" fill="#070A0F" fontSize="9" fontWeight="900" fontFamily="monospace">
+                                {peakPt.val}
+                              </text>
+                            </g>
+                          )}
+
+                          {/* Permanent Number Badge on Latest Point */}
+                          {latestPt && (
+                            <g transform={`translate(${latestPt.x - 24}, ${Math.max(latestPt.y - 12, 14)})`}>
+                              <rect x="-22" y="-14" width="44" height="16" rx="8" fill="#69FABD" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))" />
+                              <text x="0" y="-3" textAnchor="middle" fill="#070A0F" fontSize="9" fontWeight="900" fontFamily="monospace">
+                                {latestPt.val}
+                              </text>
+                            </g>
+                          )}
+
+                          {/* Interactive Data Dots & Hover Hit Areas */}
+                          {buckets.map((b, idx) => {
+                            const pA = pointsA[idx];
+                            const pB = pointsB[idx];
+                            const isHovered = hoveredBucketIndex === idx;
+
+                            return (
+                              <g key={`col-${idx}`}>
+                                {/* Column transparent hit area */}
+                                <rect
+                                  x={idx * stepX - stepX / 2}
+                                  y="0"
+                                  width={stepX}
+                                  height="240"
+                                  fill="transparent"
+                                  className="cursor-pointer"
+                                  onMouseEnter={() => setHoveredBucketIndex(idx)}
+                                />
+
+                                {/* Dot A (Cyan) */}
+                                <circle
+                                  cx={pA.x}
+                                  cy={pA.y}
+                                  r={isHovered ? 6 : 3.5}
+                                  fill={isHovered ? "#00AEE9" : "#070A0F"}
+                                  stroke="#00AEE9"
+                                  strokeWidth={isHovered ? 3 : 2}
+                                  className="pointer-events-none transition-all"
+                                />
+
+                                {/* Dot B (Mint) */}
+                                <circle
+                                  cx={pB.x}
+                                  cy={pB.y}
+                                  r={isHovered ? 5.5 : 3}
+                                  fill={isHovered ? "#69FABD" : "#070A0F"}
+                                  stroke="#69FABD"
+                                  strokeWidth={isHovered ? 2.5 : 2}
+                                  className="pointer-events-none transition-all"
+                                />
+                              </g>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </svg>
+
+                  {/* Floating Tooltip with Exact Numbers on Hover */}
+                  {hoveredBucketIndex !== null && timelineData.buckets[hoveredBucketIndex] && (
+                    <div 
+                      className="absolute top-2 z-20 pointer-events-none p-2.5 rounded-xl bg-[#0B0F17]/95 border border-[#00AEE9]/50 shadow-2xl backdrop-blur-md text-xs font-mono transition-all"
+                      style={{
+                        left: `${Math.min(Math.max((hoveredBucketIndex / (timelineData.buckets.length - 1)) * 100, 15), 85)}%`,
+                        transform: 'translateX(-50%)'
+                      }}
+                    >
+                      <div className="text-[11px] text-slate-400 font-bold border-b border-white/10 pb-1 mb-1.5 flex items-center justify-between gap-3">
+                        <span>📅 {timelineData.buckets[hoveredBucketIndex].label}</span>
+                        <span className="text-[#69FABD]">
+                          Ratio: {timelineData.buckets[hoveredBucketIndex].traffic > 0 
+                            ? Math.round((timelineData.buckets[hoveredBucketIndex].plays / timelineData.buckets[hoveredBucketIndex].traffic) * 100) 
+                            : 0}%
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-slate-300 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#00AEE9]" />
+                            <span>Vistas / Tráfico:</span>
+                          </span>
+                          <span className="text-white font-bold text-sm">
+                            {timelineData.buckets[hoveredBucketIndex].traffic}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-slate-300 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-[#69FABD]" />
+                            <span>Plays Vídeo:</span>
+                          </span>
+                          <span className="text-[#69FABD] font-bold text-sm">
+                            {timelineData.buckets[hoveredBucketIndex].plays}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-slate-300 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-purple-400" />
+                            <span>Prompts Copiados:</span>
+                          </span>
+                          <span className="text-purple-300 font-bold">
+                            {timelineData.buckets[hoveredBucketIndex].prompts}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* X Axis Labels */}
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono mt-3 px-1">
+                    {timelineData.buckets.filter((_, i) => i % Math.ceil(timelineData.buckets.length / 8) === 0).map((b, i) => (
+                      <span key={i}>{b.label}</span>
+                    ))}
+                    <span className="text-[#69FABD] font-bold">Ahora</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Legend & Toggle Button for Raw Numbers Table */}
               <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-white/5 text-xs">
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-[#00AEE9]" />
                     <span className="text-slate-300">
                       {chartMetric === 'traffic' ? 'Visitas & Vistas' : 'Interacciones Totales'}
                     </span>
+                    <span className="font-mono text-white font-bold ml-1">({chartTotals.sumA})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-[#69FABD]" />
                     <span className="text-slate-300">
                       {chartMetric === 'traffic' ? 'Reproducciones de Vídeo' : 'Prompts Copiados'}
                     </span>
+                    <span className="font-mono text-[#69FABD] font-bold ml-1">({chartTotals.sumB})</span>
                   </div>
                 </div>
 
-                <div className="text-slate-400 font-mono text-[11px]">
-                  Frecuencia de muestreo: {timeRange === '24h' ? 'Horaria (24h)' : 'Diaria'}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowDataTable(!showDataTable)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-mono text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5 text-[#00AEE9]" />
+                    <span>{showDataTable ? 'Ocultar Tabla de Números' : 'Ver Tabla de Números Día a Día'}</span>
+                  </button>
                 </div>
               </div>
+
+              {/* Optional Expandable Numbers Table */}
+              {showDataTable && (
+                <div className="mt-4 pt-4 border-t border-white/10 overflow-x-auto max-h-72 overflow-y-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-white/10 text-slate-400 text-[10px] uppercase">
+                        <th className="pb-2">Fecha / Intervalo</th>
+                        <th className="pb-2 text-right text-[#00AEE9]">Vistas (Tráfico)</th>
+                        <th className="pb-2 text-right text-[#69FABD]">Plays de Vídeo</th>
+                        <th className="pb-2 text-right text-purple-300">Prompts Copiados</th>
+                        <th className="pb-2 text-right text-slate-300">Ratio Conversión</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {timelineData.buckets.map((b, i) => (
+                        <tr key={i} className="hover:bg-white/5 transition-colors">
+                          <td className="py-2 text-white font-bold">{b.label}</td>
+                          <td className="py-2 text-right text-[#00AEE9] font-bold">{b.traffic}</td>
+                          <td className="py-2 text-right text-[#69FABD] font-bold">{b.plays}</td>
+                          <td className="py-2 text-right text-purple-300 font-bold">{b.prompts}</td>
+                          <td className="py-2 text-right text-slate-400">
+                            {b.traffic > 0 ? Math.round((b.plays / b.traffic) * 100) : 0}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
             </div>
 
             {/* Split Grid: Top 5 Videos & Click Action Heatmap */}
