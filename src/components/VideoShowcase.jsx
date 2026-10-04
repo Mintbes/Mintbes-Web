@@ -574,7 +574,7 @@ const VideoShowcase = () => {
 
   const handleShareVideo = async () => {
     if (!selectedItem) return;
-    const shareUrl = `${window.location.origin}${window.location.pathname}?video=${selectedItem.id}`;
+    const shareUrl = `https://m.country/?video=${selectedItem.id}`;
     const shareData = {
       title: `${selectedItem.title} — Mintbes 🌿`,
       text: `${selectedItem.title} (9:16 AI Cinema) en m.country`,
