@@ -9,6 +9,7 @@ export const SHOWCASE_ITEMS = [
     poster: '/videosAI/yomhud8cjw_poster.jpg',
     duration: '15s',
     engine: 'Harmony AI Video',
+    youtubeUrl: 'https://www.youtube.com/shorts/aWs8RkexAFw',
     tags: ['4K UHD', '9:16 Vertical', 'Spanish Flamenco', 'Andalusian Patio', 'Foley Audio'],
     prompt: '0-5s: Medium-full vertical shot of an impassioned Spanish flamenco bailaora in an exquisite crimson ruffled dress and black lace mantón de Manila in an authentic Andalusian courtyard at twilight. 5-10s: Dynamic circular camera orbit as she performs intricate braceo arm sweeps and dramatic turns on rain-kissed cobblestones, warm iron lantern light catching her slicked dark hair and red carnation. 10-15s: Powerful zapateado footwork heel stamps causing crisp water splashes beneath warm glowing archways, culminating in a fierce, statuesque flamenco pose. Sound: vibrant Spanish nylon-string guitar rasgueados, rhythmic palmas hand claps, resonant wooden heel zapateado strikes on wet stone.',
     breakdown: {
