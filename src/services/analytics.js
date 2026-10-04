@@ -90,13 +90,15 @@ function getSessionId() {
   }
 }
 
-// Read events from storage (always sorted newest first)
+// Read events from storage (always sorted newest first, 100% real only)
 export function getStoredEvents() {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const list = raw ? JSON.parse(raw) : [];
-    return list.sort((a, b) => b.timestamp - a.timestamp);
+    // Enforce 100% real events: purge any simulated data
+    const realOnly = list.filter((e) => e && e.id && !e.id.startsWith('seed_'));
+    return realOnly.sort((a, b) => b.timestamp - a.timestamp);
   } catch (err) {
     console.warn('MintMax Analytics read error:', err);
     return [];
@@ -203,183 +205,36 @@ export const analytics = {
   }
 };
 
-// Seed Realistic Historical Traffic if clean slate
+// Ensure clean slate: Purges any residual simulated/seed data from previous versions
 export function ensureSeedData() {
   if (typeof window === 'undefined') return;
   try {
-    const hasSeed = localStorage.getItem(SEED_KEY);
-    if (hasSeed) return;
-
-    // Reset old seed versions to replace inverted timestamps and fix session durations
     localStorage.removeItem('mintmax_seed_initialized_v2');
     localStorage.removeItem('mintmax_seed_initialized_v3');
     localStorage.removeItem('mintmax_seed_initialized_v4');
     localStorage.removeItem('mintmax_seed_initialized_v5');
     localStorage.removeItem('mintmax_seed_initialized_v6');
     localStorage.removeItem('mintmax_seed_initialized_v7');
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('mintmax_seed_initialized_v8');
+    localStorage.removeItem('mintmax_live_only');
 
-    if (localStorage.getItem('mintmax_live_only') === 'true') {
-      return;
-    }
-
-    const seeded = [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-
-    const countries = [
-      { country: 'Spain', code: 'ES', city: 'Madrid', weight: 34 },
-      { country: 'Spain', code: 'ES', city: 'Bilbao', weight: 16 },
-      { country: 'United States', code: 'US', city: 'New York', weight: 18 },
-      { country: 'United States', code: 'US', city: 'San Francisco', weight: 12 },
-      { country: 'Japan', code: 'JP', city: 'Tokyo', weight: 8 },
-      { country: 'United Kingdom', code: 'GB', city: 'London', weight: 6 },
-      { country: 'Germany', code: 'DE', city: 'Berlin', weight: 4 },
-      { country: 'Argentina', code: 'AR', city: 'Buenos Aires', weight: 4 },
-      { country: 'France', code: 'FR', city: 'Paris', weight: 3 },
-      { country: 'Canada', code: 'CA', city: 'Toronto', weight: 3 },
-    ];
-
-    const channels = [
-      { name: 'Twitter / X', weight: 42 },
-      { name: 'Telegram', weight: 26 },
-      { name: 'Direct Video Permalink', weight: 18 },
-      { name: 'YouTube Shorts', weight: 8 },
-      { name: 'Search (Google/Organic)', weight: 4 },
-      { name: 'Discord', weight: 2 },
-    ];
-
-    // Vídeos del catálogo con control estricto de fecha de creación (maxAgeMs)
-    // Andalusian Flamenco Passion fue creado HOY (~12 horas de vida). NO puede tener eventos de hace 7d ni 30d.
-    const videos = [
-      { id: 'andalusian-flamenco-passion', title: 'Andalusian Flamenco Passion', weight: 45, maxAgeMs: 12 * 60 * 60 * 1000 },
-      { id: 'walking-in-harmony', title: 'Walking in Harmony', weight: 14, maxAgeMs: 30 * dayMs },
-      { id: 'samurai-golden-harvest', title: 'The Samurai’s Golden Harvest', weight: 16, maxAgeMs: 28 * dayMs },
-      { id: 'dwarven-slayer-clash', title: 'Dwarven Slayer Clash', weight: 22, maxAgeMs: 21 * dayMs },
-      { id: 'basque-tavern-passage', title: 'Basque Tavern Passage', weight: 18, maxAgeMs: 15 * dayMs },
-      { id: 'velvet-vanity-rouge', title: 'Velvet Vanity & Rouge', weight: 10, maxAgeMs: 25 * dayMs },
-      { id: 'asado-argentino-pampa', title: 'Asado Argentino Pampa Fire', weight: 8, maxAgeMs: 18 * dayMs },
-      { id: 'victorian-sorcerer-saga', title: 'Victorian Sorcerer & The Shadow Beast', weight: 7, maxAgeMs: 24 * dayMs },
-      { id: 'sylvan-elven-archer', title: 'Sylvan Elven Archer', weight: 6, maxAgeMs: 22 * dayMs },
-      { id: 'spartan-war-cry', title: 'Spartan War Cry', weight: 5, maxAgeMs: 27 * dayMs }
-    ];
-
-    const devices = [
-      { type: 'Mobile', os: 'iOS', browser: 'Safari', weight: 55 },
-      { type: 'Mobile', os: 'Android', browser: 'Chrome', weight: 25 },
-      { type: 'Desktop', os: 'Windows', browser: 'Brave', weight: 12 },
-      { type: 'Desktop', os: 'macOS', browser: 'Chrome', weight: 8 },
-    ];
-
-    function pickWeighted(list) {
-      const total = list.reduce((acc, i) => acc + i.weight, 0);
-      let r = Math.random() * total;
-      for (const item of list) {
-        if (r < item.weight) return item;
-        r -= item.weight;
+    // Purge any simulated events from storage
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const list = JSON.parse(raw);
+      const realOnly = list.filter((e) => e && e.id && !e.id.startsWith('seed_'));
+      if (realOnly.length !== list.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(realOnly));
       }
-      return list[0];
     }
-
-    // Filtra para que un vídeo solo pueda recibir eventos si ya había sido publicado en esa fecha
-    function pickVideoForTimestamp(eventTs) {
-      const ageMs = now - eventTs;
-      const eligible = videos.filter((v) => ageMs <= (v.maxAgeMs || 30 * dayMs));
-      return pickWeighted(eligible.length > 0 ? eligible : videos.filter((v) => v.id !== 'andalusian-flamenco-passion'));
-    }
-
-    // Generate ~1400 organic interactions over the last 30 days with natural real-time distribution
-    for (let i = 0; i < 1400; i++) {
-      let ts;
-      if (i < 35) {
-        // Past 5 minutes to 2 hours (just now, hace unos minutos, hace 1h)
-        ts = now - Math.floor(Math.random() * 2 * 3600 * 1000);
-      } else if (i < 130) {
-        // Earlier today (hace 3h, hace 7h, hace 14h)
-        ts = now - Math.floor((2 + Math.random() * 22) * 3600 * 1000);
-      } else if (i < 280) {
-        // Yesterday (hace 1d)
-        ts = now - Math.floor((24 + Math.random() * 24) * 3600 * 1000);
-      } else {
-        // Past 2 to 29 days (hace 2d, hace 4d, hace 10d...)
-        const daysAgo = 2 + Math.pow(Math.random(), 1.4) * 27;
-        ts = now - Math.floor(daysAgo * dayMs);
-      }
-
-      const dev = pickWeighted(devices);
-      const ch = pickWeighted(channels);
-      const geo = pickWeighted(countries);
-      const vid = pickVideoForTimestamp(ts);
-      const sessionWindow = Math.floor(ts / (25 * 60 * 1000));
-      const sid = `ses_${sessionWindow}_${Math.floor(Math.random() * 4)}`;
-
-      // Event probability
-      const r = Math.random();
-      let type = 'page_view';
-      let data = {};
-
-      if (r < 0.35) {
-        type = 'video_modal_open';
-        data = { videoId: vid.id, videoTitle: vid.title };
-      } else if (r < 0.65) {
-        type = 'video_play';
-        data = { videoId: vid.id, videoTitle: vid.title };
-      } else if (r < 0.82) {
-        type = 'prompt_copy';
-        data = { videoId: vid.id, videoTitle: vid.title, source: 'modal' };
-      } else if (r < 0.92) {
-        type = 'share_click';
-        data = { videoId: vid.id, videoTitle: vid.title, shareUrl: `https://www.mintbes.country/v/${vid.id}` };
-      } else if (r < 0.96) {
-        type = 'youtube_click';
-        data = { videoId: vid.id, videoTitle: vid.title };
-      } else {
-        type = 'section_view';
-        data = { section: ['showcase', 'prompt-vault', 'hero', 'bridge'][Math.floor(Math.random() * 4)] };
-      }
-
-      seeded.push({
-        id: 'seed_' + i,
-        type,
-        timestamp: ts,
-        sessionId: sid,
-        channel: ch.name,
-        device: dev.type,
-        os: dev.os,
-        browser: dev.browser,
-        country: geo.country,
-        city: geo.city,
-        countryCode: geo.code,
-        lang: geo.code === 'ES' ? 'es-ES' : (geo.code === 'JP' ? 'ja-JP' : 'en-US'),
-        data
-      });
-    }
-
-    // Sort descending (newest events first!)
-    seeded.sort((a, b) => b.timestamp - a.timestamp);
-
-    // Save seeded events (already sorted descending newest first)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
-    localStorage.setItem(SEED_KEY, 'true');
   } catch (err) {
-    console.warn('Seed data creation error:', err);
+    console.warn('Analytics cleanup error:', err);
   }
 }
 
-// Reset everything to 100% Real Live Visits (Purges all simulated seed data)
-export function resetToLiveOnly() {
+// Clear all recorded analytics
+export function clearAllAnalytics() {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('mintmax_live_only', 'true');
   localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(SEED_KEY);
-  window.dispatchEvent(new CustomEvent('mintmax_event_logged', { detail: { type: 'cache_reset' } }));
-}
-
-// Restore Realistic Historical Demo Traffic
-export function restoreDemoData() {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem('mintmax_live_only');
-  localStorage.removeItem(SEED_KEY);
-  ensureSeedData();
   window.dispatchEvent(new CustomEvent('mintmax_event_logged', { detail: { type: 'cache_reset' } }));
 }

@@ -9,14 +9,10 @@ import {
   ArrowLeft, ArrowRight, Laptop, Tablet, Volume2
 } from 'lucide-react';
 import { SHOWCASE_ITEMS } from '../../data/showcaseItems';
-import { getStoredEvents, logEvent, analytics, resetToLiveOnly, restoreDemoData } from '../../services/analytics';
+import { getStoredEvents, logEvent, analytics, clearAllAnalytics } from '../../services/analytics';
 
 export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [events, setEvents] = useState(() => getStoredEvents());
-  const [isLiveOnly, setIsLiveOnly] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('mintmax_live_only') === 'true';
-  });
   const [timeRange, setTimeRange] = useState('30d'); // '24h', '7d', '30d'
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'videos', 'sources', 'audience', 'events'
   const [selectedVideoSearch, setSelectedVideoSearch] = useState('');
@@ -144,15 +140,14 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
 
     const avgDurationSeconds = sessionsWithDuration > 0 
       ? Math.round((totalDurationMs / sessionsWithDuration) / 1000) 
-      : 165; // realistic baseline fallback ~2m 45s
+      : 0;
 
     const formatDuration = (sec) => {
-      // Clamp between 35s and 8m (realistic average time for browsing short-form videos)
-      const clamped = Math.max(35, Math.min(sec || 165, 480));
-      const d = Math.floor(clamped / 86400);
-      const h = Math.floor((clamped % 86400) / 3600);
-      const m = Math.floor((clamped % 3600) / 60);
-      const s = clamped % 60;
+      if (!sec || sec === 0) return '0 min 00 s';
+      const d = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400) / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
 
       if (d > 0) return `${d}d ${h}h`;
       if (h > 0) return `${h}h ${m}m`;
@@ -168,8 +163,8 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
       ? Math.round((promptCopies / videoPlays) * 100) 
       : 0;
 
-    // Real-time active concurrents guarantee realistic live figure (3 - 12 active)
-    const activeConcurrents = Math.max(liveSessions.size, Math.floor(3 + (Math.sin(Date.now() / 60000) * 2)));
+    // Real-time active concurrents: strictly real sessions active in last 5 minutes
+    const activeConcurrents = liveSessions.size;
 
     return {
       totalEvents,
@@ -513,15 +508,10 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     }, 600);
   };
 
-  // Toggle between 100% Real Live Traffic and Demo Seed
-  const handleToggleLiveOnly = () => {
-    if (isLiveOnly) {
-      restoreDemoData();
-      setIsLiveOnly(false);
-      setEvents(getStoredEvents());
-    } else {
-      resetToLiveOnly();
-      setIsLiveOnly(true);
+  // Clear all analytics data
+  const handleClearAll = () => {
+    if (window.confirm('¿Deseas vaciar todos los registros de analítica? Los contadores volverán a 0.')) {
+      clearAllAnalytics();
       setEvents([]);
     }
   };
@@ -651,28 +641,30 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
             </div>
 
             {/* Live Only vs Demo Toggle */}
-            <button
-              onClick={handleToggleLiveOnly}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shadow-sm ${
-                isLiveOnly
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                  : 'bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-              title={isLiveOnly ? 'Modo Tráfico 100% Real activo. Haz clic para recargar histórico simulado' : 'Haz clic para purgar simulación y ver solo tráfico 100% real'}
-            >
-              <Radio className={`w-3.5 h-3.5 ${isLiveOnly ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
-              <span className="hidden sm:inline">{isLiveOnly ? 'Tráfico Real' : 'Simulación'}</span>
-            </button>
+            {/* 100% Real Indicator Badge */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden sm:inline">Datos 100% Reales</span>
+            </div>
 
-            {/* Simulate Live Action (QA / Demo) */}
+            {/* Test Action (Instant Event Generator for QA) */}
             <button
               onClick={handleSimulateEvent}
               disabled={isSimulating}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00AEE9]/10 hover:bg-[#00AEE9]/20 border border-[#00AEE9]/30 text-[#00AEE9] text-xs font-semibold transition-all cursor-pointer shadow-sm disabled:opacity-50"
-              title="Simula un evento de visita o reproducción para probar la telemetría en tiempo real"
+              title="Registra un clic/play real de prueba para verificar que el panel reacciona al instante"
             >
               <Zap className={`w-3.5 h-3.5 ${isSimulating ? 'animate-bounce' : ''}`} />
-              <span className="hidden sm:inline">Test En Vivo</span>
+              <span className="hidden sm:inline">Probar Clic</span>
+            </button>
+
+            {/* Clear Analytics */}
+            <button
+              onClick={handleClearAll}
+              className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-colors cursor-pointer"
+              title="Vaciar analíticas y poner a 0"
+            >
+              <RefreshCw className="w-4 h-4" />
             </button>
 
             {/* Export CSV */}
@@ -1152,6 +1144,21 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                           </span>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Empty State Overlay when 0 Events */}
+                  {chartTotals.sumA === 0 && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#070A0F]/75 backdrop-blur-xs rounded-2xl pointer-events-none p-4 text-center z-10">
+                      <div className="w-10 h-10 rounded-2xl bg-[#00AEE9]/15 border border-[#00AEE9]/30 flex items-center justify-center text-[#00AEE9] mb-2">
+                        <Activity className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-1">
+                        Escucha en Vivo Activa (0 Simulaciones)
+                      </h4>
+                      <p className="text-xs text-slate-400 font-mono max-w-md">
+                        Esperando visitas reales. Cuando los usuarios entren a la web o vean vídeos, las curvas y métricas se dibujarán aquí en tiempo real.
+                      </p>
                     </div>
                   )}
 
