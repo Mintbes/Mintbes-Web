@@ -3,7 +3,7 @@
 
 const STORAGE_KEY = 'mintmax_analytics_events';
 const SESSION_KEY = 'mintmax_session_id';
-const SEED_KEY = 'mintmax_seed_initialized_v5';
+const SEED_KEY = 'mintmax_seed_initialized_v6';
 
 // Detect Device & Environment
 function detectDevice() {
@@ -210,10 +210,11 @@ export function ensureSeedData() {
     const hasSeed = localStorage.getItem(SEED_KEY);
     if (hasSeed) return;
 
-    // Reset old seed versions to replace inverted timestamps
+    // Reset old seed versions to replace inverted timestamps and fix session durations
     localStorage.removeItem('mintmax_seed_initialized_v2');
     localStorage.removeItem('mintmax_seed_initialized_v3');
     localStorage.removeItem('mintmax_seed_initialized_v4');
+    localStorage.removeItem('mintmax_seed_initialized_v5');
     localStorage.removeItem(STORAGE_KEY);
 
     const seeded = [];
@@ -294,7 +295,8 @@ export function ensureSeedData() {
       const ch = pickWeighted(channels);
       const geo = pickWeighted(countries);
       const vid = pickWeighted(videos);
-      const sid = 'seed_ses_' + Math.floor(Math.random() * 800);
+      const sessionWindow = Math.floor(ts / (25 * 60 * 1000));
+      const sid = `ses_${sessionWindow}_${Math.floor(Math.random() * 4)}`;
 
       // Event probability
       const r = Math.random();
