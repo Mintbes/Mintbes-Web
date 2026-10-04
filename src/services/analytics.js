@@ -3,7 +3,7 @@
 
 const STORAGE_KEY = 'mintmax_analytics_events';
 const SESSION_KEY = 'mintmax_session_id';
-const SEED_KEY = 'mintmax_seed_initialized_v7';
+const SEED_KEY = 'mintmax_seed_initialized_v8';
 
 // Detect Device & Environment
 function detectDevice() {
@@ -216,7 +216,12 @@ export function ensureSeedData() {
     localStorage.removeItem('mintmax_seed_initialized_v4');
     localStorage.removeItem('mintmax_seed_initialized_v5');
     localStorage.removeItem('mintmax_seed_initialized_v6');
+    localStorage.removeItem('mintmax_seed_initialized_v7');
     localStorage.removeItem(STORAGE_KEY);
+
+    if (localStorage.getItem('mintmax_live_only') === 'true') {
+      return;
+    }
 
     const seeded = [];
     const now = Date.now();
@@ -244,17 +249,19 @@ export function ensureSeedData() {
       { name: 'Discord', weight: 2 },
     ];
 
+    // Vídeos del catálogo con control estricto de fecha de creación (maxAgeMs)
+    // Andalusian Flamenco Passion fue creado HOY (~12 horas de vida). NO puede tener eventos de hace 7d ni 30d.
     const videos = [
-      { id: 'andalusian-flamenco-passion', title: 'Andalusian Flamenco Passion', weight: 28 },
-      { id: 'dwarven-slayer-clash', title: 'Dwarven Slayer Clash', weight: 22 },
-      { id: 'basque-tavern-passage', title: 'Basque Tavern Passage', weight: 18 },
-      { id: 'samurai-golden-harvest', title: 'The Samurai’s Golden Harvest', weight: 14 },
-      { id: 'walking-in-harmony', title: 'Walking in Harmony', weight: 10 },
-      { id: 'velvet-vanity-rouge', title: 'Velvet Vanity & Rouge', weight: 8 },
-      { id: 'asado-argentino-pampa', title: 'Asado Argentino Pampa Fire', weight: 7 },
-      { id: 'victorian-sorcerer-saga', title: 'Victorian Sorcerer & The Shadow Beast', weight: 6 },
-      { id: 'sylvan-elven-archer', title: 'Sylvan Elven Archer', weight: 5 },
-      { id: 'spartan-war-cry', title: 'Spartan War Cry', weight: 4 }
+      { id: 'andalusian-flamenco-passion', title: 'Andalusian Flamenco Passion', weight: 45, maxAgeMs: 12 * 60 * 60 * 1000 },
+      { id: 'walking-in-harmony', title: 'Walking in Harmony', weight: 14, maxAgeMs: 30 * dayMs },
+      { id: 'samurai-golden-harvest', title: 'The Samurai’s Golden Harvest', weight: 16, maxAgeMs: 28 * dayMs },
+      { id: 'dwarven-slayer-clash', title: 'Dwarven Slayer Clash', weight: 22, maxAgeMs: 21 * dayMs },
+      { id: 'basque-tavern-passage', title: 'Basque Tavern Passage', weight: 18, maxAgeMs: 15 * dayMs },
+      { id: 'velvet-vanity-rouge', title: 'Velvet Vanity & Rouge', weight: 10, maxAgeMs: 25 * dayMs },
+      { id: 'asado-argentino-pampa', title: 'Asado Argentino Pampa Fire', weight: 8, maxAgeMs: 18 * dayMs },
+      { id: 'victorian-sorcerer-saga', title: 'Victorian Sorcerer & The Shadow Beast', weight: 7, maxAgeMs: 24 * dayMs },
+      { id: 'sylvan-elven-archer', title: 'Sylvan Elven Archer', weight: 6, maxAgeMs: 22 * dayMs },
+      { id: 'spartan-war-cry', title: 'Spartan War Cry', weight: 5, maxAgeMs: 27 * dayMs }
     ];
 
     const devices = [
@@ -272,6 +279,13 @@ export function ensureSeedData() {
         r -= item.weight;
       }
       return list[0];
+    }
+
+    // Filtra para que un vídeo solo pueda recibir eventos si ya había sido publicado en esa fecha
+    function pickVideoForTimestamp(eventTs) {
+      const ageMs = now - eventTs;
+      const eligible = videos.filter((v) => ageMs <= (v.maxAgeMs || 30 * dayMs));
+      return pickWeighted(eligible.length > 0 ? eligible : videos.filter((v) => v.id !== 'andalusian-flamenco-passion'));
     }
 
     // Generate ~1400 organic interactions over the last 30 days with natural real-time distribution
@@ -295,7 +309,7 @@ export function ensureSeedData() {
       const dev = pickWeighted(devices);
       const ch = pickWeighted(channels);
       const geo = pickWeighted(countries);
-      const vid = pickWeighted(videos);
+      const vid = pickVideoForTimestamp(ts);
       const sessionWindow = Math.floor(ts / (25 * 60 * 1000));
       const sid = `ses_${sessionWindow}_${Math.floor(Math.random() * 4)}`;
 
@@ -350,4 +364,22 @@ export function ensureSeedData() {
   } catch (err) {
     console.warn('Seed data creation error:', err);
   }
+}
+
+// Reset everything to 100% Real Live Visits (Purges all simulated seed data)
+export function resetToLiveOnly() {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('mintmax_live_only', 'true');
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SEED_KEY);
+  window.dispatchEvent(new CustomEvent('mintmax_event_logged', { detail: { type: 'cache_reset' } }));
+}
+
+// Restore Realistic Historical Demo Traffic
+export function restoreDemoData() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('mintmax_live_only');
+  localStorage.removeItem(SEED_KEY);
+  ensureSeedData();
+  window.dispatchEvent(new CustomEvent('mintmax_event_logged', { detail: { type: 'cache_reset' } }));
 }

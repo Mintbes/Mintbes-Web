@@ -9,11 +9,15 @@ import {
   ArrowLeft, ArrowRight, Laptop, Tablet, Volume2
 } from 'lucide-react';
 import { SHOWCASE_ITEMS } from '../../data/showcaseItems';
-import { getStoredEvents, logEvent, analytics } from '../../services/analytics';
+import { getStoredEvents, logEvent, analytics, resetToLiveOnly, restoreDemoData } from '../../services/analytics';
 
 export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [events, setEvents] = useState(() => getStoredEvents());
-  const [timeRange, setTimeRange] = useState('30d'); // '24h', '7d', '30d', 'all'
+  const [isLiveOnly, setIsLiveOnly] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('mintmax_live_only') === 'true';
+  });
+  const [timeRange, setTimeRange] = useState('30d'); // '24h', '7d', '30d'
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'videos', 'sources', 'audience', 'events'
   const [selectedVideoSearch, setSelectedVideoSearch] = useState('');
   const [eventFilterType, setEventFilterType] = useState('all');
@@ -509,6 +513,19 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     }, 600);
   };
 
+  // Toggle between 100% Real Live Traffic and Demo Seed
+  const handleToggleLiveOnly = () => {
+    if (isLiveOnly) {
+      restoreDemoData();
+      setIsLiveOnly(false);
+      setEvents(getStoredEvents());
+    } else {
+      resetToLiveOnly();
+      setIsLiveOnly(true);
+      setEvents([]);
+    }
+  };
+
   // Helper for flag emojis
   const getFlagEmoji = (code) => {
     if (!code || code.length !== 2) return '🌐';
@@ -632,6 +649,20 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                 </button>
               ))}
             </div>
+
+            {/* Live Only vs Demo Toggle */}
+            <button
+              onClick={handleToggleLiveOnly}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer shadow-sm ${
+                isLiveOnly
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                  : 'bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+              title={isLiveOnly ? 'Modo Tráfico 100% Real activo. Haz clic para recargar histórico simulado' : 'Haz clic para purgar simulación y ver solo tráfico 100% real'}
+            >
+              <Radio className={`w-3.5 h-3.5 ${isLiveOnly ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
+              <span className="hidden sm:inline">{isLiveOnly ? 'Tráfico Real' : 'Simulación'}</span>
+            </button>
 
             {/* Simulate Live Action (QA / Demo) */}
             <button
@@ -1457,9 +1488,16 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                       </div>
 
                       {/* Title & Engine */}
-                      <h4 className="text-sm font-bold text-white group-hover:text-[#00AEE9] transition-colors truncate">
-                        {v.item.title}
-                      </h4>
+                      <div className="flex items-start justify-between gap-1.5">
+                        <h4 className="text-sm font-bold text-white group-hover:text-[#00AEE9] transition-colors truncate">
+                          {v.item.title}
+                        </h4>
+                        {v.item.id === 'andalusian-flamenco-passion' && (
+                          <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-mono font-bold">
+                            Lanzado Hoy
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                         {v.item.engine || 'Harmony AI Video'}
                       </p>
