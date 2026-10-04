@@ -26,6 +26,26 @@ const SHOWCASE_ITEMS = [
     }
   },
   {
+    id: 'samurai-golden-harvest',
+    title: 'The Samurai’s Golden Harvest',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion'],
+    type: 'video',
+    src: 'videosAI/compressed/zbn7kbcvoh.mp4',
+    poster: 'videosAI/zbn7kbcvoh_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video',
+    tags: ['4K UHD', '9:16 Vertical', 'Feudal Japan', 'Golden Hour', 'Kurosawa Cinema', 'Foley Audio'],
+    prompt: '0-5s: Medium-full vertical shot of an honorable feudal samurai in lacquered armor and jinbaori vest with gold clan crests walking serenely across a sun-drenched golden wheat field at sunset. 5-10s: With calm contemplative poise, he lowers his hand to gently brush the swaying golden wheat stalks with his fingertips in slow motion, feeling the earth in deep warrior peace. 10-15s: Low-angle tracking shot as warm sunset rim lighting illuminates his weather-worn stoic features, topknot chonmage, and the hilt of his katana, a gentle breeze rustling through the harvest. Sound: whisper of wind through wheat fields, soft rustling stalks against armored gauntlet, gentle evening birdsong.',
+    breakdown: {
+      timing05: 'Medium-full vertical shot of an honorable feudal samurai in lacquered armor and jinbaori vest with gold clan crests walking serenely across a sun-drenched golden wheat field at sunset.',
+      timing510: 'With calm contemplative poise, he lowers his hand to gently brush the swaying golden wheat stalks with his fingertips in slow motion, feeling the earth in deep warrior peace.',
+      timing1015: 'Low-angle tracking shot as warm sunset rim lighting illuminates his weather-worn stoic features, topknot chonmage, and the hilt of his katana, a gentle breeze rustling through the harvest.',
+      cinematography: '50mm T1.3 anamorphic lens, low-angle golden-hour natural sunlight, rich specular rim lighting, shallow depth of field, authentic lacquered armor and woven fabric micro-textures.',
+      sound: 'Whisper of wind through wheat fields, soft rustling stalks against armored gauntlet, gentle evening birdsong.'
+    }
+  },
+  {
     id: 'velvet-vanity-rouge',
     title: 'Velvet Vanity & Rouge',
     workflow: 'Text-to-Video',
