@@ -663,10 +663,13 @@ const VideoShowcase = () => {
 
   const handleShareVideo = async () => {
     if (!selectedItem) return;
-    const shareUrl = `https://m.country/?video=${selectedItem.id}`;
+    const origin = (typeof window !== 'undefined' && window.location.origin && window.location.origin.includes('mintbes.country'))
+      ? window.location.origin
+      : 'https://mintbes.country';
+    const shareUrl = `${origin}/?video=${selectedItem.id}`;
     const shareData = {
       title: `${selectedItem.title} — Mintbes 🌿`,
-      text: `${selectedItem.title} (9:16 AI Cinema) en m.country`,
+      text: `${selectedItem.title} (9:16 AI Cinema) — mintbes.country`,
       url: shareUrl,
     };
 
