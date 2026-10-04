@@ -69,14 +69,14 @@ export default function PrivateGate({ onUnlock, onBack }) {
               boxShadow: 'inset 0 0 20px rgba(31, 223, 182, 0.06)'
             }}
           >
-            🌿
+            ⚡
           </div>
           <div>
             <span className="text-[#697a7c] text-[10px] font-bold uppercase tracking-[0.14em] block">
-              HARMONY AI VIDEOS
+              MINTMAX INTELLIGENCE
             </span>
             <h1 className="text-[17px] font-bold text-[#edf5f4] tracking-tight">
-              MintMax Platform Access
+              Web Analytics Platform
             </h1>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
             Restricted Zone
           </span>
           <span className="font-mono text-[10px] text-[#697a7c]">
-            Remix Economy
+            Web & Traffic Telemetry
           </span>
         </div>
 
@@ -109,7 +109,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
                   setPin(e.target.value);
                   if (error) setError(false);
                 }}
-                placeholder="Enter PIN..."
+                placeholder="Enter PIN (e.g. mintbes2026)..."
                 autoFocus
                 className="w-full bg-[#090d13] border border-[#202a35] focus:border-[#1fdfb67a] focus:ring-1 focus:ring-[#1fdfb67a] rounded-lg px-3.5 py-2.5 text-xs text-[#edf5f4] placeholder-[#697a7c] font-mono tracking-wider outline-none transition-colors"
               />
@@ -128,7 +128,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
             className="w-full bg-[#131b25] hover:bg-[#1a2530] text-[#1fdfb6] border border-[#1fdfb66b] hover:border-[#1fdfb6] font-semibold py-2.5 px-4 rounded-lg text-xs tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>Access MintMax</span>
+            <span>Acceder a MintMax Analytics</span>
           </button>
         </form>
       </motion.div>

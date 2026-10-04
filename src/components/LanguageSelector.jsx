@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
+import { analytics } from '../services/analytics';
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
@@ -9,6 +10,7 @@ const LanguageSelector = () => {
   const changeLanguage = (lng) => {
     localStorage.setItem('mintbes_user_lang_manual', lng);
     localStorage.setItem('i18nextLng', lng);
+    analytics.languageToggle(lng);
     i18n.changeLanguage(lng);
   };
 

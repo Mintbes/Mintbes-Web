@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2, Youtube, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SHOWCASE_ITEMS, findVideoByIdOrAlias, getInitialVideoFromUrl } from '../data/showcaseItems';
+import { analytics } from '../services/analytics';
 
 export const resolveMediaUrl = (url) => {
   if (!url) return '';
@@ -253,6 +254,7 @@ const VideoShowcase = () => {
     setPlayingVideoId(null);
     setSelectedItem(item);
     setCopiedLink(false);
+    analytics.videoModalOpen(item);
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('video', item.id);
@@ -326,6 +328,7 @@ const VideoShowcase = () => {
       ? window.location.origin
       : 'https://mintbes.country';
     const shareUrl = `${origin}/v/${selectedItem.id}`;
+    analytics.shareClick(selectedItem, shareUrl);
     const shareData = {
       title: `${selectedItem.title} — Mintbes 🌿`,
       text: `${selectedItem.title} (9:16 AI Cinema) — mintbes.country`,
@@ -367,12 +370,18 @@ const VideoShowcase = () => {
 
   const handleCopyPrompt = (id, prompt) => {
     navigator.clipboard.writeText(prompt);
+    const video = SHOWCASE_ITEMS.find((v) => v.id === id);
+    analytics.promptCopy(video || { id, title: id }, selectedItem ? 'modal' : 'showcase');
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2500);
   };
 
   const handleTogglePlay = useCallback((id) => {
     setPlayingVideoId(id);
+    if (id) {
+      const video = SHOWCASE_ITEMS.find((v) => v.id === id);
+      if (video) analytics.videoPlay(video);
+    }
   }, []);
 
   return (
@@ -423,6 +432,7 @@ const VideoShowcase = () => {
               onClick={() => {
                 setActiveTab(cat.id);
                 setPlayingVideoId(null);
+                analytics.categoryFilter(cat.id);
               }}
               className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer ${
                 activeTab === cat.id
@@ -629,6 +639,7 @@ const VideoShowcase = () => {
                       href={selectedItem.youtubeUrl || "https://www.youtube.com/@mintbes6411/shorts"}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => analytics.youtubeClick(selectedItem)}
                       className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all cursor-pointer group"
                       title="Ver en YouTube Shorts"
                     >

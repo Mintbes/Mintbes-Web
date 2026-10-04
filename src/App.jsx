@@ -6,7 +6,8 @@ import PromptVault from './components/PromptVault';
 import EcosystemBridge from './components/EcosystemBridge';
 import Footer from './components/Footer';
 import PrivateGate from './components/dashboard/PrivateGate';
-import MintbesDashboard from './components/dashboard/MintbesDashboard';
+import MintMaxAnalyticsDashboard from './components/dashboard/MintMaxAnalyticsDashboard';
+import { ensureSeedData, analytics } from './services/analytics';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -64,6 +65,12 @@ function App() {
     return false;
   });
 
+  // Initialize baseline analytics seed and track initial page view
+  useEffect(() => {
+    ensureSeedData();
+    analytics.pageView(window.location.pathname);
+  }, []);
+
   // Hash listener
   useEffect(() => {
     const checkHash = () => {
@@ -101,7 +108,7 @@ function App() {
     handleBackToPublic();
   };
 
-  // If in dashboard view (Archive Diagnostics)
+  // If in dashboard view (MintMax Analytics Intelligence)
   if (currentView === 'dashboard') {
     return (
       <ErrorBoundary>
@@ -111,8 +118,9 @@ function App() {
             onBack={handleBackToPublic}
           />
         ) : (
-          <MintbesDashboard
+          <MintMaxAnalyticsDashboard
             onLock={handleLock}
+            onBack={handleBackToPublic}
           />
         )}
       </ErrorBoundary>
