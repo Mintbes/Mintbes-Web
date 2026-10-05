@@ -9,7 +9,7 @@ import {
   ArrowLeft, ArrowRight, Laptop, Tablet, Volume2
 } from 'lucide-react';
 import { SHOWCASE_ITEMS } from '../../data/showcaseItems';
-import { getStoredEvents, logEvent, analytics, clearAllAnalytics } from '../../services/analytics';
+import { getStoredEvents, logEvent, analytics, clearAllAnalytics, fetchRemoteEvents } from '../../services/analytics';
 
 export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [events, setEvents] = useState(() => getStoredEvents());
@@ -27,11 +27,24 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   const [showDataTable, setShowDataTable] = useState(false);
   const [geoViewMode, setGeoViewMode] = useState('cities'); // 'countries' | 'cities'
 
-  // Reload events from storage
-  const refreshEvents = useCallback(() => {
-    const data = getStoredEvents();
-    setEvents(data);
+  // Reload events from storage & fetch unified events from Supabase Cloud
+  const refreshEvents = useCallback(async () => {
+    const local = getStoredEvents();
+    setEvents(local);
     setLastRefreshed(Date.now());
+
+    try {
+      const remote = await fetchRemoteEvents();
+      if (remote && remote.length > 0) {
+        const map = new Map();
+        remote.forEach((ev) => map.set(ev.id, ev));
+        local.forEach((ev) => map.set(ev.id, ev));
+        const merged = Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+        setEvents(merged);
+      }
+    } catch (err) {
+      console.debug('Remote sync:', err);
+    }
   }, []);
 
   // Listen to real-time events triggered anywhere in the app
@@ -43,13 +56,14 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     return () => window.removeEventListener('mintmax_event_logged', handleNewEvent);
   }, []);
 
-  // Periodic refresh every 10 seconds for real-time telemetry
+  // Initial fetch and periodic background sync every 10 seconds
   useEffect(() => {
+    refreshEvents();
     const interval = setInterval(() => {
-      setEvents(getStoredEvents());
+      refreshEvents();
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshEvents]);
 
   // Filter events based on selected time range (always newest first)
   const filteredEvents = useMemo(() => {

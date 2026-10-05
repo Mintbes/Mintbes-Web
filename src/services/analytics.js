@@ -5,6 +5,48 @@ const STORAGE_KEY = 'mintmax_analytics_events';
 const SESSION_KEY = 'mintmax_session_id';
 const SEED_KEY = 'mintmax_seed_initialized_v8';
 
+// Supabase Cloud Configuration
+const SUPABASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || 'https://vdexezerriybsjijocyo.supabase.co';
+const SUPABASE_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || 'sb_publishable_mCn5VEdkNe5WOorC8KM66A_AVue_eGv';
+
+// Background Geo IP Resolver
+let cachedGeo = null;
+function getCachedGeo() {
+  if (cachedGeo) return cachedGeo;
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('mintmax_geo_cache');
+    if (raw) {
+      cachedGeo = JSON.parse(raw);
+      return cachedGeo;
+    }
+  } catch {}
+  return null;
+}
+
+export function initGeoTelemetry() {
+  if (typeof window === 'undefined') return;
+  if (getCachedGeo()) return;
+  fetch('https://freeipapi.com/api/json')
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && data.countryName) {
+        cachedGeo = {
+          country: data.countryName,
+          city: data.cityName || 'Capital',
+          countryCode: data.countryCode || 'ES'
+        };
+        sessionStorage.setItem('mintmax_geo_cache', JSON.stringify(cachedGeo));
+      }
+    })
+    .catch(() => {});
+}
+
+// Automatically resolve geo on module load
+if (typeof window !== 'undefined') {
+  initGeoTelemetry();
+}
+
 // Detect Device & Environment
 function detectDevice() {
   if (typeof window === 'undefined') return { type: 'Desktop', os: 'Windows', browser: 'Chrome' };
@@ -105,12 +147,18 @@ export function getStoredEvents() {
   }
 }
 
-// Write event to storage
+// Write event to storage & sync with Supabase cloud
 export function logEvent(eventType, eventData = {}) {
   if (typeof window === 'undefined') return null;
   try {
     const env = detectDevice();
     const source = getTrafficSource();
+    const geo = getCachedGeo() || {
+      country: navigator.language?.startsWith('es') ? 'Spain' : 'International',
+      city: navigator.language?.startsWith('es') ? 'Madrid' : 'Global',
+      countryCode: navigator.language?.slice(-2).toUpperCase() || 'ES'
+    };
+
     const event = {
       id: 'ev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
       type: eventType,
@@ -123,19 +171,53 @@ export function logEvent(eventType, eventData = {}) {
       os: env.os,
       browser: env.browser,
       lang: navigator.language || 'es-ES',
+      country: geo.country,
+      city: geo.city,
+      countryCode: geo.countryCode,
       data: eventData
     };
 
     const events = getStoredEvents();
-    // Newest event at the front
     events.unshift(event);
 
-    // Keep max 2500 events locally to maintain fast load times
     if (events.length > 2500) {
       events.length = 2500;
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+
+    // Asynchronously send to Supabase in the background
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      fetch(`${SUPABASE_URL}/rest/v1/mintmax_events`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          id: event.id,
+          type: event.type,
+          timestamp: event.timestamp,
+          session_id: event.sessionId,
+          path: event.path,
+          channel: event.channel,
+          referrer: event.referrer,
+          device: event.device,
+          os: event.os,
+          browser: event.browser,
+          lang: event.lang,
+          country: event.country,
+          city: event.city,
+          country_code: event.countryCode,
+          data: event.data
+        }),
+        keepalive: true
+      }).catch((err) => {
+        console.debug('Supabase background log error:', err);
+      });
+    }
 
     // Notify listeners in dashboard
     window.dispatchEvent(new CustomEvent('mintmax_event_logged', { detail: event }));
@@ -143,6 +225,44 @@ export function logEvent(eventType, eventData = {}) {
   } catch (err) {
     console.warn('MintMax Analytics log error:', err);
     return null;
+  }
+}
+
+// Fetch all unified real events from Supabase Cloud
+export async function fetchRemoteEvents() {
+  if (typeof window === 'undefined') return [];
+  if (!SUPABASE_URL || !SUPABASE_KEY) return [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/mintmax_events?select=*&order=timestamp.desc&limit=2500`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!res.ok) {
+      return [];
+    }
+    const data = await res.json();
+    return data.map((row) => ({
+      id: row.id,
+      type: row.type,
+      timestamp: Number(row.timestamp),
+      sessionId: row.session_id,
+      path: row.path,
+      channel: row.channel,
+      referrer: row.referrer,
+      device: row.device,
+      os: row.os,
+      browser: row.browser,
+      lang: row.lang,
+      country: row.country || 'Spain',
+      city: row.city || 'Madrid',
+      countryCode: row.country_code || 'ES',
+      data: row.data || {}
+    }));
+  } catch (err) {
+    console.debug('Supabase fetch error:', err);
+    return [];
   }
 }
 
