@@ -7,7 +7,7 @@ import EcosystemBridge from './components/EcosystemBridge';
 import Footer from './components/Footer';
 import PrivateGate from './components/dashboard/PrivateGate';
 import MintMaxAnalyticsDashboard from './components/dashboard/MintMaxAnalyticsDashboard';
-import { ensureSeedData, analytics } from './services/analytics';
+import { ensureSeedData, analytics, initGeoTelemetry } from './services/analytics';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -65,10 +65,12 @@ function App() {
     return false;
   });
 
-  // Initialize baseline analytics seed and track initial page view
+  // Initialize baseline analytics and track initial page view with real geo
   useEffect(() => {
     ensureSeedData();
-    analytics.pageView(window.location.pathname);
+    initGeoTelemetry().finally(() => {
+      analytics.pageView(window.location.pathname);
+    });
   }, []);
 
   // Hash listener

@@ -11,6 +11,8 @@ const SUPABASE_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VIT
 
 // Background Geo IP Resolver
 let cachedGeo = null;
+let geoPromise = null;
+
 function getCachedGeo() {
   if (cachedGeo) return cachedGeo;
   if (typeof window === 'undefined') return null;
@@ -25,21 +27,40 @@ function getCachedGeo() {
 }
 
 export function initGeoTelemetry() {
-  if (typeof window === 'undefined') return;
-  if (getCachedGeo()) return;
-  fetch('https://freeipapi.com/api/json')
-    .then((res) => res.json())
-    .then((data) => {
-      if (data && data.countryName) {
-        cachedGeo = {
-          country: data.countryName,
-          city: data.cityName || 'Capital',
-          countryCode: data.countryCode || 'ES'
-        };
-        sessionStorage.setItem('mintmax_geo_cache', JSON.stringify(cachedGeo));
-      }
-    })
-    .catch(() => {});
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  const existing = getCachedGeo();
+  if (existing) return Promise.resolve(existing);
+  if (geoPromise) return geoPromise;
+
+  geoPromise = new Promise((resolve) => {
+    // 800ms safety timeout so app initialization is never delayed
+    const timer = setTimeout(() => {
+      resolve(null);
+    }, 800);
+
+    fetch('https://freeipapi.com/api/json')
+      .then((res) => res.json())
+      .then((data) => {
+        clearTimeout(timer);
+        if (data && data.countryName) {
+          cachedGeo = {
+            country: data.countryName,
+            city: data.cityName || 'Capital',
+            countryCode: data.countryCode || 'ES'
+          };
+          sessionStorage.setItem('mintmax_geo_cache', JSON.stringify(cachedGeo));
+          resolve(cachedGeo);
+        } else {
+          resolve(null);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        resolve(null);
+      });
+  });
+
+  return geoPromise;
 }
 
 // Automatically resolve geo on module load
