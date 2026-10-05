@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Terminal, AlertCircle } from 'lucide-react';
 
-const MASTER_PIN = "mintbes2026";
+const MASTER_PIN = "Anne01!";
 
 export default function PrivateGate({ onUnlock, onBack }) {
   const [pin, setPin] = useState('');
@@ -17,12 +17,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
       return;
     }
 
-    const savedPin = localStorage.getItem('mintbes_custom_pin') || MASTER_PIN;
-    if (
-      pin.trim().toLowerCase() === savedPin.toLowerCase() ||
-      pin.trim() === '1234' ||
-      pin.trim() === 'admin'
-    ) {
+    if (pin.trim() === MASTER_PIN) {
       sessionStorage.setItem('mintbes_authenticated', 'true');
       onUnlock();
     } else {
@@ -109,7 +104,7 @@ export default function PrivateGate({ onUnlock, onBack }) {
                   setPin(e.target.value);
                   if (error) setError(false);
                 }}
-                placeholder="Enter PIN (e.g. mintbes2026)..."
+                placeholder="Enter Security PIN..."
                 autoFocus
                 className="w-full bg-[#090d13] border border-[#202a35] focus:border-[#1fdfb67a] focus:ring-1 focus:ring-[#1fdfb67a] rounded-lg px-3.5 py-2.5 text-xs text-[#edf5f4] placeholder-[#697a7c] font-mono tracking-wider outline-none transition-colors"
               />
