@@ -83,6 +83,20 @@ function getTrafficSource() {
   const search = window.location.search ? window.location.search.toLowerCase() : '';
   const pathname = window.location.pathname.toLowerCase();
 
+  const hostname = (typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : '');
+
+  // Vanity Short Domain: m.country
+  if (
+    hostname === 'm.country' ||
+    hostname.endsWith('.m.country') ||
+    ref.includes('m.country') ||
+    search.includes('m.country') ||
+    search.includes('ref=m') ||
+    search.includes('src=m')
+  ) {
+    return { channel: 'Short Domain (m.country)', referrer: ref || 'https://m.country/' };
+  }
+
   // Campaign / Query parameters
   if (search.includes('utm_source=twitter') || search.includes('t.co') || ref.includes('t.co') || ref.includes('twitter.com') || ref.includes('x.com')) {
     return { channel: 'Twitter / X', referrer: ref || 'https://x.com/' };
