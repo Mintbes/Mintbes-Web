@@ -267,20 +267,52 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     const hourlyMap = new Array(24).fill(0);
     const languages = {};
 
+    // Canonical country names to avoid variations (US vs United States)
+    const canonicalCountries = {
+      US: 'United States',
+      ES: 'Spain',
+      FR: 'France',
+      NL: 'The Netherlands',
+      DE: 'Germany',
+      GB: 'United Kingdom',
+      UK: 'United Kingdom',
+      JP: 'Japan',
+      CA: 'Canada',
+      MX: 'Mexico',
+      AR: 'Argentina',
+      BR: 'Brazil'
+    };
+
+    const countriesMap = new Map();
+    const citiesMap = new Map();
+
     filteredEvents.forEach((ev) => {
-      const country = ev.country || 'Spain';
-      const code = ev.countryCode || 'ES';
-      const city = ev.city || 'Madrid';
+      const code = (ev.countryCode || 'ES').trim().toUpperCase();
+      const countryName = canonicalCountries[code] || ev.country || 'Spain';
+      
+      let rawCity = (ev.city || '').trim();
+      // If city name is actually a country name or generic fallback, clean it up
+      if (!rawCity || rawCity === 'United States' || rawCity === 'Spain' || rawCity === 'France' || rawCity === 'ES' || rawCity === 'US') {
+        rawCity = (code === 'US' || rawCity === 'United States') ? 'Área US (General)' : 'Región Central';
+      }
+
       const dev = ev.device || 'Mobile';
       const br = ev.browser || 'Chrome';
       const os = ev.os || 'Android';
       const rawLang = (ev.lang || 'es-ES').split('-')[0].toLowerCase();
 
-      const cKey = `${country}__${code}`;
-      countries[cKey] = (countries[cKey] || 0) + 1;
+      // Normalize & group countries strictly by 2-letter ISO code
+      if (!countriesMap.has(code)) {
+        countriesMap.set(code, { name: countryName, code, count: 0 });
+      }
+      countriesMap.get(code).count++;
 
-      const cityKey = `${city}__${code}__${country}`;
-      cities[cityKey] = (cities[cityKey] || 0) + 1;
+      // Normalize & group cities strictly by lowercase name + country code
+      const cityGroupKey = `${rawCity.toLowerCase()}__${code}`;
+      if (!citiesMap.has(cityGroupKey)) {
+        citiesMap.set(cityGroupKey, { city: rawCity, code, country: countryName, count: 0 });
+      }
+      citiesMap.get(cityGroupKey).count++;
 
       devices[dev] = (devices[dev] || 0) + 1;
       browsers[br] = (browsers[br] || 0) + 1;
@@ -294,26 +326,19 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
 
     const total = filteredEvents.length || 1;
 
-    const countryList = Object.entries(countries).map(([key, count]) => {
-      const [name, code] = key.split('__');
-      return {
-        name,
-        code,
-        count,
-        percent: Math.round((count / total) * 100)
-      };
-    }).sort((a, b) => b.count - a.count);
+    const countryList = Array.from(countriesMap.values())
+      .map(c => ({
+        ...c,
+        percent: Math.round((c.count / total) * 100)
+      }))
+      .sort((a, b) => b.count - a.count);
 
-    const cityList = Object.entries(cities).map(([key, count]) => {
-      const [city, code, country] = key.split('__');
-      return {
-        city,
-        code,
-        country,
-        count,
-        percent: Math.round((count / total) * 100)
-      };
-    }).sort((a, b) => b.count - a.count);
+    const cityList = Array.from(citiesMap.values())
+      .map(c => ({
+        ...c,
+        percent: Math.round((c.count / total) * 100)
+      }))
+      .sort((a, b) => b.count - a.count);
 
     const deviceList = Object.entries(devices).map(([name, count]) => ({
       name,

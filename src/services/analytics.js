@@ -193,8 +193,8 @@ export function getStoredEvents() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const list = raw ? JSON.parse(raw) : [];
-    // Enforce 100% real events: purge any simulated data
-    const realOnly = list.filter((e) => e && e.id && !e.id.startsWith('seed_'));
+    // Enforce 100% real events: purge any simulated data or test seeds
+    const realOnly = list.filter((e) => e && e.id && !e.id.startsWith('seed_') && !e.id.startsWith('test_'));
     return realOnly.sort((a, b) => b.timestamp - a.timestamp);
   } catch (err) {
     console.warn('MintMax Analytics read error:', err);
