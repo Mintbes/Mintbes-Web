@@ -609,9 +609,6 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
                   <span>MintMax Web Intelligence</span>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-[#00AEE9]/20 text-[#00AEE9] border border-[#00AEE9]/40">
-                    Platform v2
-                  </span>
                 </h1>
               </div>
               <p className="text-xs text-slate-400 font-mono flex items-center gap-2">
