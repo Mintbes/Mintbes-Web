@@ -17,7 +17,7 @@ function getCachedGeo() {
   if (cachedGeo) return cachedGeo;
   if (typeof window === 'undefined') return null;
   try {
-    const raw = sessionStorage.getItem('mintmax_geo_cache');
+    const raw = sessionStorage.getItem('mintmax_geo_cache_v2');
     if (raw) {
       cachedGeo = JSON.parse(raw);
       return cachedGeo;
@@ -38,25 +38,45 @@ export function initGeoTelemetry() {
       resolve(null);
     }, 800);
 
-    fetch('https://freeipapi.com/api/json')
+    // Primary: ipwho.is (higher municipal accuracy, detects Bilbao directly)
+    fetch('https://ipwho.is/')
       .then((res) => res.json())
       .then((data) => {
-        clearTimeout(timer);
-        if (data && data.countryName) {
+        if (data && data.success !== false && data.country) {
+          clearTimeout(timer);
           cachedGeo = {
-            country: data.countryName,
-            city: data.cityName || 'Capital',
-            countryCode: data.countryCode || 'ES'
+            country: data.country,
+            city: data.city || 'Bilbao',
+            countryCode: data.country_code || 'ES'
           };
-          sessionStorage.setItem('mintmax_geo_cache', JSON.stringify(cachedGeo));
+          sessionStorage.setItem('mintmax_geo_cache_v2', JSON.stringify(cachedGeo));
           resolve(cachedGeo);
         } else {
-          resolve(null);
+          throw new Error('Fallback needed');
         }
       })
       .catch(() => {
-        clearTimeout(timer);
-        resolve(null);
+        // Fallback: freeipapi.com
+        fetch('https://freeipapi.com/api/json')
+          .then((res) => res.json())
+          .then((data) => {
+            clearTimeout(timer);
+            if (data && data.countryName) {
+              cachedGeo = {
+                country: data.countryName,
+                city: data.cityName || 'Capital',
+                countryCode: data.countryCode || 'ES'
+              };
+              sessionStorage.setItem('mintmax_geo_cache_v2', JSON.stringify(cachedGeo));
+              resolve(cachedGeo);
+            } else {
+              resolve(null);
+            }
+          })
+          .catch(() => {
+            clearTimeout(timer);
+            resolve(null);
+          });
       });
   });
 
