@@ -511,7 +511,7 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     } else if (pickedType === 'prompt_copy') {
       eventResult = analytics.promptCopy(randomVideo, 'live_test');
     } else if (pickedType === 'share_click') {
-      eventResult = analytics.shareClick(randomVideo, `https://mintbes.country/v/${randomVideo.id}`);
+      eventResult = analytics.shareClick(randomVideo, `https://m.country/v/${randomVideo.id}`);
     } else {
       eventResult = analytics.videoModalOpen(randomVideo);
     }
@@ -1547,12 +1547,12 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
                         Conv: {v.plays > 0 ? Math.round((v.prompts / v.plays) * 100) : 0}%
                       </span>
                       <a
-                        href={`/v/${v.item.id}`}
+                        href={`https://m.country/v/${v.item.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#00AEE9] hover:underline flex items-center gap-1 font-semibold"
                       >
-                        <span>Permalink /v/</span>
+                        <span>m.country/v/</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>

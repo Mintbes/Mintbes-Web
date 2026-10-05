@@ -324,14 +324,11 @@ const VideoShowcase = () => {
 
   const handleShareVideo = async () => {
     if (!selectedItem) return;
-    const origin = (typeof window !== 'undefined' && window.location.origin && window.location.origin.includes('mintbes.country'))
-      ? window.location.origin
-      : 'https://mintbes.country';
-    const shareUrl = `${origin}/v/${selectedItem.id}`;
+    const shareUrl = `https://m.country/v/${selectedItem.id}`;
     analytics.shareClick(selectedItem, shareUrl);
     const shareData = {
       title: `${selectedItem.title} — Mintbes 🌿`,
-      text: `${selectedItem.title} (9:16 AI Cinema) — mintbes.country`,
+      text: `${selectedItem.title} (9:16 AI Cinema) — m.country`,
       url: shareUrl,
     };
 
