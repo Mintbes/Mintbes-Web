@@ -672,11 +672,11 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
               <span className="hidden sm:inline">Probar Clic</span>
             </button>
 
-            {/* Clear Analytics */}
+            {/* Clear Analytics (Trash) */}
             <button
               onClick={handleClearAll}
-              className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-colors cursor-pointer"
-              title="Vaciar analíticas y poner a 0"
+              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
+              title="Vaciar analíticas (poner contadores a 0)"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -685,16 +685,16 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
             <button
               onClick={handleExportCSV}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
-              title="Exportar datos a CSV"
+              title="Exportar registros a CSV / Excel"
             >
               <Download className="w-4 h-4" />
             </button>
 
-            {/* Refresh */}
+            {/* Refresh / Sync Now */}
             <button
               onClick={refreshEvents}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
-              title="Refrescar métricas"
+              className="p-2 rounded-xl bg-[#00AEE9]/10 hover:bg-[#00AEE9]/20 text-[#00AEE9] hover:text-[#69FABD] border border-[#00AEE9]/30 transition-colors cursor-pointer"
+              title="Sincronizar con Supabase y refrescar datos ahora"
             >
               <RefreshCw className="w-4 h-4 hover:rotate-180 transition-transform duration-500" />
             </button>
