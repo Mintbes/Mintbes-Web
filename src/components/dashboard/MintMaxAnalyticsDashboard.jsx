@@ -6,7 +6,7 @@ import {
   RefreshCw, BarChart3, TrendingUp, Clock, MousePointer, Filter,
   ArrowUpRight, Search, ChevronDown, Check, Zap, ExternalLink,
   Flame, PieChart, Layers, Radio, MapPin, Terminal, AlertCircle,
-  ArrowLeft, ArrowRight, Laptop, Tablet, Volume2
+  ArrowLeft, ArrowRight, Laptop, Tablet, Volume2, Trash2
 } from 'lucide-react';
 import { SHOWCASE_ITEMS } from '../../data/showcaseItems';
 import { getStoredEvents, logEvent, analytics, clearAllAnalytics, fetchRemoteEvents } from '../../services/analytics';
@@ -678,7 +678,7 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
               className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 transition-colors cursor-pointer"
               title="Vaciar analíticas y poner a 0"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Trash2 className="w-4 h-4" />
             </button>
 
             {/* Export CSV */}
