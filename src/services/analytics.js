@@ -243,7 +243,9 @@ export async function fetchRemoteEvents() {
       return [];
     }
     const data = await res.json();
-    return data.map((row) => ({
+    return data
+      .filter((row) => row && row.id && !row.id.startsWith('test_') && !row.id.startsWith('seed_'))
+      .map((row) => ({
       id: row.id,
       type: row.type,
       timestamp: Number(row.timestamp),
