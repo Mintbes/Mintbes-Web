@@ -392,36 +392,49 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
   }, [filteredEvents]);
 
   // Timeline Chart Buckets
+  // Timeline Chart Buckets (Calendar-aligned days for 7d/30d and hourly blocks for 24h)
   const timelineData = useMemo(() => {
-    const bucketsCount = timeRange === '24h' ? 24 : timeRange === '7d' ? 7 : 30;
-    const now = Date.now();
-    const intervalMs = timeRange === '24h' 
-      ? 60 * 60 * 1000 
-      : 24 * 60 * 60 * 1000;
-
+    const now = new Date();
     const buckets = [];
-    for (let i = bucketsCount - 1; i >= 0; i--) {
-      const start = now - (i + 1) * intervalMs;
-      const end = now - i * intervalMs;
-      
-      let label = '';
-      if (timeRange === '24h') {
-        const d = new Date(end);
-        label = `${d.getHours()}:00`;
-      } else {
-        const d = new Date(end);
-        label = `${d.getDate()}/${d.getMonth() + 1}`;
-      }
 
-      buckets.push({
-        start,
-        end,
-        label,
-        traffic: 0,
-        engagement: 0,
-        plays: 0,
-        prompts: 0
-      });
+    if (timeRange === '24h') {
+      // 24 individual hourly slots up to current hour
+      const currentHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0);
+      for (let i = 23; i >= 0; i--) {
+        const start = new Date(currentHour.getTime() - i * 60 * 60 * 1000).getTime();
+        const end = start + 60 * 60 * 1000;
+        const d = new Date(start);
+        const label = `${d.getHours()}:00`;
+        buckets.push({
+          start,
+          end,
+          label: i === 0 ? 'Ahora' : label,
+          traffic: 0,
+          engagement: 0,
+          plays: 0,
+          prompts: 0
+        });
+      }
+    } else {
+      // Real Calendar Days (midnight 00:00:00 to 23:59:59)
+      const daysCount = timeRange === '7d' ? 7 : 30;
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const start = new Date(todayMidnight.getTime() - i * 24 * 60 * 60 * 1000).getTime();
+        const end = start + 24 * 60 * 60 * 1000;
+        const d = new Date(start);
+        const dayLabel = `${d.getDate()}/${d.getMonth() + 1}`;
+        buckets.push({
+          start,
+          end,
+          label: i === 0 ? 'Hoy' : dayLabel,
+          traffic: 0,
+          engagement: 0,
+          plays: 0,
+          prompts: 0
+        });
+      }
     }
 
     filteredEvents.forEach((ev) => {
