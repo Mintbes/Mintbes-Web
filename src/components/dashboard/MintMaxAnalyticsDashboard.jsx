@@ -56,12 +56,12 @@ export default function MintMaxAnalyticsDashboard({ onLock, onBack }) {
     return () => window.removeEventListener('mintmax_event_logged', handleNewEvent);
   }, []);
 
-  // Initial fetch and periodic background sync every 10 seconds
+  // Initial fetch and periodic background sync every 1 minute (60s)
   useEffect(() => {
     refreshEvents();
     const interval = setInterval(() => {
       refreshEvents();
-    }, 10000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [refreshEvents]);
 
