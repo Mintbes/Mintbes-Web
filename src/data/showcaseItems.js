@@ -1,5 +1,26 @@
 export const SHOWCASE_ITEMS = [
   {
+    id: 'manhattan-street-smashburger',
+    title: 'Manhattan Street Smashburger',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion', 'food'],
+    type: 'video',
+    src: '/videosAI/compressed/sxbeg5j0fq.mp4',
+    poster: '/videosAI/sxbeg5j0fq_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video (H3 Max)',
+    aliases: ['sxbeg5j0fq', 'wall-street-smashburger', 'manhattan-burger'],
+    tags: ['4K UHD', '9:16 Vertical', 'New York City', 'Smashburger', 'Foley Audio'],
+    prompt: '0-5s: Medium tracking shot following a rugged 36-year-old architect with short textured dark-brown hair, neat stubble, wearing a heavy charcoal wool overcoat over a dark ribbed knit sweater at a natural walking pace along the sidewalk of Lower Manhattan Wall Street during dusk, holding a brown paper takeout bag, warm vapor visible in the chilly air, smooth continuous gait with perfectly stable framing. 5-10s: Seamless medium close-up as he slows down beside a lamppost, reaches into the bag with steady hands, and pulls out a hot foil-wrapped smashburger with melted cheddar cheese and toasted brioche bun visible. 10-15s: Tight cinematic profile shot as he takes a satisfying first bite into the juicy burger, steam curling upwards, authentic chewing cadence, depth of field softly blurring the misty city traffic lights in the background. Sound: Street traffic rumble, shoes on damp pavement, crisp rustle of brown paper bag, sizzling grill foley, faint city sirens.',
+    breakdown: {
+      timing05: 'Medium tracking shot along a Lower Manhattan Wall Street sidewalk at dusk; a man in a charcoal wool overcoat walks smoothly holding a brown paper takeout bag with warm vapor in the chilly air.',
+      timing510: 'He slows down beside a lamppost, reaches into the paper bag with steady hands, and reveals a hot foil-wrapped gourmet smashburger with melted cheese and toasted brioche bun.',
+      timing1015: 'Tight cinematic profile shot as he takes a satisfying first bite into the burger with steam curling upwards, city bokeh lights gently blurring in the dusk atmosphere.',
+      cinematography: 'Arri Alexa 65 35mm T1.4, dusk chiaroscuro street lighting, wet asphalt amber reflections, soft anamorphic background bokeh, tactile paper and wool micro-textures.',
+      sound: 'Street traffic rumble, shoes on damp pavement, crisp rustle of brown paper bag, distant sizzling grill foley, ambient city hum.'
+    }
+  },
+  {
     id: 'andalusian-flamenco-passion',
     title: 'Andalusian Flamenco Passion',
     workflow: 'Text-to-Video',
@@ -339,6 +360,7 @@ export const findVideoByIdOrAlias = (query) => {
         id === clean ||
         id.replace(/-/g, '') === clean.replace(/-/g, '') ||
         src.includes(clean) ||
+        (Array.isArray(item.aliases) && item.aliases.some(a => a.toLowerCase() === clean)) ||
         titleSlug === clean ||
         titleSlug.replace(/-/g, '') === clean.replace(/-/g, '') ||
         titleClean === clean

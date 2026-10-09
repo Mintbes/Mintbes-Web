@@ -5,6 +5,11 @@ import { useTranslation } from 'react-i18next';
 
 const HERO_VIDEOS = [
   {
+    id: 'manhattan-street-smashburger',
+    src: '/videosAI/compressed/sxbeg5j0fq.mp4',
+    poster: '/videosAI/sxbeg5j0fq_poster.jpg'
+  },
+  {
     id: 'andalusian-flamenco-passion',
     src: '/videosAI/compressed/yomhud8cjw.mp4',
     poster: '/videosAI/yomhud8cjw_poster.jpg'
@@ -13,11 +18,6 @@ const HERO_VIDEOS = [
     id: 'walking-in-harmony',
     src: '/videosAI/compressed/walking.mp4',
     poster: '/videosAI/walking_poster.jpg'
-  },
-  {
-    id: 'sylvan-elven-archer',
-    src: '/videosAI/compressed/obkqvw1fhq.mp4',
-    poster: '/videosAI/obkqvw1fhq_poster.jpg'
   }
 ];
 
