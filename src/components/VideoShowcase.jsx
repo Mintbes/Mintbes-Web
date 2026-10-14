@@ -473,20 +473,8 @@ const VideoShowcase = () => {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#0B0F17] border border-[#00AEE9]/30 rounded-3xl p-4 sm:p-8 shadow-2xl text-left"
             >
-              {/* Top Controls: Share & Close */}
-              <div className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 z-10">
-                <button
-                  onClick={handleShareVideo}
-                  className={`p-2 rounded-full transition-all cursor-pointer ${
-                    copiedLink
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                      : 'bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white'
-                  }`}
-                  title={copiedLink ? t('showcase.videoLinkCopied') : t('showcase.shareVideo')}
-                  aria-label="Share video link"
-                >
-                  {copiedLink ? <Check className="w-5 h-5 text-emerald-400" /> : <Share2 className="w-5 h-5 text-[#00AEE9]" />}
-                </button>
+              {/* Top Control: Close */}
+              <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-20">
                 <button
                   onClick={closeModal}
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -517,7 +505,7 @@ const VideoShowcase = () => {
                 {/* Prompt Details Right */}
                 <div className="md:col-span-7 flex flex-col justify-between space-y-6">
                   <div>
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2 mb-3 pr-10 sm:pr-12">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00AEE9]/15 text-[#69FABD] border border-[#00AEE9]/30 text-xs font-mono">
                         <Sparkles className="w-3.5 h-3.5 text-[#00AEE9]" />
                         <span>{selectedItem.engine} • {selectedItem.duration}</span>
