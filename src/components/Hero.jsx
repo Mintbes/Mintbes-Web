@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 
 const HERO_VIDEOS = [
   {
-    id: 'parisian-rooftop-freerun',
-    src: '/videosAI/compressed/ro1dlbu7xj.mp4',
-    poster: '/videosAI/ro1dlbu7xj_poster.jpg'
+    id: 'sylvan-elven-archer',
+    src: '/videosAI/compressed/obkqvw1fhq.mp4',
+    poster: '/videosAI/obkqvw1fhq_poster.jpg'
   },
   {
-    id: 'manhattan-street-smashburger',
-    src: '/videosAI/compressed/sxbeg5j0fq.mp4',
-    poster: '/videosAI/sxbeg5j0fq_poster.jpg'
+    id: 'walking-in-harmony',
+    src: '/videosAI/compressed/walking.mp4',
+    poster: '/videosAI/walking_poster.jpg'
   },
   {
     id: 'andalusian-flamenco-passion',
