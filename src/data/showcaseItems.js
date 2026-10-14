@@ -1,5 +1,26 @@
 export const SHOWCASE_ITEMS = [
   {
+    id: 'parisian-rooftop-freerun',
+    title: 'Parisian Rooftop Freerun',
+    workflow: 'Text-to-Video',
+    category: ['photorealism', 'motion', 'cinematic'],
+    type: 'video',
+    src: '/videosAI/compressed/ro1dlbu7xj.mp4',
+    poster: '/videosAI/ro1dlbu7xj_poster.jpg',
+    duration: '15s',
+    engine: 'Harmony AI Video (H3 Max)',
+    aliases: ['ro1dlbu7xj', 'paris-rooftop-parkour', 'rooftop-freerun'],
+    tags: ['4K UHD', '9:16 Vertical', 'Parisian Rooftops', 'Parkour Leap', 'Foley Audio'],
+    prompt: '0-5s: Dynamic low-angle vertical tracking shot following a 23-year-old athletic freerunner with a sharp fade haircut, charcoal pullover hoodie, and dark joggers sprinting at full speed across sloped zinc Haussmannian rooftops in Paris at golden hour dusk. 5-10s: Spectacular mid-air jump over a deep avenue gap between two historic apartment buildings; a flock of startled gray pigeons erupts around his airborne silhouette in slow motion against the glowing setting sun and distant Parisian skyline. 10-15s: Perfectly controlled athletic landing roll across the gravel and zinc terrace of the opposite rooftop, seamlessly absorbing kinetic momentum and rising back into an effortless forward sprint into the warm evening twilight. Sound: Diegetic foley of rubber sneaker tread impacts on metallic zinc sheets, rushing wind, sudden flutter of pigeon wings, distant Parisian street traffic hum below.',
+    breakdown: {
+      timing05: 'Dynamic low-angle vertical tracking shot following a 23-year-old athletic freerunner in a charcoal hoodie sprinting across historic Parisian zinc rooftops at golden hour.',
+      timing510: 'Spectacular mid-air leap across an avenue gap between two Haussmann buildings; a flock of pigeons scatters in slow motion around his airborne silhouette against the sunset.',
+      timing1015: 'Fluid landing roll absorbing the kinetic impact on the opposite rooftop terrace, immediately transitioning back into a confident sprint into the evening horizon.',
+      cinematography: 'Arri Alexa Mini LF 35mm T1.8, 180° shutter motion blur, low-angle tracking push, natural golden hour rim light and atmospheric Parisian sky roll-off.',
+      sound: 'Rubber sneaker impacts on metallic zinc, deep athletic breathing, rushing wind during mid-air leap, flutter of pigeon wings, distant city avenue ambiance.'
+    }
+  },
+  {
     id: 'manhattan-street-smashburger',
     title: 'Manhattan Street Smashburger',
     workflow: 'Text-to-Video',
