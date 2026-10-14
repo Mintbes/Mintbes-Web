@@ -588,19 +588,19 @@ const VideoShowcase = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 pt-4 border-t border-white/10">
                     <a
                       href="#prompt-vault"
                       onClick={closeModal}
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-xs sm:text-sm font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] shadow-lg shadow-[#00AEE9]/20"
+                      className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 py-3 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] hover:opacity-95 shadow-lg shadow-[#00AEE9]/20 transition-all whitespace-nowrap cursor-pointer"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-5 h-5 shrink-0 text-[#070A0F]" />
                       <span>{t('showcase.ctaCardBtn')}</span>
                     </a>
 
                     <button
                       onClick={handleShareVideo}
-                      className={`inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      className={`inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                         copiedLink
                           ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/20'
                           : 'text-slate-200 bg-white/10 hover:bg-white/15 border border-white/15 hover:border-white/30'
@@ -609,12 +609,12 @@ const VideoShowcase = () => {
                     >
                       {copiedLink ? (
                         <>
-                          <Check className="w-4 h-4 text-emerald-400" />
+                          <Check className="w-5 h-5 shrink-0 text-emerald-400" />
                           <span>{t('showcase.videoLinkCopied')}</span>
                         </>
                       ) : (
                         <>
-                          <Share2 className="w-4 h-4 text-[#00AEE9]" />
+                          <Share2 className="w-5 h-5 shrink-0 text-[#00AEE9]" />
                           <span>{t('showcase.shareVideo')}</span>
                         </>
                       )}
@@ -625,16 +625,16 @@ const VideoShowcase = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => analytics.youtubeClick(selectedItem)}
-                      className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all cursor-pointer group"
-                      title="Ver en YouTube Shorts"
+                      className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all whitespace-nowrap cursor-pointer group"
+                      title={t('showcase.watchOnYoutube')}
                     >
-                      <Youtube className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
+                      <Youtube className="w-5 h-5 shrink-0 text-red-500 group-hover:scale-110 transition-transform" />
                       <span>{t('showcase.watchOnYoutube')}</span>
                     </a>
 
                     <button
                       onClick={closeModal}
-                      className="px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 bg-white/10 hover:bg-white/15 transition-colors cursor-pointer"
+                      className="px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 transition-colors whitespace-nowrap cursor-pointer"
                     >
                       {t('showcase.closeModal')}
                     </button>

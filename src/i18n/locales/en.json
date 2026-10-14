@@ -48,7 +48,7 @@
     "aspectTag": "9:16 Vertical UHD",
     "ctaCardTitle": "Master the AI Video Formula",
     "ctaCardDesc": "Learn how to compose 15-second cinematic sequences with optical cameras, fluid kinematics, and native foley audio.",
-    "ctaCardBtn": "Explore Prompt Blueprint",
+    "ctaCardBtn": "Explore Prompt",
     "workflowAll": "All Workflows",
     "workflowT2V": "Text-to-Video",
     "workflowI2V": "Image-to-Video (Roadmap)",
@@ -56,9 +56,9 @@
     "roadmapDesc": "Harmony's official AI video generator currently operates exclusively via text prompts (Text-to-Video). Image and NFT reference workflows are staged here and will activate as soon as the Harmony engine enables image inputs.",
     "backToT2V": "Explore Active Text-to-Video",
     "youtubeChannel": "YouTube Shorts Channel",
-    "watchOnYoutube": "Watch on YouTube Shorts",
-    "shareVideo": "Share Video",
-    "videoLinkCopied": "Link Copied!"
+    "watchOnYoutube": "Watch on YouTube",
+    "shareVideo": "Share",
+    "videoLinkCopied": "Copied!"
   },
   "promptVault": {
     "badge": "Prompt Engineering Mastery",

@@ -48,7 +48,7 @@
     "aspectTag": "9:16 Vertical UHD",
     "ctaCardTitle": "Domina la Fórmula de Video IA",
     "ctaCardDesc": "Aprende a componer secuencias cinemáticas de 15 segundos con ópticas de cine, cinemática fluida y sonido foley acústico.",
-    "ctaCardBtn": "Ver Fórmula de Prompts",
+    "ctaCardBtn": "Explorar Prompt",
     "workflowAll": "Todos los Flujos",
     "workflowT2V": "Text-to-Video",
     "workflowI2V": "Image-to-Video (Roadmap)",
@@ -56,9 +56,9 @@
     "roadmapDesc": "Actualmente el generador oficial de Harmony opera exclusivamente mediante prompts textuales (Text-to-Video). Esta sección integrará la generación a partir de imágenes de referencia y NFTs en cuanto el motor de Harmony lo active.",
     "backToT2V": "Explorar Text-to-Video Activo",
     "youtubeChannel": "Canal YouTube Shorts",
-    "watchOnYoutube": "Ver en YouTube Shorts",
-    "shareVideo": "Compartir Video",
-    "videoLinkCopied": "¡Enlace Copiado!"
+    "watchOnYoutube": "Ver en YouTube",
+    "shareVideo": "Compartir",
+    "videoLinkCopied": "¡Copiado!"
   },
   "promptVault": {
     "badge": "Ingeniería de Prompts",
