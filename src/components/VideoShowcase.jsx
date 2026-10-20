@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, Check, Play, Pause, Volume2, VolumeX, Maximize2, Film, X, Type, Loader2, Youtube, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SHOWCASE_ITEMS, findVideoByIdOrAlias, getInitialVideoFromUrl } from '../data/showcaseItems';
+import { SHOWCASE_ITEMS, getInitialVideoFromUrl } from '../data/showcaseItems';
 import { analytics } from '../services/analytics';
 
 export const resolveMediaUrl = (url) => {
@@ -13,6 +13,8 @@ export const resolveMediaUrl = (url) => {
 };
 
 const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onTogglePlay }) => {
+  const { i18n } = useTranslation();
+  const isEs = i18n.language?.startsWith('es');
   const [isMuted, setIsMuted] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
   const videoRef = useRef(null);
@@ -54,7 +56,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
         });
       },
       { threshold: 0, rootMargin: '350px 0px 350px 0px' }
-    );
+	);
 
     observer.observe(card);
     return () => observer.disconnect();
@@ -169,8 +171,8 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
           <button
             onClick={togglePlay}
             className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-[#69FABD] active:scale-95 transition-all cursor-pointer"
-            aria-label={isPlaying ? "Pausar video" : "Reproducir video"}
-            title={isPlaying ? "Pausar video" : "Reproducir video"}
+            aria-label={isPlaying ? "Pause" : "Play"}
+            title={isPlaying ? "Pause" : "Play"}
           >
             {isBuffering ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#69FABD]" />
@@ -210,12 +212,12 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
               onCopyPrompt(item.id, item.prompt);
             }}
             className="flex-1 py-1.5 px-2.5 rounded-xl bg-white/10 hover:bg-[#00AEE9]/30 border border-white/20 text-[11px] font-semibold text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title="Copiar prompt"
+            title={isEs ? "Copiar prompt" : "Copy prompt"}
           >
             {copiedId === item.id ? (
               <>
                 <Check className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-300">Copiado</span>
+                <span className="text-emerald-300">{isEs ? "Copiado" : "Copied"}</span>
               </>
             ) : (
               <>
@@ -231,7 +233,7 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
               onInspect(item);
             }}
             className="p-1.5 rounded-xl bg-white/10 hover:bg-[#00AEE9]/30 border border-white/20 text-slate-200 hover:text-white transition-all cursor-pointer"
-            title="Inspeccionar Desglose"
+            title={isEs ? "Inspeccionar Desglose" : "Inspect Breakdown"}
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </button>
@@ -243,7 +245,8 @@ const VideoCard = ({ item, onInspect, onCopyPrompt, copiedId, isPlaying, onToggl
 
 
 const VideoShowcase = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEs = i18n.language?.startsWith('es');
   const [activeTab, setActiveTab] = useState('all');
   const [selectedItem, setSelectedItem] = useState(getInitialVideoFromUrl);
   const [copiedId, setCopiedId] = useState(null);
@@ -463,190 +466,192 @@ const VideoShowcase = () => {
         <AnimatePresence>
           {selectedItem && (
             <div
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-xl"
               onClick={closeModal}
             >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-[#0B0F17] border border-[#00AEE9]/30 rounded-3xl p-4 sm:p-8 shadow-2xl text-left"
-            >
-              {/* Top Control: Close */}
-              <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-20">
-                <button
-                  onClick={closeModal}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 pt-4 sm:pt-0">
-                {/* Visual Left Preview (9:16) */}
-                <div className="md:col-span-5 flex flex-col items-center">
-                  <div className="w-full max-w-[220px] sm:max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
-                    <video
-                      src={resolveMediaUrl(selectedItem.src)}
-                      poster={resolveMediaUrl(selectedItem.poster)}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      controls
-                      preload="auto"
-                      className="w-full h-full object-contain bg-black"
-                    />
-                  </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto overflow-x-hidden bg-[#0B0F17] border border-[#00AEE9]/35 rounded-3xl p-5 sm:p-7 shadow-[0_0_60px_rgba(0,174,233,0.2)] text-left"
+              >
+                {/* Top Control: Close */}
+                <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-20">
+                  <button
+                    onClick={closeModal}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
 
-                {/* Prompt Details Right */}
-                <div className="md:col-span-7 flex flex-col justify-between space-y-6">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2 mb-3 pr-10 sm:pr-12">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00AEE9]/15 text-[#69FABD] border border-[#00AEE9]/30 text-xs font-mono">
-                        <Sparkles className="w-3.5 h-3.5 text-[#00AEE9]" />
-                        <span>{selectedItem.engine} • {selectedItem.duration}</span>
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-cyan-300 border border-[#00AEE9]/30 text-xs font-mono">
-                        <Type className="w-3.5 h-3.5 text-[#00AEE9]" />
-                        <span>{selectedItem.workflow || 'Text-to-Video'}</span>
-                      </div>
-                      {selectedItem.tags?.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10 text-xs font-mono"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center pt-2 sm:pt-0">
+                  {/* Visual Left Preview (9:16) — Vertically centered and never clipped */}
+                  <div className="md:col-span-5 flex flex-col items-center justify-center">
+                    <div className="w-full max-w-[250px] sm:max-w-[285px] max-h-[76vh] aspect-[9/16] rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
+                      <video
+                        src={resolveMediaUrl(selectedItem.src)}
+                        poster={resolveMediaUrl(selectedItem.poster)}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        controls
+                        preload="auto"
+                        className="w-full h-full object-cover bg-black"
+                      />
                     </div>
-
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white font-display mb-2">
-                      {selectedItem.title}
-                    </h3>
-
-                    {/* Master Prompt Full Box */}
-                    <div className="bg-black/60 border border-white/10 rounded-2xl p-4 mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-mono text-[#00AEE9] font-bold uppercase tracking-wider">
-                          Full Master Prompt
-                        </span>
-                        <button
-                          onClick={() => handleCopyPrompt(selectedItem.id, selectedItem.prompt)}
-                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-[#00AEE9]/30 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
-                        >
-                          {copiedId === selectedItem.id ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              <span className="text-emerald-300">Copiado</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-slate-300" />
-                              <span>Copiar</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-300 font-mono leading-relaxed select-all">
-                        {selectedItem.prompt}
-                      </p>
-                    </div>
-
-                    {/* Temporal Breakdown Accordion / Pills */}
-                    {selectedItem.breakdown && (
-                      <div className="space-y-2.5 text-xs font-sans">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                          <span className="font-mono text-[#69FABD] font-bold block mb-1">
-                            {selectedItem.duration === '45s' ? '⏱ 0–15s Establishing:' : selectedItem.duration === '30s' ? '⏱ 0–10s Establishing:' : '⏱ 0–5s Establishing:'}
-                          </span>
-                          <span className="text-slate-300">{selectedItem.breakdown.timing05}</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                          <span className="font-mono text-[#00AEE9] font-bold block mb-1">
-                            {selectedItem.duration === '45s' ? '⚡ 15–30s Dynamic Motion:' : selectedItem.duration === '30s' ? '⚡ 10–20s Dynamic Motion:' : '⚡ 5–10s Dynamic Motion:'}
-                          </span>
-                          <span className="text-slate-300">{selectedItem.breakdown.timing510}</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                          <span className="font-mono text-purple-400 font-bold block mb-1">
-                            {selectedItem.duration === '45s' ? '✨ 30–45s Climax & Texture:' : selectedItem.duration === '30s' ? '✨ 20–30s Climax & Texture:' : '✨ 10–15s Climax & Texture:'}
-                          </span>
-                          <span className="text-slate-300">{selectedItem.breakdown.timing1015}</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-                          <span className="font-mono text-amber-300 font-bold block mb-1">
-                            🔊 Sound (Integrated Foley):
-                          </span>
-                          <span className="text-slate-300">{selectedItem.breakdown.sound}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 pt-4 border-t border-white/10">
-                    <a
-                      href="#prompt-vault"
-                      onClick={closeModal}
-                      className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-2 py-3 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] hover:opacity-95 shadow-lg shadow-[#00AEE9]/20 transition-all whitespace-nowrap cursor-pointer"
-                    >
-                      <Sparkles className="w-5 h-5 shrink-0 text-[#070A0F]" />
-                      <span>{t('showcase.ctaCardBtn')}</span>
-                    </a>
+                  {/* Prompt Details Right */}
+                  <div className="md:col-span-7 flex flex-col justify-between space-y-4 min-w-0">
+                    <div className="space-y-3.5">
+                      <div className="flex flex-wrap items-center gap-1.5 pr-10 sm:pr-12">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00AEE9]/15 text-[#69FABD] border border-[#00AEE9]/30 text-[11px] font-mono">
+                          <Sparkles className="w-3.5 h-3.5 text-[#00AEE9]" />
+                          <span>{selectedItem.engine} • {selectedItem.duration}</span>
+                        </div>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-cyan-300 border border-[#00AEE9]/30 text-[11px] font-mono">
+                          <Type className="w-3.5 h-3.5 text-[#00AEE9]" />
+                          <span>{selectedItem.workflow || 'Text-to-Video'}</span>
+                        </div>
+                        {selectedItem.tags?.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10 text-[11px] font-mono"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
 
-                    <button
-                      onClick={handleShareVideo}
-                      className={`inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                        copiedLink
-                          ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/20'
-                          : 'text-slate-200 bg-white/10 hover:bg-white/15 border border-white/15 hover:border-white/30'
-                      }`}
-                      title={t('showcase.shareVideo')}
-                    >
-                      {copiedLink ? (
-                        <>
-                          <Check className="w-5 h-5 shrink-0 text-emerald-400" />
-                          <span>{t('showcase.videoLinkCopied')}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Share2 className="w-5 h-5 shrink-0 text-[#00AEE9]" />
-                          <span>{t('showcase.shareVideo')}</span>
-                        </>
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-white font-display leading-tight">
+                        {selectedItem.title}
+                      </h3>
+
+                      {/* Master Prompt Full Box */}
+                      <div className="bg-black/60 border border-white/10 rounded-2xl p-3.5">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[11px] font-mono text-[#00AEE9] font-bold uppercase tracking-wider">
+                            {isEs ? 'Prompt Maestro Completo' : 'Full Master Prompt'}
+                          </span>
+                          <button
+                            onClick={() => handleCopyPrompt(selectedItem.id, selectedItem.prompt)}
+                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-[#00AEE9]/30 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                          >
+                            {copiedId === selectedItem.id ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="text-emerald-300">{isEs ? 'Copiado' : 'Copied'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5 text-slate-300" />
+                                <span>{isEs ? 'Copiar' : 'Copy'}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <div className="max-h-32 overflow-y-auto pr-1">
+                          <p className="text-xs text-slate-300 font-mono leading-relaxed select-all">
+                            {selectedItem.prompt}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Temporal Breakdown in Clean 2x2 Grid so everything fits on screen */}
+                      {selectedItem.breakdown && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-sans">
+                          <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                            <span className="font-mono text-[#69FABD] font-bold block mb-1">
+                              {selectedItem.duration === '45s' ? '⏱ 0–15s Establishing:' : selectedItem.duration === '30s' ? '⏱ 0–10s Establishing:' : '⏱ 0–5s Establishing:'}
+                            </span>
+                            <span className="text-slate-300 leading-snug block">{selectedItem.breakdown.timing05}</span>
+                          </div>
+                          <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                            <span className="font-mono text-[#00AEE9] font-bold block mb-1">
+                              {selectedItem.duration === '45s' ? '⚡ 15–30s Dynamic Motion:' : selectedItem.duration === '30s' ? '⚡ 10–20s Dynamic Motion:' : '⚡ 5–10s Dynamic Motion:'}
+                            </span>
+                            <span className="text-slate-300 leading-snug block">{selectedItem.breakdown.timing510}</span>
+                          </div>
+                          <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                            <span className="font-mono text-purple-400 font-bold block mb-1">
+                              {selectedItem.duration === '45s' ? '✨ 30–45s Climax & Texture:' : selectedItem.duration === '30s' ? '✨ 20–30s Climax & Texture:' : '✨ 10–15s Climax & Texture:'}
+                            </span>
+                            <span className="text-slate-300 leading-snug block">{selectedItem.breakdown.timing1015}</span>
+                          </div>
+                          <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                            <span className="font-mono text-amber-300 font-bold block mb-1">
+                              🔊 Sound (Integrated Foley):
+                            </span>
+                            <span className="text-slate-300 leading-snug block">{selectedItem.breakdown.sound}</span>
+                          </div>
+                        </div>
                       )}
-                    </button>
+                    </div>
 
-                    <a
-                      href={selectedItem.youtubeUrl || "https://www.youtube.com/@mintbes6411/shorts"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => analytics.youtubeClick(selectedItem)}
-                      className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all whitespace-nowrap cursor-pointer group"
-                      title={t('showcase.watchOnYoutube')}
-                    >
-                      <Youtube className="w-5 h-5 shrink-0 text-red-500 group-hover:scale-110 transition-transform" />
-                      <span>{t('showcase.watchOnYoutube')}</span>
-                    </a>
+                    {/* Actions — Responsive Wrap with Zero Clipping or Horizontal Scroll */}
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-3 border-t border-white/10">
+                      <a
+                        href="#prompt-vault"
+                        onClick={closeModal}
+                        className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold text-[#070A0F] bg-gradient-to-r from-[#00AEE9] to-[#69FABD] hover:opacity-95 shadow-lg shadow-[#00AEE9]/20 transition-all cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4 shrink-0 text-[#070A0F]" />
+                        <span>{t('showcase.ctaCardBtn')}</span>
+                      </a>
 
-                    <button
-                      onClick={closeModal}
-                      className="px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      {t('showcase.closeModal')}
-                    </button>
+                      <button
+                        onClick={handleShareVideo}
+                        className={`inline-flex items-center justify-center gap-2 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          copiedLink
+                            ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-lg shadow-emerald-500/20'
+                            : 'text-slate-200 bg-white/10 hover:bg-white/15 border border-white/15 hover:border-white/30'
+                        }`}
+                        title={t('showcase.shareVideo')}
+                      >
+                        {copiedLink ? (
+                          <>
+                            <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+                            <span>{t('showcase.videoLinkCopied')}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Share2 className="w-4 h-4 shrink-0 text-[#00AEE9]" />
+                            <span>{t('showcase.shareVideo')}</span>
+                          </>
+                        )}
+                      </button>
+
+                      <a
+                        href={selectedItem.youtubeUrl || "https://www.youtube.com/@mintbes6411/shorts"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => analytics.youtubeClick(selectedItem)}
+                        className="inline-flex items-center justify-center gap-2 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 hover:border-red-500/70 transition-all cursor-pointer group"
+                        title={t('showcase.watchOnYoutube')}
+                      >
+                        <Youtube className="w-4 h-4 shrink-0 text-red-500 group-hover:scale-110 transition-transform" />
+                        <span>{t('showcase.watchOnYoutube')}</span>
+                      </a>
+
+                      <button
+                        onClick={closeModal}
+                        className="ml-auto px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 transition-colors cursor-pointer"
+                      >
+                        {t('showcase.closeModal')}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>,
-      document.body
-    )}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 };
